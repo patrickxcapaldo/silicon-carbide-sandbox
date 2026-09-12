@@ -21,12 +21,20 @@ export interface Result {
   warnings?: string[];
 }
 
+export interface SubstackArticle {
+  title: string;
+  url: string;
+  publishedAt: string; // ISO date string: YYYY-MM-DD
+  summary?: string;
+}
+
 export interface Manifest {
   id: string;
   title: string;
   summary: string;
   tags: string[];
-  articleUrl?: string;
+  articleUrl?: string; // Main editorial link
+  relatedArticles?: SubstackArticle[]; // Tagged/sorted article series
   parameters: Parameter[];
   equations: Equation[];
 }

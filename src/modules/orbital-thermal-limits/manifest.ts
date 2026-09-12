@@ -4,8 +4,16 @@ export const manifest: Manifest = {
   id: 'orbital-thermal-limits',
   title: 'Orbital Compute Thermal Rejection Limits',
   summary: 'Calculate the maximum allowable thermal power (TDP) an orbital satellite compute payload can dissipate in Low Earth Orbit (LEO) via radiator surface area before overheating.',
-  tags: ['space', "thermal-physics", 'orbital-compute', 'ai-infrastructure'],
+  tags: ['space', 'thermal-physics', 'orbital-compute', 'ai-infrastructure'],
   articleUrl: 'https://thesiliconcarbide.substack.com',
+  relatedArticles: [
+    {
+      title: 'Part 1: The Radiative Heat Barrier in LEO AI Satellites',
+      url: 'https://thesiliconcarbide.substack.com/p/orbital-thermal-limits-part-1',
+      publishedAt: '2026-09-01',
+      summary: 'First-principles breakdown of Stefan-Boltzmann radiational limits on GPU/NPU architectures in vacuum.',
+    },
+  ],
   parameters: [
     {
       id: 'radiatorArea',

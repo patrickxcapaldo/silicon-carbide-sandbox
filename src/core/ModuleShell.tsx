@@ -27,7 +27,7 @@ export const ModuleShell: React.FC<ModuleShellProps> = ({ module }) => {
     <div style={{ maxWidth: '850px', margin: '0 auto', padding: '2rem', fontFamily: 'sans-serif' }}>
       <header style={{ marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
         <a href={manifest.articleUrl} target="_blank" rel="noreferrer" style={{ color: '#0066cc', textDecoration: 'none', fontWeight: 'bold' }}>
-          ← Read Analysis on Silicon Carbide Substack
+          Read Analysis on Silicon Carbide
         </a>
         <h1 style={{ marginTop: '0.75rem', marginBottom: '0.5rem' }}>{manifest.title}</h1>
         <p style={{ color: '#555', margin: 0 }}>{manifest.summary}</p>
