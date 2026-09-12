@@ -26,26 +26,68 @@ export function App() {
 
   if (currentModule) {
     return (
-      <div>
-        <nav style={{ padding: '0.8rem 2rem', borderBottom: '1px solid #eee', background: '#fafafa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button 
+      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+        <nav
+          style={{
+            padding: '0.6rem 1.5rem',
+            borderBottom: '1px solid var(--nav-border)',
+            background: 'var(--nav-bg)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+          }}
+        >
+          <button
             onClick={() => setSelectedModuleId(null)}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: '#0066cc', 
-              cursor: 'pointer', 
-              fontWeight: 'bold',
-              fontSize: '0.9rem' 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'none',
+              border: 'none',
+              color: 'var(--accent)',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '0.85rem',
+              fontFamily: 'var(--sans)',
+              padding: '0.3rem 0.5rem',
+              borderRadius: '6px',
+              marginLeft: '-0.5rem',
             }}
           >
-            ← Home
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M10 12L6 8L10 4" />
+            </svg>
+            Home
           </button>
-          <span style={{ fontSize: '0.85rem', color: '#777' }}>
+          <span
+            style={{
+              fontSize: '0.75rem',
+              color: 'var(--text-muted)',
+              fontFamily: 'var(--mono)',
+              letterSpacing: '0.02em',
+            }}
+          >
             SiC Sandbox v1.0
           </span>
         </nav>
-        <ModuleShell module={currentModule} />
+        <div style={{ flex: 1 }}>
+          <ModuleShell module={currentModule} />
+        </div>
       </div>
     );
   }
