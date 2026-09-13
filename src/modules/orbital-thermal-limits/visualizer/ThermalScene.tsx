@@ -1,39 +1,40 @@
-import { Grid, OrbitControls, Stars } from '@react-three/drei';
+import { Line, OrbitControls, Stars } from '@react-three/drei';
 import type { ThermalDerived, ThermalState } from './types';
 import { CoolantLoop } from './CoolantLoop';
 import { Radiator } from './Radiator';
 import { SatelliteBus } from './SatelliteBus';
 import { ThermalEnvironment } from './ThermalEnvironment';
+import { orbitPoints, satelliteOrbitPosition } from './orbit';
 
 type Props = { state: ThermalState; derived: ThermalDerived };
 
 export function ThermalScene({ state, derived }: Props) {
-  return (
-    <>
-      <ThermalEnvironment solarLoadWm2={state.solarLoadWm2} sinkTempK={state.sinkTempK} />
-      <Stars radius={65} depth={30} count={1300} factor={2.8} saturation={0.2} fade speed={0.15} />
-
-      <group rotation={[0.12, -0.22, -0.04]}>
-        <SatelliteBus satelliteTempC={state.satelliteTempC} />
-        <Radiator side={-1} radiatorArea={state.radiatorArea} fluxWm2={derived.radiatorFluxWm2} solarLoadWm2={state.solarLoadWm2} />
-        <Radiator side={1} radiatorArea={state.radiatorArea} fluxWm2={derived.radiatorFluxWm2} solarLoadWm2={state.solarLoadWm2} />
-        <CoolantLoop side={-1} radiatorArea={state.radiatorArea} operatingTempC={state.operatingTempC} flowRateKgS={state.flowRateKgS} />
-        <CoolantLoop side={1} radiatorArea={state.radiatorArea} operatingTempC={state.operatingTempC} flowRateKgS={state.flowRateKgS} />
-      </group>
-
-      <Grid
-        position={[0, -3.1, 0]}
-        args={[20, 20]}
-        cellSize={1}
-        cellThickness={0.2}
-        sectionSize={5}
-        sectionThickness={0.45}
-        fadeDistance={18}
-        fadeStrength={1.2}
-        infiniteGrid
-      />
-
-      <OrbitControls makeDefault enableDamping dampingFactor={0.06} minDistance={5} maxDistance={17} />
-    </>
-  );
+  const satPos = satelliteOrbitPosition(state.orbitAltitudeKm, state.orbitInclinationDeg, state.orbitRaanDeg, state.orbitArgumentDeg, state.orbitPhaseDeg, state.orbitEccentricity);
+  const orbit = orbitPoints(state.orbitAltitudeKm, state.orbitInclinationDeg, state.orbitRaanDeg, state.orbitArgumentDeg, state.orbitEccentricity);
+  return <>
+    <ThermalEnvironment
+      solarLoadWm2={state.solarLoadWm2}
+      sinkTempK={state.sinkTempK}
+      earthIrTempK={state.earthIrTempK}
+      earthViewFactor={state.earthViewFactor}
+      earthAlbedo={state.earthAlbedo}
+      sunIncidence={state.sunIncidence}
+      orbitAltitudeKm={state.orbitAltitudeKm}
+      orbitEccentricity={state.orbitEccentricity}
+      orbitInclinationDeg={state.orbitInclinationDeg}
+      orbitRaanDeg={state.orbitRaanDeg}
+      orbitArgumentDeg={state.orbitArgumentDeg}
+      orbitPhaseDeg={state.orbitPhaseDeg}
+    />
+    <Stars radius={90} depth={50} count={1800} factor={1.6} saturation={0.15} fade speed={0.12} />
+    <Line points={orbit} color="#7ecfff" transparent opacity={0.55} lineWidth={1.3} />
+    <group position={satPos.toArray()} rotation={[0, 0, 0]}>
+      <SatelliteBus satelliteTempC={state.satelliteTempC} />
+      <Radiator side={-1} radiatorArea={state.radiatorArea} fluxWm2={derived.radiatorFluxWm2} solarLoadWm2={state.solarLoadWm2} solarAbsorptivity={state.solarAbsorptivity} />
+      <Radiator side={1} radiatorArea={state.radiatorArea} fluxWm2={derived.radiatorFluxWm2} solarLoadWm2={state.solarLoadWm2} solarAbsorptivity={state.solarAbsorptivity} />
+      <CoolantLoop side={-1} radiatorArea={state.radiatorArea} operatingTempC={state.operatingTempC} flowRateKgS={state.flowRateKgS} />
+      <CoolantLoop side={1} radiatorArea={state.radiatorArea} operatingTempC={state.operatingTempC} flowRateKgS={state.flowRateKgS} />
+    </group>
+    <OrbitControls makeDefault enableDamping dampingFactor={0.07} minDistance={7} maxDistance={22} target={[0, 0, 0]} />
+  </>;
 }

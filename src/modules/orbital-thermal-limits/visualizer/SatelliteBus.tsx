@@ -5,32 +5,26 @@ type Props = { satelliteTempC: number };
 
 export function SatelliteBus({ satelliteTempC }: Props) {
   const color = useMemo(() => temperatureColor(satelliteTempC), [satelliteTempC]);
-  const heat = inverseLerp(20, 135, satelliteTempC);
-
+  const heat = inverseLerp(20, 150, satelliteTempC);
   return (
     <group>
       <mesh castShadow receiveShadow>
-        <boxGeometry args={[2.4, 1.75, 2.2]} />
-        <meshStandardMaterial
-          color={color}
-          metalness={0.82}
-          roughness={0.28}
-          emissive={color}
-          emissiveIntensity={0.03 + heat * heat * 3.0}
-        />
+        <boxGeometry args={[0.48, 0.36, 0.42]} />
+        <meshStandardMaterial color={color} metalness={0.75} roughness={0.32} emissive={color} emissiveIntensity={0.08 + heat * 0.5} />
       </mesh>
-
-      {/* Structural panels / MLI details */}
-      {[-1.12, 1.12].map((z) => (
+      {[-0.215, 0.215].map((z) => (
         <mesh key={z} position={[0, 0, z]}>
-          <boxGeometry args={[2.05, 1.4, 0.035]} />
-          <meshStandardMaterial color="#b79b47" metalness={0.75} roughness={0.36} />
+          <boxGeometry args={[0.40, 0.29, 0.012]} />
+          <meshStandardMaterial color="#c6aa55" metalness={0.65} roughness={0.4} />
         </mesh>
       ))}
-
-      <mesh position={[0, 1.05, 0]}>
-        <cylinderGeometry args={[0.42, 0.48, 0.42, 32]} />
-        <meshStandardMaterial color="#9ca6ad" metalness={0.9} roughness={0.2} />
+      <mesh position={[0, 0.24, 0]} castShadow>
+        <cylinderGeometry args={[0.08, 0.08, 0.04, 24]} />
+        <meshStandardMaterial color="#aeb7bd" metalness={0.85} roughness={0.22} />
+      </mesh>
+      <mesh position={[0, -0.22, 0]}>
+        <cylinderGeometry args={[0.035, 0.035, 0.04, 16]} />
+        <meshStandardMaterial color="#202a32" metalness={0.5} roughness={0.35} />
       </mesh>
     </group>
   );

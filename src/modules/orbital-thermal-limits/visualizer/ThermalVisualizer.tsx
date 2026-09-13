@@ -6,101 +6,60 @@ import { useThermalGui } from './useThermalGui';
 import type { ThermalState } from './types';
 
 const INITIAL_STATE: ThermalState = {
-  satelliteTempC: 45,
-  operatingTempC: 70,
-  radiatorArea: 2,
-  emissivity: 0.9,
-  sinkTempK: 180,
-  solarLoadWm2: 700,
-  flowRateKgS: 0.35,
+  satelliteTempC: 45, operatingTempC: 70, radiatorArea: 2, emissivity: 0.9, solarAbsorptivity: 0.12,
+  sinkTempK: 180, earthIrTempK: 255, earthViewFactor: 0.35, earthAlbedo: 0.30,
+  solarLoadWm2: 700, sunIncidence: 0.75, flowRateKgS: 0.35, coolantDeltaT: 10, parasiticHeatW: 40,
+  orbitAltitudeKm: 550, orbitEccentricity: 0.01, orbitInclinationDeg: 51.6, orbitRaanDeg: 25, orbitArgumentDeg: 0, orbitPhaseDeg: 35,
 };
 
-type ThermalVisualizerProps = {
-  initialState?: ThermalState;
-  onStateChange?: (state: ThermalState) => void;
-};
+type ThermalVisualizerProps = { initialState?: Partial<ThermalState>; onStateChange?: (state: ThermalState) => void; };
 
-export function ThermalVisualizer({
-  initialState = INITIAL_STATE,
-  onStateChange,
-}: ThermalVisualizerProps) {
-  const [state, setState] = useState<ThermalState>(initialState);
+export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange }: ThermalVisualizerProps) {
+  const [state, setState] = useState<ThermalState>({ ...INITIAL_STATE, ...initialState });
   const sectionRef = useRef<HTMLElement | null>(null);
-
-  const setStateWithCallback: Dispatch<SetStateAction<ThermalState>> = (
-    update
-  ) => {
-    setState((current) => {
-      const nextState =
-        typeof update === 'function'
-          ? (update as (currentState: ThermalState) => ThermalState)(current)
-          : update;
-
-      onStateChange?.(nextState);
-      return nextState;
-    });
-  };
-
+  const setStateWithCallback: Dispatch<SetStateAction<ThermalState>> = (update) => setState(current => {
+    const next = typeof update === 'function' ? (update as (s: ThermalState) => ThermalState)(current) : update;
+    onStateChange?.(next); return next;
+  });
   useThermalGui(state, setStateWithCallback, sectionRef);
-
-  const derived = useMemo(() => {
-    const result = compute({
-      radiatorArea: state.radiatorArea,
-      emissivity: state.emissivity,
-      operatingTempC: state.operatingTempC,
-      sinkTempK: state.sinkTempK,
-    });
-    const radiatorPowerW = result.outputs.maxTdpWatts.value;
+  const derived = useMemo<ThermalDerived>(() => {
+    const r = compute(state);
+    const max = Number(r.outputs.maxTdpWatts.value);
+    const gross = Number(r.outputs.radiativeRejectionW.value);
+    const external = Number(r.outputs.externalHeatW.value);
+    const transport = Number(r.outputs.transportCapacityW.value);
+    const margin = max / Math.max(1, gross);
+    const status = gross - external < 0 ? 'OVERHEATING' : margin < 0.15 ? 'LIMIT' : margin < 0.35 ? 'MARGIN' : 'SAFE';
     return {
-      radiatorPowerW,
-      radiatorFluxWm2: radiatorPowerW / Math.max(state.radiatorArea, 0.001),
-      absorbedSolarW: state.solarLoadWm2 * state.radiatorArea,
+      radiatorPowerW: gross,
+      radiatorFluxWm2: Number(r.outputs.radiatorFluxWm2.value),
+      absorbedSolarW: state.solarAbsorptivity * state.solarLoadWm2 * state.radiatorArea * state.sunIncidence,
+      absorbedAlbedoW: state.solarAbsorptivity * state.solarLoadWm2 * state.earthAlbedo * state.radiatorArea * state.sunIncidence * state.earthViewFactor,
+      absorbedEarthIrW: state.emissivity * 5.670374419e-8 * state.radiatorArea * state.earthViewFactor * Math.pow(state.earthIrTempK, 4),
+      externalHeatW: external,
+      transportCapacityW: transport,
+      netCapacityW: max,
+      status,
     };
   }, [state]);
 
-  return (
-    <section
-      className="thermal-visualizer"
-      ref={sectionRef}
-      style={{
-        position: 'relative',
-        width: '100%',
-        maxWidth: '1000px',
-        margin: '0 auto',
-        height: '680px',
-        minHeight: 500,
-        border: '1px solid var(--border)',
-        borderRadius: '14px',
-        overflow: 'hidden',
-        background: 'rgba(10, 15, 22, 0.85)',
-        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.18)',
-      }}
-    >
-      <Canvas
-        shadows
-        dpr={[1, 2]}
-        camera={{ position: [7.2, 5.1, 8.7], fov: 43, near: 0.1, far: 150 }}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
-      >
-        <Suspense fallback={null}>
-          <ThermalScene state={state} derived={derived} />
-        </Suspense>
-      </Canvas>
+  const metric = (value: number, unit = 'W') => `${value >= 1000 ? (value / 1000).toFixed(2) + ' kW' : Math.round(value) + ' ' + unit}`;
+  return <section ref={sectionRef} style={{ position: 'relative', width: '100%', maxWidth: '1200px', margin: '0 auto', height: '760px', minHeight: 600, border: '1px solid rgba(150,190,220,.28)', borderRadius: 16, overflow: 'hidden', background: '#07111e', boxShadow: '0 18px 50px rgba(0,0,0,.28)' }}>
+    <Canvas shadows dpr={[1, 2]} camera={{ position: [8.4, 6.4, 9.2], fov: 45, near: 0.05, far: 120 }} gl={{ antialias: true, powerPreference: 'high-performance' }}>
+      <Suspense fallback={null}><ThermalScene state={state} derived={derived} /></Suspense>
+    </Canvas>
 
-      <section
-        aria-label="thermal telemetry"
-        style={{
-          position: 'absolute', left: 16, bottom: 16, display: 'grid',
-          gridTemplateColumns: 'repeat(4, minmax(120px, 1fr))', gap: 8,
-          padding: 10, background: 'rgba(5,8,14,.82)', border: '1px solid rgba(255,255,255,.12)',
-          borderRadius: 10, color: '#fff', backdropFilter: 'blur(8px)', width: 'calc(100% - 32px)',
-        }}
-      >
-        <div><small>Net radiator rejection</small><br /><strong>{(derived.radiatorPowerW / 1000).toFixed(2)} kW</strong></div>
-        <div><small>Radiator heat flux</small><br /><strong>{derived.radiatorFluxWm2.toFixed(0)} W/m²</strong></div>
-        <div><small>Solar incidence</small><br /><strong>{state.solarLoadWm2.toFixed(0)} W/m²</strong></div>
-        <div><small>Loop temperature</small><br /><strong>{state.operatingTempC.toFixed(0)} °C</strong></div>
-      </section>
+    <div style={{ position: 'absolute', left: 16, top: 16, zIndex: 20, padding: '9px 12px', borderRadius: 10, background: 'rgba(8,18,31,.82)', border: '1px solid rgba(160,205,235,.25)', color: '#eaf6ff', backdropFilter: 'blur(8px)', fontSize: 12 }}>
+      <strong>Orbital thermal balance</strong><br />
+      <span style={{ opacity: .72 }}>Earth is shown at orbital-context scale; spacecraft is deliberately enlarged for visibility.</span>
+    </div>
+
+    <section aria-label="thermal telemetry" style={{ position: 'absolute', left: 16, right: 16, bottom: 16, display: 'grid', gridTemplateColumns: 'repeat(5, minmax(110px,1fr))', gap: 8, padding: 10, background: 'rgba(5,12,22,.88)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 12, color: '#fff', backdropFilter: 'blur(10px)', zIndex: 20 }}>
+      <div><small>Compute heat limit</small><br /><strong>{metric(derived.netCapacityW)}</strong></div>
+      <div><small>Gross radiation</small><br /><strong>{metric(derived.radiatorPowerW)}</strong></div>
+      <div><small>External loads</small><br /><strong>{metric(derived.externalHeatW)}</strong></div>
+      <div><small>Coolant capacity</small><br /><strong>{metric(derived.transportCapacityW)}</strong></div>
+      <div><small>Status</small><br /><strong>{derived.status}</strong></div>
     </section>
-  );
+  </section>;
 }
