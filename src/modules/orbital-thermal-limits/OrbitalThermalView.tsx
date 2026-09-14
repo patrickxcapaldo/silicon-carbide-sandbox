@@ -10,7 +10,7 @@ export const OrbitalThermalView: React.FC<OrbitalThermalViewProps> = ({ inputs, 
     emissivity: inputs.emissivity ?? 0.9, solarAbsorptivity: inputs.solarAbsorptivity ?? 0.12, sinkTempK: inputs.sinkTempK ?? 180,
     earthIrTempK: inputs.earthIrTempK ?? 255, earthViewFactor: inputs.earthViewFactor ?? 0.35, earthAlbedo: inputs.earthAlbedo ?? 0.30,
     solarLoadWm2: inputs.solarLoadWm2 ?? 700, sunIncidence: inputs.sunIncidence ?? 0.75, flowRateKgS: inputs.flowRateKgS ?? 0.35,
-    coolantDeltaT: inputs.coolantDeltaT ?? 10, parasiticHeatW: inputs.parasiticHeatW ?? 40,
+    coolantDeltaT: inputs.coolantDeltaT ?? 10, parasiticHeatW: inputs.parasiticHeatW ?? 40, computeWattsRequested: inputs.computeWattsRequested ?? 300,
     orbitAltitudeKm: inputs.orbitAltitudeKm ?? 550, orbitEccentricity: inputs.orbitEccentricity ?? 0.01, orbitInclinationDeg: inputs.orbitInclinationDeg ?? 51.6,
     orbitRaanDeg: inputs.orbitRaanDeg ?? 25, orbitArgumentDeg: inputs.orbitArgumentDeg ?? 0, orbitPhaseDeg: inputs.orbitPhaseDeg ?? 35,
   }), [inputs]);

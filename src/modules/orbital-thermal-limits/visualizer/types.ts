@@ -13,6 +13,7 @@ export type ThermalState = {
   flowRateKgS: number;
   coolantDeltaT: number;
   parasiticHeatW: number;
+  computeWattsRequested: number;
   orbitAltitudeKm: number;
   orbitEccentricity: number;
   orbitInclinationDeg: number;
@@ -20,6 +21,8 @@ export type ThermalState = {
   orbitArgumentDeg: number;
   orbitPhaseDeg: number;
 };
+
+export type ThermalStatus = 'SAFE' | 'MARGIN' | 'LIMIT' | 'OVERHEATING';
 
 export type ThermalDerived = {
   radiatorPowerW: number;
@@ -30,5 +33,8 @@ export type ThermalDerived = {
   externalHeatW: number;
   transportCapacityW: number;
   netCapacityW: number;
-  status: 'SAFE' | 'MARGIN' | 'LIMIT' | 'OVERHEATING';
+  computeWattsRequested: number;
+  computeDeficitW: number;
+  computeUtilization: number;
+  status: ThermalStatus;
 };

@@ -28,6 +28,7 @@ export function compute(inputs: Record<string, number>): Result {
   const parasitic = Math.max(0, n(inputs.parasiticHeatW, 40));
   const coolantDeltaT = Math.max(0, n(inputs.coolantDeltaT, 10));
   const flow = Math.max(0, n(inputs.flowRateKgS, 0.35));
+  const computeWattsRequested = Math.max(0, n(inputs.computeWattsRequested, 300));
 
   // The radiator is split into two faces. Area is the total emitting area.
   // Deep-space and Earth-facing portions are approximated with a user-visible
@@ -51,12 +52,15 @@ export function compute(inputs: Record<string, number>): Result {
   const transportCapacityW = flow * coolantCp * coolantDeltaT;
   const netRadiatorCapacityW = radiativeRejectionW - externalHeatW - parasitic;
   const maxTdpWatts = Math.max(0, Math.min(netRadiatorCapacityW, transportCapacityW));
+  const computeDeficitW = computeWattsRequested - maxTdpWatts;
+  const computeUtilization = maxTdpWatts > 0 ? computeWattsRequested / maxTdpWatts : (computeWattsRequested > 0 ? Infinity : 0);
 
   const warnings: string[] = [];
   if (netRadiatorCapacityW <= 0) warnings.push('External thermal loading and parasitic heat exceed net radiator rejection at the selected temperature.');
   if (transportCapacityW < netRadiatorCapacityW) warnings.push('Coolant transport capacity is the limiting factor; increase flow or allowable coolant ΔT.');
   if (radTempK <= spaceSinkK) warnings.push('Radiator temperature is at or below the effective space sink; net radiation is not physically available.');
   if (earthView > 0.75) warnings.push('High Earth view factor substantially reduces deep-space radiative rejection and increases Earth IR loading.');
+  if (computeDeficitW > 0) warnings.push(`Requested compute power exceeds the rejectable heat budget by ${Math.round(computeDeficitW)} W; reduce compute load or increase radiator/coolant capacity.`);
 
   return {
     outputs: {
@@ -89,6 +93,18 @@ export function compute(inputs: Record<string, number>): Result {
         description: 'Altitude above mean Earth radius.',
       },
       orbitEccentricity: { label: 'Eccentricity', value: n(inputs.orbitEccentricity, 0.01), unit: 'e', description: 'Orbital eccentricity.' },
+      computeWattsRequested: {
+        label: 'Requested Compute Power', value: Math.round(computeWattsRequested), unit: 'W',
+        description: 'AI compute electrical power the operator wants to run continuously (assumed to convert almost entirely to waste heat).',
+      },
+      computeDeficitW: {
+        label: 'Compute Thermal Deficit', value: Math.round(computeDeficitW), unit: 'W',
+        description: 'Requested compute power minus the maximum rejectable heat. Positive means the load cannot be sustained thermally.',
+      },
+      computeUtilization: {
+        label: 'Thermal Budget Utilization', value: Number.isFinite(computeUtilization) ? parseFloat((computeUtilization * 100).toFixed(1)) : 999,
+        unit: '%', description: 'Requested compute power as a percentage of the maximum rejectable heat.',
+      },
       orbitRadiusEarthRadii: {
         label: 'Orbit Radius', value: parseFloat(((EARTH_RADIUS_KM + n(inputs.orbitAltitudeKm, 550)) / EARTH_RADIUS_KM).toFixed(3)), unit: 'R⊕',
         description: 'Orbital radius expressed in Earth radii.',
