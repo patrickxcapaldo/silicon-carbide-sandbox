@@ -4,8 +4,10 @@ import type { ThermalDerived, ThermalState } from './types';
 import { CoolantLoop } from './CoolantLoop';
 import { Radiator } from './Radiator';
 import { SatelliteBus } from './SatelliteBus';
+import { SolarPanel } from './SolarPanel';
 import { ThermalEnvironment } from './ThermalEnvironment';
 import { CloseupBackdrop } from './CloseupBackdrop';
+import { clamp01 } from './thermalColor';
 import { EARTH_RADIUS_SCENE, orbitPoints, orbitRadiusScene, satelliteOrbitPosition } from './orbit';
 
 export type ViewMode = 'orbit' | 'closeup';
@@ -14,10 +16,11 @@ export type CameraFocus = 'earth' | 'satellite';
 type Props = { state: ThermalState; derived: ThermalDerived; viewMode: ViewMode; cameraFocus: CameraFocus };
 
 // The satellite model's farthest reach from its own center, at full (1x)
-// scale, once radiator panels are extended to their maximum configured area.
-// Used to guarantee the shrunk "orbit view" marker never visually reaches
-// back down into the Earth mesh, at any altitude/eccentricity combination.
-const SATELLITE_MAX_REACH_SCENE = 2.0;
+// scale, once radiator panels AND solar array wings are extended to their
+// maximum configured area. Used to guarantee the shrunk "orbit view" marker
+// never visually reaches back down into the Earth mesh, at any
+// altitude/eccentricity combination.
+const SATELLITE_MAX_REACH_SCENE = 2.7;
 // Ceiling on how large the marker is ever allowed to look in orbit view --
 // keeps it a small, readable "here's the spacecraft" dot rather than a
 // giant, not-to-scale model looming over the planet at high altitudes.
@@ -74,6 +77,8 @@ export function ThermalScene({ state, derived, viewMode, cameraFocus }: Props) {
       <Radiator side={1} radiatorArea={state.radiatorArea} fluxWm2={derived.radiatorFluxWm2} solarLoadWm2={state.solarLoadWm2} solarAbsorptivity={state.solarAbsorptivity} />
       <CoolantLoop side={-1} radiatorArea={state.radiatorArea} operatingTempC={state.operatingTempC} flowRateKgS={state.flowRateKgS} />
       <CoolantLoop side={1} radiatorArea={state.radiatorArea} operatingTempC={state.operatingTempC} flowRateKgS={state.flowRateKgS} />
+      <SolarPanel side={-1} areaM2={state.solarPanelAreaM2} pointingFactor={state.solarPanelPointingFactor} generationFactor={clamp01(state.solarLoadWm2 / 1600) * state.solarPanelPointingFactor} />
+      <SolarPanel side={1} areaM2={state.solarPanelAreaM2} pointingFactor={state.solarPanelPointingFactor} generationFactor={clamp01(state.solarLoadWm2 / 1600) * state.solarPanelPointingFactor} />
     </group>
 
     <OrbitControls

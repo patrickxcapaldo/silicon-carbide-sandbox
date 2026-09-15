@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Stars, Html } from '@react-three/drei';
 import { clamp01 } from './thermalColor';
+import { SUN_DIRECTION } from './sceneConstants';
 
 type Props = { solarLoadWm2: number; earthViewFactor: number };
 
@@ -22,7 +23,7 @@ export function CloseupBackdrop({ solarLoadWm2, earthViewFactor }: Props) {
       <color attach="background" args={['#07111e']} />
       <ambientLight intensity={1.15} />
       <hemisphereLight args={['#c9e5ff', '#16243a', 1.3]} />
-      <directionalLight position={[-7, 3.5, 5]} intensity={2.4 + solar * 2.2} color="#fff1cf" castShadow />
+      <directionalLight position={SUN_DIRECTION.clone().multiplyScalar(9).toArray()} intensity={2.4 + solar * 2.2} color="#fff1cf" castShadow />
 
       <mesh position={[1.6, -6.2, -4.5]} receiveShadow>
         <sphereGeometry args={[5.4, 96, 64]} />

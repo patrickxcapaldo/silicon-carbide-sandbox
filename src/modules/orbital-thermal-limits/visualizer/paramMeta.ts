@@ -79,7 +79,7 @@ export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
   },
   parasiticHeatW: {
     label: 'Parasitic heat', unit: 'W', min: 0, max: 500, step: 5,
-    description: 'Heat from pumps, avionics, wiring losses, and other non-compute hardware that also has to be rejected through the same radiator.',
+    description: 'Heat from pumps, avionics, wiring losses, and other non-compute hardware that also has to be rejected through the same radiator. Also used as a stand-in for that hardware\u2019s electrical draw in the power budget below.',
   },
 
   // Spacecraft / environment
@@ -100,5 +100,19 @@ export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
   computeWattsRequested: {
     label: 'Requested compute power', unit: 'W', min: 0, max: 5000, step: 10,
     description: 'Continuous electrical power drawn by the onboard AI compute, almost all of which ends up as waste heat that must cross the same radiator/coolant path. For scale: an edge inference module draws tens of watts, a single H100-class GPU is ~700 W, and a GB300-class GPU is ~1,400 W \u2014 see the quick-select buttons below.',
+  },
+
+  // Power / solar array
+  solarPanelAreaM2: {
+    label: 'Solar array area', unit: 'm\u00b2', min: 0.5, max: 30, step: 0.5,
+    description: 'Total active solar cell area across both deployed array wings. Larger arrays generate more power but add mass, drag, and deployment complexity.',
+  },
+  solarPanelEfficiency: {
+    label: 'Solar cell efficiency', unit: '\u03b7', min: 0.05, max: 0.4, step: 0.01,
+    description: 'Net electrical efficiency of the array (cell physics + packing density + wiring losses combined). Modern space-grade triple-junction cells run ~28\u201332%; older/cheaper silicon cells are closer to 14\u201320%.',
+  },
+  solarPanelPointingFactor: {
+    label: 'Solar pointing accuracy', unit: '', min: 0, max: 1, step: 0.01,
+    description: 'How well the array\u2019s single-axis drive keeps it aimed at the Sun (1 = perfect tracking). Unlike the radiator, the array actively rotates to track the Sun regardless of orbital position \u2014 watch it swing in the 3D view as this changes.',
   },
 };

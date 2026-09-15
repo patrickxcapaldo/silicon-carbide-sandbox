@@ -32,6 +32,16 @@ This version addresses the visual and physics issues in the previous iteration.
 - No eclipse transients, multi-node thermal capacitance, or conduction paths; this remains a steady-state, first-order model intended for back-of-the-envelope estimates.
 - The coolant loop is treated as a single generic (water-like specific heat) sensible-heat transport; no two-phase or pump-power modeling.
 
+## Third pass (bug fixes + solar arrays)
+
+- **Fixed play/pause randomly stalling**: the animation loop was calling the host's `onStateChange`/`onChange` on every single frame (~60/sec, once per state key). Whatever the host does in response to that callback was racing the animation. Fixed by keeping the 60fps visual phase update local, and only forwarding to the host a few times a second (plus one authoritative sync the moment playback pauses).
+- **Fixed oversized/misshapen coolant flow markers in Orbit view**: `THREE.Points` size is not affected by a parent group's `scale` (only point *position* is), so the flow dots stayed at full absolute size even when the spacecraft model was shrunk down to a non-clipping marker. Replaced the point-sprite particles entirely with a scrolling emissive stripe texture on the tube's own geometry/UVs — it inherits scale correctly in both views and reads more clearly as directional flow along the pipe.
+- **Added solar arrays**, previously missing from both the visual and the physics:
+  - Two deployable array wings, rendered with a cell-grid texture, that rotate on a single-axis drive to track the Sun (`solarPanelPointingFactor` controls tracking accuracy) — independent of the radiator, which stays body-fixed and is instead oriented via `sunIncidence` to *minimize* solar loading. This makes the "panels face the Sun, radiators are edge-on to it" tension the user asked about visible and adjustable.
+  - New `solarPanelAreaM2`, `solarPanelEfficiency`, `solarPanelPointingFactor` inputs feed a real power-generation calculation: `generatedPowerW = solarFlux × area × efficiency × pointingFactor`.
+  - This is compared against `computeWattsRequested + parasiticHeatW` (the latter now doing double duty as a rough proxy for non-compute bus electrical draw) to produce a second, independent constraint: `powerDeficitW`/`powerUtilization`, alongside the existing thermal one. The status badge, warnings, and telemetry now reflect whichever of the two (heat rejection or power generation) is more limiting.
+  - Known simplification: this is an instantaneous power balance with no battery/eclipse buffering modeled — during eclipse (`solarLoadWm2` near 0) generation drops to ~0 immediately, whereas a real spacecraft would run off batteries for a while.
+
 ## Thermal model
 
 The core calculation is a first-order engineering model:

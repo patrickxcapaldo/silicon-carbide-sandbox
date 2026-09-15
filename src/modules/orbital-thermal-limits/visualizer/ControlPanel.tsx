@@ -26,6 +26,7 @@ type Props = {
 
 const ORBIT_KEYS: (keyof ThermalState)[] = ['orbitAltitudeKm', 'orbitEccentricity', 'orbitInclinationDeg', 'orbitRaanDeg', 'orbitArgumentDeg', 'orbitPhaseDeg'];
 const RADIATOR_KEYS: (keyof ThermalState)[] = ['radiatorArea', 'operatingTempC', 'emissivity', 'solarAbsorptivity', 'sinkTempK', 'earthIrTempK', 'earthAlbedo', 'earthViewFactor', 'coolantDeltaT', 'flowRateKgS', 'parasiticHeatW'];
+const SOLAR_KEYS: (keyof ThermalState)[] = ['solarPanelAreaM2', 'solarPanelEfficiency', 'solarPanelPointingFactor'];
 const ENV_KEYS: (keyof ThermalState)[] = ['solarLoadWm2', 'sunIncidence'];
 const SPACECRAFT_KEYS: (keyof ThermalState)[] = ['satelliteTempC'];
 
@@ -164,6 +165,13 @@ export function ControlPanel({
             disabled={key === 'orbitPhaseDeg' && playing}
             disabledHint="Playing — pause to set the orbital phase manually."
           />
+        ))}
+      </Section>
+
+      {/* Solar array / power */}
+      <Section title="Solar array / power">
+        {SOLAR_KEYS.map((key) => (
+          <ParamSlider key={key} meta={PARAM_META[key]} value={state[key]} onChange={(v) => onChange(key, v)} />
         ))}
       </Section>
 

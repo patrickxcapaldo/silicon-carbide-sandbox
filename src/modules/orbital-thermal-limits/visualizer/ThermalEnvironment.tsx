@@ -3,6 +3,7 @@ import { Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { clamp01, inverseLerp } from './thermalColor';
 import { EARTH_RADIUS_SCENE, satelliteOrbitPosition } from './orbit';
+import { SUN_DIRECTION } from './sceneConstants';
 
 type Props = {
   solarLoadWm2: number; sinkTempK: number; earthIrTempK: number; earthViewFactor: number; earthAlbedo: number;
@@ -30,7 +31,7 @@ export function ThermalEnvironment({ solarLoadWm2, sinkTempK, earthIrTempK, eart
   const solar = clamp01(solarLoadWm2 / 1600);
   const earthHeat = inverseLerp(200, 300, earthIrTempK);
   const satPos = useMemo(() => satelliteOrbitPosition(orbitAltitudeKm, orbitInclinationDeg, orbitRaanDeg, orbitArgumentDeg, orbitPhaseDeg, orbitEccentricity), [orbitAltitudeKm, orbitEccentricity, orbitInclinationDeg, orbitRaanDeg, orbitArgumentDeg, orbitPhaseDeg]);
-  const sunDir = useMemo(() => new THREE.Vector3(-0.82, 0.32, 0.47).normalize(), []);
+  const sunDir = useMemo(() => SUN_DIRECTION.clone(), []);
   const earthDir = useMemo(() => satPos.clone().normalize(), [satPos]);
   const sunLength = 1.2 + solar * 1.8;
   const sunStart = satPos.clone().sub(sunDir.clone().multiplyScalar(sunLength));

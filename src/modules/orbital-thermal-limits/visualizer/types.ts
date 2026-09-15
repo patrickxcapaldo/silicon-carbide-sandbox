@@ -14,6 +14,9 @@ export type ThermalState = {
   coolantDeltaT: number;
   parasiticHeatW: number;
   computeWattsRequested: number;
+  solarPanelAreaM2: number;
+  solarPanelEfficiency: number;
+  solarPanelPointingFactor: number;
   orbitAltitudeKm: number;
   orbitEccentricity: number;
   orbitInclinationDeg: number;
@@ -36,5 +39,8 @@ export type ThermalDerived = {
   computeWattsRequested: number;
   computeDeficitW: number;
   computeUtilization: number;
+  generatedPowerW: number;
+  powerDeficitW: number;
+  powerUtilization: number;
   status: ThermalStatus;
 };

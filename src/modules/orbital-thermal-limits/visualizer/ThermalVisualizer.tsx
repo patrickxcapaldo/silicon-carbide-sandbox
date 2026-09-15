@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { compute } from '../model';
 import { ThermalScene, type CameraFocus, type ViewMode } from './ThermalScene';
 import { ControlPanel } from './ControlPanel';
@@ -13,7 +13,7 @@ const INITIAL_STATE: ThermalState = {
   satelliteTempC: 45, operatingTempC: 70, radiatorArea: 2, emissivity: 0.9, solarAbsorptivity: 0.12,
   sinkTempK: 180, earthIrTempK: 255, earthViewFactor: 0.35, earthAlbedo: 0.30,
   solarLoadWm2: 700, sunIncidence: 0.75, flowRateKgS: 0.35, coolantDeltaT: 10, parasiticHeatW: 40,
-  computeWattsRequested: 300,
+  computeWattsRequested: 300, solarPanelAreaM2: 4, solarPanelEfficiency: 0.29, solarPanelPointingFactor: 0.95,
   orbitAltitudeKm: 550, orbitEccentricity: 0.01, orbitInclinationDeg: 51.6, orbitRaanDeg: 25, orbitArgumentDeg: 0, orbitPhaseDeg: 35,
 };
 
@@ -33,12 +33,36 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
     setStateWithCallback(current => ({ ...current, [key]: value }));
   }, [setStateWithCallback]);
 
+  const lastSyncRef = useRef(0);
   const handlePhaseChange = useCallback((nextPhaseDeg: number) => {
-    setStateWithCallback(current => ({ ...current, orbitPhaseDeg: nextPhaseDeg }));
-  }, [setStateWithCallback]);
+    // The animation drives this at up to 60 updates/sec. Update the local,
+    // visual copy of state every frame (cheap, keeps motion smooth), but
+    // only forward it to the host's onStateChange/onChange a few times a
+    // second -- flooding the host callback at 60Hz was the root cause of
+    // playback randomly stalling (whatever the host does in response --
+    // re-render, persist, recompute -- was racing the animation loop).
+    setState(current => {
+      const next = { ...current, orbitPhaseDeg: nextPhaseDeg };
+      const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      if (now - lastSyncRef.current > 350) {
+        lastSyncRef.current = now;
+        onStateChange?.(next);
+      }
+      return next;
+    });
+  }, [onStateChange]);
 
   const { playing, setPlaying, speed, setSpeed, periodSeconds, secondsPerOrbitAtSpeed } =
     useOrbitClock(state.orbitAltitudeKm, state.orbitEccentricity, state.orbitPhaseDeg, handlePhaseChange);
+
+  // Give the host one authoritative, un-throttled update whenever playback
+  // stops, so it's never left holding a stale mid-orbit phase from the
+  // throttling above.
+  const wasPlayingRef = useRef(playing);
+  useEffect(() => {
+    if (wasPlayingRef.current && !playing) onStateChange?.(state);
+    wasPlayingRef.current = playing;
+  }, [playing, state, onStateChange]);
 
   const applyOrbitPreset = useCallback((preset: OrbitPreset) => {
     setPlaying(false);
@@ -65,10 +89,14 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
     const computeWattsRequested = Number(r.outputs.computeWattsRequested.value);
     const computeDeficitW = Number(r.outputs.computeDeficitW.value);
     const computeUtilization = max > 0 ? computeWattsRequested / max : (computeWattsRequested > 0 ? Infinity : 0);
+    const generatedPowerW = Number(r.outputs.generatedPowerW.value);
+    const powerDeficitW = Number(r.outputs.powerDeficitW.value);
+    const powerUtilization = generatedPowerW > 0 ? (computeWattsRequested + state.parasiticHeatW) / generatedPowerW : ((computeWattsRequested + state.parasiticHeatW) > 0 ? Infinity : 0);
+    const overallUtilization = Math.max(computeUtilization, powerUtilization);
     const status =
-      max <= 0 || computeDeficitW > 0 ? 'OVERHEATING' as const :
-      computeUtilization > 0.85 ? 'LIMIT' as const :
-      computeUtilization > 0.6 ? 'MARGIN' as const :
+      max <= 0 || computeDeficitW > 0 || powerDeficitW > 0 ? 'OVERHEATING' as const :
+      overallUtilization > 0.85 ? 'LIMIT' as const :
+      overallUtilization > 0.6 ? 'MARGIN' as const :
       'SAFE' as const;
     return {
       radiatorPowerW: gross,
@@ -82,6 +110,9 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
       computeWattsRequested,
       computeDeficitW,
       computeUtilization,
+      generatedPowerW,
+      powerDeficitW,
+      powerUtilization,
       status,
     };
   }, [state]);
@@ -118,11 +149,12 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
       secondsPerOrbitAtSpeed={secondsPerOrbitAtSpeed}
     />
 
-    <section aria-label="thermal telemetry" style={{ position: 'absolute', left: 16, right: 332, bottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px,1fr))', gap: 8, padding: 10, background: 'rgba(5,12,22,.88)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 12, color: '#fff', backdropFilter: 'blur(10px)', zIndex: 20 }}>
+    <section aria-label="thermal telemetry" style={{ position: 'absolute', left: 16, right: 332, bottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(105px,1fr))', gap: 8, padding: 10, background: 'rgba(5,12,22,.88)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 12, color: '#fff', backdropFilter: 'blur(10px)', zIndex: 20 }}>
       <div><small>Requested compute</small><br /><strong>{metric(derived.computeWattsRequested)}</strong></div>
       <div><small>Compute heat limit</small><br /><strong>{metric(derived.netCapacityW)}</strong></div>
-      <div><small>{derived.computeDeficitW > 0 ? 'Deficit' : 'Headroom'}</small><br /><strong style={{ color: derived.computeDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.computeDeficitW))}</strong></div>
-      <div><small>External loads</small><br /><strong>{metric(derived.externalHeatW)}</strong></div>
+      <div><small>{derived.computeDeficitW > 0 ? 'Thermal deficit' : 'Thermal headroom'}</small><br /><strong style={{ color: derived.computeDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.computeDeficitW))}</strong></div>
+      <div><small>Solar array power</small><br /><strong>{metric(derived.generatedPowerW)}</strong></div>
+      <div><small>{derived.powerDeficitW > 0 ? 'Power deficit' : 'Power headroom'}</small><br /><strong style={{ color: derived.powerDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.powerDeficitW))}</strong></div>
       <div><small>Coolant capacity</small><br /><strong>{metric(derived.transportCapacityW)}</strong></div>
       <div><small>Status</small><br /><StatusBadge status={derived.status} /></div>
     </section>

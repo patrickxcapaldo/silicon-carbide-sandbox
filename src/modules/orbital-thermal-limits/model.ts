@@ -29,6 +29,9 @@ export function compute(inputs: Record<string, number>): Result {
   const coolantDeltaT = Math.max(0, n(inputs.coolantDeltaT, 10));
   const flow = Math.max(0, n(inputs.flowRateKgS, 0.35));
   const computeWattsRequested = Math.max(0, n(inputs.computeWattsRequested, 300));
+  const solarPanelAreaM2 = Math.max(0, n(inputs.solarPanelAreaM2, 4));
+  const solarPanelEfficiency = Math.min(0.4, Math.max(0.05, n(inputs.solarPanelEfficiency, 0.29)));
+  const solarPanelPointingFactor = Math.min(1, Math.max(0, n(inputs.solarPanelPointingFactor, 0.95)));
 
   // The radiator is split into two faces. Area is the total emitting area.
   // Deep-space and Earth-facing portions are approximated with a user-visible
@@ -55,12 +58,24 @@ export function compute(inputs: Record<string, number>): Result {
   const computeDeficitW = computeWattsRequested - maxTdpWatts;
   const computeUtilization = maxTdpWatts > 0 ? computeWattsRequested / maxTdpWatts : (computeWattsRequested > 0 ? Infinity : 0);
 
+  // Electrical power budget: the array only produces useful power while
+  // pointed at the Sun (solarPanelPointingFactor) and illuminated
+  // (solarFlux -- 0 during eclipse). parasiticHeatW does double duty here as
+  // a rough proxy for non-compute bus electrical draw (avionics, pumps),
+  // since that hardware's electrical power and its waste heat are
+  // approximately the same number for resistive/electronic loads.
+  const generatedPowerW = solarFlux * solarPanelAreaM2 * solarPanelEfficiency * solarPanelPointingFactor;
+  const busElectricalLoadW = computeWattsRequested + parasitic;
+  const powerDeficitW = busElectricalLoadW - generatedPowerW;
+  const powerUtilization = generatedPowerW > 0 ? busElectricalLoadW / generatedPowerW : (busElectricalLoadW > 0 ? Infinity : 0);
+
   const warnings: string[] = [];
   if (netRadiatorCapacityW <= 0) warnings.push('External thermal loading and parasitic heat exceed net radiator rejection at the selected temperature.');
   if (transportCapacityW < netRadiatorCapacityW) warnings.push('Coolant transport capacity is the limiting factor; increase flow or allowable coolant ΔT.');
   if (radTempK <= spaceSinkK) warnings.push('Radiator temperature is at or below the effective space sink; net radiation is not physically available.');
   if (earthView > 0.75) warnings.push('High Earth view factor substantially reduces deep-space radiative rejection and increases Earth IR loading.');
   if (computeDeficitW > 0) warnings.push(`Requested compute power exceeds the rejectable heat budget by ${Math.round(computeDeficitW)} W; reduce compute load or increase radiator/coolant capacity.`);
+  if (powerDeficitW > 0) warnings.push(`Requested electrical load exceeds solar array generation by ${Math.round(powerDeficitW)} W (no eclipse battery buffering is modeled); reduce load, add array area, or improve Sun pointing.`);
 
   return {
     outputs: {
@@ -104,6 +119,18 @@ export function compute(inputs: Record<string, number>): Result {
       computeUtilization: {
         label: 'Thermal Budget Utilization', value: Number.isFinite(computeUtilization) ? parseFloat((computeUtilization * 100).toFixed(1)) : 999,
         unit: '%', description: 'Requested compute power as a percentage of the maximum rejectable heat.',
+      },
+      generatedPowerW: {
+        label: 'Solar Array Power', value: Math.round(generatedPowerW), unit: 'W',
+        description: 'Electrical power produced by the solar array given current sunlight, area, efficiency and Sun-pointing accuracy.',
+      },
+      powerDeficitW: {
+        label: 'Electrical Power Deficit', value: Math.round(powerDeficitW), unit: 'W',
+        description: 'Requested compute plus bus electrical load, minus solar array generation. Positive means the array cannot currently supply the load (no battery buffering modeled).',
+      },
+      powerUtilization: {
+        label: 'Power Budget Utilization', value: Number.isFinite(powerUtilization) ? parseFloat((powerUtilization * 100).toFixed(1)) : 999,
+        unit: '%', description: 'Requested electrical load as a percentage of solar array generation.',
       },
       orbitRadiusEarthRadii: {
         label: 'Orbit Radius', value: parseFloat(((EARTH_RADIUS_KM + n(inputs.orbitAltitudeKm, 550)) / EARTH_RADIUS_KM).toFixed(3)), unit: 'R⊕',

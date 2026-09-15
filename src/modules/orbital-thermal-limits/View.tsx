@@ -11,6 +11,7 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
     earthIrTempK: inputs.earthIrTempK ?? 255, earthViewFactor: inputs.earthViewFactor ?? 0.35, earthAlbedo: inputs.earthAlbedo ?? 0.30,
     solarLoadWm2: inputs.solarLoadWm2 ?? 700, sunIncidence: inputs.sunIncidence ?? 0.75, flowRateKgS: inputs.flowRateKgS ?? 0.35,
     coolantDeltaT: inputs.coolantDeltaT ?? 10, parasiticHeatW: inputs.parasiticHeatW ?? 40, computeWattsRequested: inputs.computeWattsRequested ?? 300,
+    solarPanelAreaM2: inputs.solarPanelAreaM2 ?? 4, solarPanelEfficiency: inputs.solarPanelEfficiency ?? 0.29, solarPanelPointingFactor: inputs.solarPanelPointingFactor ?? 0.95,
     orbitAltitudeKm: inputs.orbitAltitudeKm ?? 550, orbitEccentricity: inputs.orbitEccentricity ?? 0.01, orbitInclinationDeg: inputs.orbitInclinationDeg ?? 51.6,
     orbitRaanDeg: inputs.orbitRaanDeg ?? 25, orbitArgumentDeg: inputs.orbitArgumentDeg ?? 0, orbitPhaseDeg: inputs.orbitPhaseDeg ?? 35,
   }), [inputs]);
