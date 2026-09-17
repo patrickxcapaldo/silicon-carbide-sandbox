@@ -1,10 +1,12 @@
+import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { ThermalState } from './types';
 import type { CameraFocus, ViewMode } from './ThermalScene';
 import { ParamSlider } from './ParamSlider';
-import { InfoTip } from './InfoTip';
+import { InfoTip, PanelBoundsProvider } from './InfoTip';
 import { PARAM_META } from './paramMeta';
 import { ORBIT_PRESETS, type OrbitPreset } from './orbitPresets';
+import { SCENARIO_PRESETS, type ScenarioPreset } from './scenarioPresets';
 import { COMPUTE_REFERENCES } from './computeReference';
 import { SPEED_OPTIONS, formatDuration, type SpeedMultiplier } from './useOrbitClock';
 
@@ -12,6 +14,7 @@ type Props = {
   state: ThermalState;
   onChange: (key: keyof ThermalState, value: number) => void;
   onApplyOrbitPreset: (preset: OrbitPreset) => void;
+  onApplyScenario: (scenario: ScenarioPreset) => void;
   viewMode: ViewMode;
   setViewMode: (v: ViewMode) => void;
   cameraFocus: CameraFocus;
@@ -55,24 +58,49 @@ function Section({ title, defaultOpen, children }: { title: string; defaultOpen?
 }
 
 export function ControlPanel({
-  state, onChange, onApplyOrbitPreset, viewMode, setViewMode, cameraFocus, setCameraFocus,
+  state, onChange, onApplyOrbitPreset, onApplyScenario, viewMode, setViewMode, cameraFocus, setCameraFocus,
   playing, setPlaying, speed, setSpeed, periodSeconds, secondsPerOrbitAtSpeed,
 }: Props) {
   const orbitProgress = ((state.orbitPhaseDeg % 360) + 360) % 360 / 360;
+  const panelRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div style={{
+    <div ref={panelRef} style={{
       position: 'absolute', top: 16, right: 16, bottom: 16, width: 300, zIndex: 40, overflowY: 'auto',
       background: '#0b1726', border: '1px solid rgba(160,205,235,.25)', borderRadius: 12, padding: '12px 14px',
       color: '#eaf6ff', fontSize: 12, boxShadow: '0 14px 34px rgba(0,0,0,.4)',
     }}>
+      <PanelBoundsProvider value={panelRef}>
       <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 10 }}>Controls</div>
+
+      {/* Scenario presets */}
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+          Scenario presets
+          <InfoTip text="Each one sets every parameter at once to a complete, verified configuration that illustrates a specific outcome. The explainer above the simulation describes each of them in more detail." />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+          {SCENARIO_PRESETS.map((scenario) => (
+            <div key={scenario.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <button
+                type="button"
+                onClick={() => onApplyScenario(scenario)}
+                style={{
+                  flex: 1, textAlign: 'left', padding: '6px 8px', borderRadius: 6, fontSize: 11,
+                  border: '1px solid rgba(255,255,255,.2)', background: 'rgba(79,179,255,.08)', color: '#dff1ff', cursor: 'pointer',
+                }}
+              >{scenario.label}</button>
+              <InfoTip text={scenario.explanation} width={260} />
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Camera */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
           View
-          <InfoTip text="Orbit view shows true-to-scale altitude and orbital path, with the spacecraft drawn as a small marker (an accurately-scaled satellite would be an invisible speck, or would clip through Earth if enlarged). Close-up shows the spacecraft at full component detail, with Earth as a schematic, not-to-scale backdrop." />
+          <InfoTip text="Orbit view shows the altitude and orbital path to scale, with the spacecraft drawn as a small marker. An accurately scaled satellite would either be an invisible speck or, if enlarged enough to see, would pass straight through the Earth. Close-up view shows the spacecraft at full component detail, with Earth as a schematic backdrop that is not to scale." />
         </div>
         <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
           <SegButton active={viewMode === 'orbit'} onClick={() => setViewMode('orbit')}>Orbit</SegButton>
@@ -163,7 +191,7 @@ export function ControlPanel({
             value={state[key]}
             onChange={(v) => onChange(key, v)}
             disabled={key === 'orbitPhaseDeg' && playing}
-            disabledHint="Playing — pause to set the orbital phase manually."
+            disabledHint="Playing. Pause to set the orbital phase manually."
           />
         ))}
       </Section>
@@ -195,6 +223,7 @@ export function ControlPanel({
           <ParamSlider key={key} meta={PARAM_META[key]} value={state[key]} onChange={(v) => onChange(key, v)} />
         ))}
       </Section>
+      </PanelBoundsProvider>
     </div>
   );
 }

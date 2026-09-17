@@ -38,7 +38,7 @@ export function CloseupBackdrop({ solarLoadWm2, earthViewFactor }: Props) {
 
       <Html position={[0, -1.35, 0]} center distanceFactor={7} style={{ pointerEvents: 'none' }}>
         <div style={{ color: '#9fd2ef', fontSize: 11, opacity: 0.75, whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(0,0,0,.8)' }}>
-          Close-up view — spacecraft at full detail, Earth shown schematically (not to scale/position)
+          Close-up view: spacecraft at full detail, Earth shown schematically and not to scale
         </div>
       </Html>
     </group>

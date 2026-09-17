@@ -9,18 +9,21 @@ import { ThermalEnvironment } from './ThermalEnvironment';
 import { CloseupBackdrop } from './CloseupBackdrop';
 import { clamp01 } from './thermalColor';
 import { EARTH_RADIUS_SCENE, orbitPoints, orbitRadiusScene, satelliteOrbitPosition } from './orbit';
+import { RADIATOR_MAX_REACH, SOLAR_MAX_REACH } from './spacecraftGeometry';
 
 export type ViewMode = 'orbit' | 'closeup';
 export type CameraFocus = 'earth' | 'satellite';
 
 type Props = { state: ThermalState; derived: ThermalDerived; viewMode: ViewMode; cameraFocus: CameraFocus };
 
-// The satellite model's farthest reach from its own center, at full (1x)
-// scale, once radiator panels AND solar array wings are extended to their
-// maximum configured area. Used to guarantee the shrunk "orbit view" marker
-// never visually reaches back down into the Earth mesh, at any
-// altitude/eccentricity combination.
-const SATELLITE_MAX_REACH_SCENE = 2.7;
+// The satellite model's farthest possible reach from its own center, once
+// radiator panels and solar array wings are extended to their maximum
+// configured area. Derived from the same formulas that draw the panels
+// (spacecraftGeometry.ts), with a small safety margin, so this stays
+// correct if those formulas change. Used to guarantee the shrunk "orbit
+// view" marker never visually reaches back down into the Earth mesh, at
+// any altitude/eccentricity combination.
+const SATELLITE_MAX_REACH_SCENE = Math.max(RADIATOR_MAX_REACH, SOLAR_MAX_REACH) * 1.05;
 // Ceiling on how large the marker is ever allowed to look in orbit view --
 // keeps it a small, readable "here's the spacecraft" dot rather than a
 // giant, not-to-scale model looming over the planet at high altitudes.

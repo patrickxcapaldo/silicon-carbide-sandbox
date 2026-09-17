@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { ThermalVisualizer } from './visualizer/ThermalVisualizer';
+import { Explainer } from './visualizer/Explainer';
 import type { ThermalState } from './visualizer/types';
 
 interface OrbitalThermalViewProps { inputs: Record<string, number>; onChange: (id: string, value: number) => void; results: any; }
@@ -21,6 +22,7 @@ export const OrbitalThermalView: React.FC<OrbitalThermalViewProps> = ({ inputs, 
         <h1 style={{ margin: 0, fontSize: '1.75rem', color: 'var(--text-h)' }}>Orbital Compute Thermal Rejection Limits</h1>
         <p style={{ margin: '0.5rem 0 0', color: 'var(--text-muted)' }}>Interactive orbital thermal balance with explicit environmental loads and orbit controls.</p>
       </header>
+      <Explainer />
       <ThermalVisualizer initialState={visualizerInputs} onStateChange={(state) => Object.entries(state).forEach(([id, value]) => onChange(id, value as number))} />
     </div>
   </div>;

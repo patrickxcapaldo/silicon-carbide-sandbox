@@ -1,17 +1,13 @@
-import { useMemo } from 'react';
 import * as THREE from 'three';
 import { clamp01, inverseLerp } from './thermalColor';
+import { radiatorPanelSize } from './spacecraftGeometry';
 
 type Props = { side: -1 | 1; radiatorArea: number; fluxWm2: number; solarLoadWm2: number; solarAbsorptivity: number; };
 
 export function Radiator({ side, radiatorArea, fluxWm2, solarLoadWm2, solarAbsorptivity }: Props) {
   const heat = clamp01(inverseLerp(100, 1100, Math.max(0, fluxWm2)));
   const solar = clamp01(solarLoadWm2 / 1600);
-  const [width, height] = useMemo(() => {
-    const onePanelArea = Math.max(0.1, radiatorArea / 2);
-    const aspect = 2.0;
-    return [Math.min(2.2, Math.sqrt(onePanelArea * aspect) * 0.78), Math.min(1.1, Math.sqrt(onePanelArea / aspect) * 0.78)];
-  }, [radiatorArea]);
+  const { width, height } = radiatorPanelSize(radiatorArea);
   const x = side * (0.36 + width / 2 + 0.22);
   const thermal = new THREE.Color().setHSL(0.58 - heat * 0.58, 0.78, 0.52);
   const panelColor = new THREE.Color('#c8d1d8').lerp(thermal, 0.72);

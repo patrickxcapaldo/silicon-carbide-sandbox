@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { heatColor01, inverseLerp } from './thermalColor';
+import { radiatorPanelSize } from './spacecraftGeometry';
 
 type Props = { side: -1 | 1; radiatorArea: number; operatingTempC: number; flowRateKgS: number; };
 
@@ -37,7 +38,7 @@ function makeFlowTexture() {
 export function CoolantLoop({ side, radiatorArea, operatingTempC, flowRateKgS }: Props) {
   const heat = inverseLerp(20, 150, operatingTempC);
   const hot = useMemo(() => heatColor01(heat), [heat]);
-  const panelWidth = Math.min(2.2, Math.sqrt(Math.max(0.1, radiatorArea / 2) * 2) * 0.78);
+  const panelWidth = radiatorPanelSize(radiatorArea).width;
   const x = side * (0.28 + panelWidth + 0.22);
   const curve = useMemo(() => new THREE.CatmullRomCurve3([
     new THREE.Vector3(side * 0.22, 0.10, 0.12),

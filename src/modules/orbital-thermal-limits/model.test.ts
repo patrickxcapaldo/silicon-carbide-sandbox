@@ -19,3 +19,76 @@ console.assert(compute({ ...base, solarLoadWm2: 0 }).outputs.generatedPowerW.val
 console.assert(compute({ ...base, solarPanelAreaM2: 20 }).outputs.generatedPowerW.value > compute({ ...base, solarPanelAreaM2: 2 }).outputs.generatedPowerW.value, 'Larger solar array should generate more power');
 console.assert(compute({ ...base, computeWattsRequested: 5000 }).outputs.powerDeficitW.value > 0, 'A large requested compute load should also exceed the (small) solar array power budget');
 console.assert(compute({ ...base, solarPanelAreaM2: 30, solarPanelEfficiency: 0.4 }).outputs.powerDeficitW.value < compute(base).outputs.powerDeficitW.value, 'A bigger, more efficient array should reduce the power deficit');
+
+// --- Contract and kernel layer -------------------------------------------
+import { orbitalThermalLimits } from './sandbox/module';
+import { runThermalKernel, classifyStatus } from './sandbox/kernel';
+import { canConnect, resolveInputs } from './sandbox/contract';
+
+const mod = orbitalThermalLimits;
+
+// The adapter and the module must agree, since the adapter is only a
+// formatter over the same kernel.
+const viaModule = mod.run({ ...base });
+const viaAdapter = compute({ ...base });
+console.assert(
+  Math.round(viaModule.values.maxComputeHeatW) === viaAdapter.outputs.maxTdpWatts.value,
+  'Adapter and module must report the same heat ceiling',
+);
+
+// Unknown inputs are reported rather than silently ignored.
+const withTypo = mod.run({ ...base, radiatorAreaTypo: 5 } as Record<string, number>);
+console.assert(
+  withTypo.diagnostics.some((d) => d.key === 'radiatorAreaTypo'),
+  'An undeclared input key should produce a diagnostic',
+);
+
+// Out-of-range inputs are clamped and reported, not accepted silently.
+const clamped = mod.run({ ...base, radiatorArea: 9999 });
+console.assert(clamped.resolvedInputs.radiatorArea === 20, 'Radiator area should clamp to its declared maximum');
+console.assert(
+  clamped.diagnostics.some((d) => d.key === 'radiatorArea' && d.severity === 'warning'),
+  'Clamping should produce a warning diagnostic',
+);
+
+// Non-finite input falls back to the default and reports an error.
+const bad = mod.run({ ...base, emissivity: Number.NaN });
+console.assert(bad.resolvedInputs.emissivity === 0.9, 'Non-finite input should fall back to the default');
+console.assert(
+  bad.diagnostics.some((d) => d.key === 'emissivity' && d.severity === 'error'),
+  'Non-finite input should produce an error diagnostic',
+);
+
+// Outputs crossing a module boundary must be full precision, not rounded.
+const precise = mod.run({ ...base });
+console.assert(
+  precise.values.maxComputeHeatW % 1 !== 0 || precise.values.radiatorFluxWm2 % 1 !== 0,
+  'Module outputs should retain fractional precision rather than being pre-rounded',
+);
+
+// Status is available headlessly and matches a direct kernel classification.
+console.assert(
+  precise.status === classifyStatus(runThermalKernel(precise.resolvedInputs as never)),
+  'Module status must match a direct kernel classification',
+);
+
+// Dimension checking rejects a mechanically impossible connection.
+const powerOut = mod.descriptor.outputs.find((o) => o.key === 'generatedPowerW')!;
+const areaIn = mod.descriptor.inputs.find((i) => i.key === 'radiatorArea')!;
+const computeIn = mod.descriptor.inputs.find((i) => i.key === 'computeWattsRequested')!;
+console.assert(!canConnect(powerOut, areaIn).ok, 'Power should not connect to an area input');
+console.assert(canConnect(powerOut, computeIn).ok, 'Power should connect to a power input');
+
+// Every declared output must actually be produced.
+for (const spec of mod.descriptor.outputs) {
+  console.assert(
+    typeof (precise.values as Record<string, number>)[spec.key] === 'number',
+    `Declared output ${spec.key} must be present in the result`,
+  );
+}
+
+// Defaults declared in the descriptor must themselves be in range.
+const { diagnostics: defaultDiagnostics } = resolveInputs(mod.descriptor.inputs, {});
+console.assert(defaultDiagnostics.length === 0, 'Declared defaults should not trigger clamping or errors');
+
+console.log('All model and contract assertions completed.');
