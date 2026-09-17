@@ -1,5 +1,7 @@
 # Silicon Carbide Sandbox (`SiC Sandbox`)
 
+![Silicon Carbide Sandbox](/public/silicon_carbide_sandbox_image.png)
+
 > **A first-principles physics & engineering workbench built alongside the [Silicon Carbide](https://thesiliconcarbide.substack.com) publication.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

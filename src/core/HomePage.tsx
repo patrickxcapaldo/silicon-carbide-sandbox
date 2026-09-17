@@ -141,11 +141,7 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, onSelectModule }) =
           About
         </h2>
         <p style={{ color: 'var(--text)', lineHeight: 1.65, fontSize: '0.95rem' }}>
-          Silicon Carbide Sandbox provides visual models to back up the
-          technical articles published on Silicon Carbide. It helps
-          demonstrate the baseline math and physics behind complex
-          engineering systems. The site runs entirely in the browser—accessible
-          from any device with a modern web browser.
+          Silicon Carbide Sandbox provides visual models to back up the technical articles published on Silicon Carbide. It helps demonstrate the baseline math and physics behind complex engineering systems. The site runs entirely in the browser, accessible from any device with a modern web browser.
         </p>
       </section>
 
