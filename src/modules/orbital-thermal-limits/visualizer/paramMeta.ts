@@ -17,19 +17,19 @@ export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
   },
   orbitEccentricity: {
     label: 'Eccentricity', unit: '', min: 0, max: 0.75, step: 0.01,
-    description: 'A value of 0 is a perfectly circular orbit. Higher values stretch the orbit into an ellipse, holding perigee altitude fixed while apogee rises. Around 0.74 is typical of a Molniya-type highly elliptical orbit.',
+    description: 'A value of 0 is a perfectly circular orbit. Higher values stretch the orbit into an ellipse, holding perigee altitude fixed while apogee rises. Around 0.74 is typical of a Molniya-type highly elliptical orbit. It also affects how much of the orbit is spent in Earth\u2019s shadow, since the satellite moves more slowly near apogee than perigee.',
   },
   orbitInclinationDeg: {
     label: 'Inclination', unit: '\u00b0', min: 0, max: 98, step: 1,
-    description: 'Tilt of the orbital plane relative to Earth\u2019s equator. 0\u00b0 is equatorial, about 90\u00b0 is polar, and just under 98\u00b0 is a typical Sun-synchronous inclination for low orbits.',
+    description: 'Tilt of the orbital plane relative to Earth\u2019s equator. 0\u00b0 is equatorial, about 90\u00b0 is polar, and just under 98\u00b0 is a typical Sun-synchronous inclination for low orbits. This is one of the main things that determines how much of the orbit is spent in Earth\u2019s shadow, which now feeds directly into the power budget.',
   },
   orbitRaanDeg: {
     label: 'RAAN', unit: '\u00b0', min: 0, max: 360, step: 1,
-    description: 'Right ascension of the ascending node. It rotates the whole orbital plane around Earth\u2019s polar axis, so it mainly changes the orbit\u2019s orientation in this visualisation rather than its thermal environment.',
+    description: 'Right ascension of the ascending node. It rotates the whole orbital plane around Earth\u2019s polar axis, which changes the orbit\u2019s orientation relative to the fixed Sun direction used here, and so can noticeably shift how much of the orbit falls in eclipse.',
   },
   orbitArgumentDeg: {
     label: 'Argument of perigee', unit: '\u00b0', min: 0, max: 360, step: 1,
-    description: 'Rotates the ellipse within its own orbital plane, which determines where perigee points. It only has a visible effect when eccentricity is greater than 0.',
+    description: 'Rotates the ellipse within its own orbital plane, which determines where perigee points. It only has a visible effect, including on eclipse duration, when eccentricity is greater than 0.',
   },
   orbitPhaseDeg: {
     label: 'Orbital phase', unit: '\u00b0', min: 0, max: 360, step: 1,
@@ -47,11 +47,11 @@ export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
   },
   emissivity: {
     label: 'IR emissivity', unit: '\u03b5', min: 0.5, max: 0.99, step: 0.01,
-    description: 'How efficiently the radiator surface emits long-wave infrared. White paints and certain coatings reach roughly 0.85 to 0.95, whereas polished bare metal is much lower.',
+    description: 'How efficiently the radiator surface emits long-wave infrared. Modelled as a constant independent of solar absorptivity below, which is how real spacecraft coatings are designed: a selective surface rather than a grey body, which would require the two to be equal. White paints and certain coatings reach roughly 0.85 to 0.95, whereas polished bare metal is much lower.',
   },
   solarAbsorptivity: {
     label: 'Solar absorptivity', unit: '\u03b1', min: 0.02, max: 0.8, step: 0.01,
-    description: 'Fraction of incident sunlight the radiator coating absorbs rather than reflects. Good radiator coatings aim for low \u03b1 and high \u03b5 together, such as white paint or silvered Teflon.',
+    description: 'Fraction of incident sunlight the radiator coating absorbs rather than reflects. Good radiator coatings aim for low \u03b1 and high \u03b5 together, such as white paint or silvered Teflon, which is only possible because the two are independent properties rather than a single grey-body value.',
   },
   sinkTempK: {
     label: 'Space sink temperature', unit: 'K', min: 3, max: 250, step: 1,
@@ -71,15 +71,15 @@ export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
   },
   coolantDeltaT: {
     label: 'Coolant \u0394T', unit: 'K', min: 1, max: 80, step: 1,
-    description: 'Allowed temperature rise of the coolant as it picks up heat from the compute payload before reaching the radiator. A larger \u0394T moves more heat at the same flow rate, but the payload has to tolerate a hotter coolant return.',
+    description: 'Temperature rise of the coolant as it picks up heat from the compute payload, up to the maximum the payload can tolerate on its hot side. A larger \u0394T moves more heat at the same flow rate, but is a design limit set by the payload rather than a hard physical ceiling on the fluid itself.',
   },
   flowRateKgS: {
     label: 'Coolant flow', unit: 'kg/s', min: 0.01, max: 1.5, step: 0.01,
-    description: 'Mass flow rate of coolant around the loop. Together with \u0394T this sets the loop\u2019s sensible-heat transport ceiling (P = \u1e41\u00b7c\u209a\u00b7\u0394T). Pumping coolant faster costs more electrical power for the pump itself, which is not modelled here.',
+    description: 'Mass flow rate of a single-phase, space-grade dielectric coolant such as Galden PFPE around the loop. Together with \u0394T this sets how much heat the loop can move (P = \u1e41\u00b7c\u209a\u00b7\u0394T) while keeping the payload under its temperature limit. Pumping coolant faster costs more electrical power for the pump itself, which is not modelled here.',
   },
   parasiticHeatW: {
     label: 'Parasitic heat', unit: 'W', min: 0, max: 500, step: 5,
-    description: 'Heat from pumps, avionics, wiring losses and other non-compute hardware that also has to be rejected through the same radiator. It is also used as a stand-in for that hardware\u2019s electrical draw in the power budget below.',
+    description: 'Heat from electronic and resistive bus losses, such as pumps, avionics and wiring, that also has to be rejected through the same radiator. It is also used as a stand-in for that hardware\u2019s electrical draw in the power budget below, which does not extend to active heaters or an RF payload, since electrical power does not map one-to-one onto waste heat for either of those.',
   },
 
   // Spacecraft / environment

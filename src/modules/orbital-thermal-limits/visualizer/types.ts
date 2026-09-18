@@ -40,6 +40,8 @@ export type ThermalDerived = {
   computeDeficitW: number;
   computeUtilization: number;
   generatedPowerW: number;
+  instantaneousGeneratedPowerW: number;
+  orbitSunlitFraction: number;
   powerDeficitW: number;
   powerUtilization: number;
   status: ThermalStatus;

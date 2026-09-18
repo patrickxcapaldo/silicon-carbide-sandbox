@@ -12,11 +12,23 @@
  * adapters, never here.
  */
 
+import { orbitalPeriodSeconds, sunlitFraction, type Vec3 } from './orbitalMechanics';
+
 export const STEFAN_BOLTZMANN = 5.670374419e-8; // W/m²K⁴
 export const EARTH_RADIUS_KM = 6371;
 export const SOLAR_CONSTANT_WM2 = 1361;
-/** Deliberately generic water-like coolant. See assumptions in descriptor.ts. */
-export const COOLANT_CP_J_KG_K = 4180;
+/**
+ * Real single-phase spacecraft coolant loops use synthetic dielectric
+ * fluids such as Galden PFPE or Fluorinert, chosen because they do not
+ * freeze solid or become electrically conductive if a line ever leaks near
+ * live electronics, unlike a water or water-glycol mixture. Their specific
+ * heat is markedly lower than water's 4184 J/kg·K. 1050 J/kg·K is
+ * representative of Galden PFPE and is used here as the default; the
+ * previous version of this model used water's specific heat, which
+ * overstated the loop's transport capacity by roughly a factor of four for
+ * the same flow rate and temperature rise.
+ */
+export const COOLANT_CP_J_KG_K = 1050;
 
 export type ThermalKernelInputs = {
   radiatorArea: number;
@@ -36,6 +48,12 @@ export type ThermalKernelInputs = {
   solarPanelAreaM2: number;
   solarPanelEfficiency: number;
   solarPanelPointingFactor: number;
+  /** Perigee altitude, km. Together with the next four, sets the orbit used to compute the eclipse duty cycle. */
+  orbitAltitudeKm: number;
+  orbitEccentricity: number;
+  orbitInclinationDeg: number;
+  orbitRaanDeg: number;
+  orbitArgumentDeg: number;
 };
 
 export type ThermalStatus = 'SAFE' | 'MARGIN' | 'LIMIT' | 'OVERHEATING';
@@ -60,6 +78,10 @@ export type ThermalKernelOutputs = {
   /** Fraction, not a percentage. Infinity when the ceiling is zero. */
   computeUtilisation: number;
   generatedPowerW: number;
+  /** Solar array power if it were sunlit for the entire orbit, before the eclipse duty cycle is applied. Reported for comparison; not used as the sustainability bound. */
+  instantaneousGeneratedPowerW: number;
+  /** Fraction of the orbit, by time, spent in sunlight. 1 for an orbit with no eclipse. */
+  orbitSunlitFraction: number;
   busElectricalLoadW: number;
   powerDeficitW: number;
   powerUtilisation: number;
@@ -112,7 +134,17 @@ export function runThermalKernel(i: ThermalKernelInputs): ThermalKernelOutputs {
   const computeDeficitW = i.computeWattsRequested - maxComputeHeatW;
   const computeUtilisation = ratio(i.computeWattsRequested, maxComputeHeatW);
 
-  const generatedPowerW = i.solarLoadWm2 * i.solarPanelAreaM2 * i.solarPanelEfficiency * i.solarPanelPointingFactor;
+  const generatedPowerInstantaneousW = i.solarLoadWm2 * i.solarPanelAreaM2 * i.solarPanelEfficiency * i.solarPanelPointingFactor;
+  const orbitSunlitFraction = sunlitFraction(i.orbitAltitudeKm, i.orbitEccentricity, i.orbitInclinationDeg, i.orbitRaanDeg, i.orbitArgumentDeg);
+  // A compute load is a continuous, sustained draw, so the relevant test is
+  // not "can the array supply this right now in full sun" but "can the
+  // array supply this on average across a whole orbit, including the
+  // fraction spent in Earth's shadow". This is a standard first-order
+  // spacecraft power-budgeting technique (an orbit-averaged power balance)
+  // and, importantly, is still a pure function of the orbital elements: it
+  // does not require tracking battery state of charge over time, only the
+  // orbit's shape and orientation relative to the Sun.
+  const generatedPowerW = generatedPowerInstantaneousW * orbitSunlitFraction;
   const busElectricalLoadW = i.computeWattsRequested + i.parasiticHeatW;
   const powerDeficitW = busElectricalLoadW - generatedPowerW;
   const powerUtilisation = ratio(busElectricalLoadW, generatedPowerW);
@@ -130,6 +162,8 @@ export function runThermalKernel(i: ThermalKernelInputs): ThermalKernelOutputs {
     computeDeficitW,
     computeUtilisation,
     generatedPowerW,
+    instantaneousGeneratedPowerW: generatedPowerInstantaneousW,
+    orbitSunlitFraction,
     busElectricalLoadW,
     powerDeficitW,
     powerUtilisation,
@@ -160,7 +194,7 @@ export function kernelWarnings(i: ThermalKernelInputs, o: ThermalKernelOutputs):
     w.push(`Requested compute power exceeds the rejectable heat budget by ${Math.round(o.computeDeficitW)} W. Reduce the compute load or increase radiator and coolant capacity.`);
   }
   if (o.powerDeficitW > 0) {
-    w.push(`Requested electrical load exceeds solar array generation by ${Math.round(o.powerDeficitW)} W, and no eclipse battery buffering is modelled. Reduce the load, add array area, or improve Sun pointing.`);
+    w.push(`Requested electrical load exceeds average solar array generation by ${Math.round(o.powerDeficitW)} W. Average generation already accounts for this orbit's eclipse duty cycle (${(o.orbitSunlitFraction * 100).toFixed(0)}% sunlit), but no battery is modelled to smooth the load across an orbit, so reduce the load, add array area, or improve Sun pointing.`);
   }
   return w;
 }

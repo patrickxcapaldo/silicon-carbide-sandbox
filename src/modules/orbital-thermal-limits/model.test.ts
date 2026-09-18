@@ -5,6 +5,7 @@ const base = {
   earthIrTempK: 255, earthViewFactor: 0.35, earthAlbedo: 0.3, solarLoadWm2: 700, sunIncidence: 0.75,
   flowRateKgS: 0.35, coolantDeltaT: 10, parasiticHeatW: 40, computeWattsRequested: 300,
   solarPanelAreaM2: 4, solarPanelEfficiency: 0.29, solarPanelPointingFactor: 0.95,
+  orbitAltitudeKm: 420, orbitEccentricity: 0.001, orbitInclinationDeg: 51.6, orbitRaanDeg: 25, orbitArgumentDeg: 0,
 };
 
 const result = compute(base);
@@ -19,6 +20,47 @@ console.assert(compute({ ...base, solarLoadWm2: 0 }).outputs.generatedPowerW.val
 console.assert(compute({ ...base, solarPanelAreaM2: 20 }).outputs.generatedPowerW.value > compute({ ...base, solarPanelAreaM2: 2 }).outputs.generatedPowerW.value, 'Larger solar array should generate more power');
 console.assert(compute({ ...base, computeWattsRequested: 5000 }).outputs.powerDeficitW.value > 0, 'A large requested compute load should also exceed the (small) solar array power budget');
 console.assert(compute({ ...base, solarPanelAreaM2: 30, solarPanelEfficiency: 0.4 }).outputs.powerDeficitW.value < compute(base).outputs.powerDeficitW.value, 'A bigger, more efficient array should reduce the power deficit');
+
+// --- Engineering change request: coolant fluid, albedo, eclipse duty cycle ---
+import { COOLANT_CP_J_KG_K } from './sandbox/kernel';
+
+console.assert(COOLANT_CP_J_KG_K === 1050, 'Coolant specific heat should reflect a Galden PFPE-class dielectric fluid, not water');
+{
+  const flow = 0.4, deltaT = 15;
+  const expectedTransportW = flow * COOLANT_CP_J_KG_K * deltaT;
+  const actual = compute({ ...base, flowRateKgS: flow, coolantDeltaT: deltaT }).outputs.transportCapacityW.value;
+  console.assert(Math.abs(actual - expectedTransportW) <= 1, 'Transport capacity should equal flow * cp * deltaT with the dielectric fluid cp');
+}
+
+// Albedo must actually add to the absorbed external heat load.
+{
+  const withAlbedo = compute({ ...base, earthAlbedo: 0.3 }).outputs.externalHeatW.value;
+  const withoutAlbedo = compute({ ...base, earthAlbedo: 0 }).outputs.externalHeatW.value;
+  console.assert(withAlbedo > withoutAlbedo, 'Nonzero Earth albedo should increase the absorbed external heat load');
+}
+
+// A LEO orbit should show a genuine eclipse duty cycle, and the power
+// budget should be bounded by the orbit-averaged figure, not the
+// instantaneous full-sun figure.
+{
+  const leo = compute(base);
+  const sunlitFraction = leo.outputs.orbitSunlitFraction.value / 100;
+  console.assert(sunlitFraction > 0 && sunlitFraction < 1, 'This LEO configuration should show a partial eclipse duty cycle');
+  console.assert(
+    leo.outputs.generatedPowerW.value < leo.outputs.instantaneousGeneratedPowerW.value,
+    'Orbit-averaged generation should be lower than the instantaneous full-sun figure whenever there is eclipse',
+  );
+  const ratio = leo.outputs.generatedPowerW.value / leo.outputs.instantaneousGeneratedPowerW.value;
+  console.assert(Math.abs(ratio - sunlitFraction) < 0.02, 'Average generation should equal instantaneous generation times the sunlit fraction');
+}
+
+// A high-altitude, low-inclination orbit should show little or no eclipse
+// with the tool's fixed Sun direction, and generation should not be
+// artificially reduced in that case.
+{
+  const geo = compute({ ...base, orbitAltitudeKm: 35786, orbitEccentricity: 0.0002, orbitInclinationDeg: 0.02, orbitRaanDeg: 0 });
+  console.assert(geo.outputs.orbitSunlitFraction.value > 99, 'This near-equatorial GEO configuration should show little to no eclipse with the fixed Sun direction used here');
+}
 
 // --- Contract and kernel layer -------------------------------------------
 import { orbitalThermalLimits } from './sandbox/module';

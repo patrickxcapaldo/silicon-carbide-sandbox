@@ -72,12 +72,20 @@ export function compute(inputs: Record<string, number>): Result {
         description: 'Requested compute power as a percentage of the maximum rejectable heat.',
       },
       generatedPowerW: {
-        label: 'Solar Array Power', value: Math.round(v.generatedPowerW), unit: 'W',
-        description: 'Electrical power produced by the solar array given current sunlight, area, efficiency and Sun-pointing accuracy.',
+        label: 'Solar Array Power (Orbit Average)', value: Math.round(v.generatedPowerW), unit: 'W',
+        description: 'Electrical power produced by the solar array, averaged over the full orbit including its eclipse duty cycle.',
+      },
+      instantaneousGeneratedPowerW: {
+        label: 'Solar Array Power (Instantaneous)', value: Math.round(v.instantaneousGeneratedPowerW), unit: 'W',
+        description: 'Electrical power the array would produce if sunlit at this instant, before the eclipse duty cycle is applied.',
+      },
+      orbitSunlitFraction: {
+        label: 'Orbit Sunlit Fraction', value: parseFloat((v.orbitSunlitFraction * 100).toFixed(1)), unit: '%',
+        description: 'Percentage of the orbit, by time, spent in sunlight rather than Earth\u2019s shadow, given this orbit\u2019s shape and orientation.',
       },
       powerDeficitW: {
         label: 'Electrical Power Deficit', value: Math.round(v.powerDeficitW), unit: 'W',
-        description: 'Requested compute plus bus electrical load, minus solar array generation. A positive value means the array cannot currently supply the load. No battery buffering is modelled.',
+        description: 'Requested compute plus bus electrical load, minus orbit-averaged solar array generation. A positive value means the array cannot supply the load on average. No battery is modelled.',
       },
       powerUtilization: {
         label: 'Power Budget Utilisation', value: asPercent(v.powerUtilisation), unit: '%',

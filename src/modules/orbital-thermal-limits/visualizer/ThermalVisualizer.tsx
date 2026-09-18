@@ -106,6 +106,8 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
       computeDeficitW: v.computeDeficitW,
       computeUtilization: v.computeUtilisation,
       generatedPowerW: v.generatedPowerW,
+      instantaneousGeneratedPowerW: v.instantaneousGeneratedPowerW,
+      orbitSunlitFraction: v.orbitSunlitFraction,
       powerDeficitW: v.powerDeficitW,
       powerUtilization: v.powerUtilisation,
       status: result.status,
@@ -118,8 +120,9 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
     requestedCompute: 'The AI compute electrical power set with the "Requested compute power" slider. Almost all of it ultimately has to leave the spacecraft as heat.',
     heatLimit: 'The most heat the radiator and coolant loop can currently reject, given the environment and settings. This is the thermal ceiling for requested compute power.',
     thermalMargin: 'How much spare heat-rejection capacity is left (headroom), or by how much the requested compute would exceed the thermal ceiling (deficit).',
-    arrayPower: 'Electrical power the solar array is generating right now, given sunlight, array area, cell efficiency and Sun-pointing accuracy.',
-    powerMargin: 'How much spare electrical generation is left (headroom), or by how much the requested load would exceed what the array can generate (deficit). No battery buffering is modelled.',
+    arrayPower: 'Electrical power the solar array generates, averaged over the whole orbit including the fraction spent in Earth\u2019s shadow. This, not the instantaneous full-sun figure, is what a continuous compute load is actually checked against.',
+    sunlitFraction: 'Percentage of the orbit, by time, spent in sunlight rather than Earth\u2019s shadow, computed from the orbit\u2019s altitude, eccentricity, inclination and orientation against a fixed Sun direction. Changing the orbit sliders changes this, and so changes the power budget.',
+    powerMargin: 'How much spare electrical generation is left (headroom), or by how much the requested load would exceed what the array can generate on average across the orbit (deficit). No battery is modelled, so this does not mean the load can run through eclipse itself.',
     coolantCapacity: 'The maximum heat the coolant loop can physically move from the compute payload to the radiator, based on flow rate and allowed temperature rise. The lower of this and the heat limit above sets the actual ceiling.',
   };
 
@@ -159,6 +162,7 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
       <div><small>Compute heat limit <InfoTip text={TELEMETRY_INFO.heatLimit} placement="above" /></small><br /><strong>{metric(derived.netCapacityW)}</strong></div>
       <div><small>{derived.computeDeficitW > 0 ? 'Thermal deficit' : 'Thermal headroom'} <InfoTip text={TELEMETRY_INFO.thermalMargin} placement="above" /></small><br /><strong style={{ color: derived.computeDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.computeDeficitW))}</strong></div>
       <div><small>Solar array power <InfoTip text={TELEMETRY_INFO.arrayPower} placement="above" /></small><br /><strong>{metric(derived.generatedPowerW)}</strong></div>
+      <div><small>Orbit sunlit fraction <InfoTip text={TELEMETRY_INFO.sunlitFraction} placement="above" /></small><br /><strong>{(derived.orbitSunlitFraction * 100).toFixed(0)}%</strong></div>
       <div><small>{derived.powerDeficitW > 0 ? 'Power deficit' : 'Power headroom'} <InfoTip text={TELEMETRY_INFO.powerMargin} placement="above" /></small><br /><strong style={{ color: derived.powerDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.powerDeficitW))}</strong></div>
       <div><small>Coolant capacity <InfoTip text={TELEMETRY_INFO.coolantCapacity} placement="above" /></small><br /><strong>{metric(derived.transportCapacityW)}</strong></div>
       <div><small>Status</small><br /><StatusBadge status={derived.status} /></div>

@@ -1,5 +1,5 @@
 import {
-  DIMENSIONLESS, DIM_AREA, DIM_IRRADIANCE, DIM_MASS_FLOW, DIM_POWER, DIM_TEMPERATURE,
+  DIMENSIONLESS, DIM_AREA, DIM_IRRADIANCE, DIM_LENGTH, DIM_MASS_FLOW, DIM_POWER, DIM_TEMPERATURE,
   resolveInputs,
   type Diagnostic, type ModuleDescriptor, type ModuleResult, type PortSpec, type SandboxModule,
 } from './contract';
@@ -36,13 +36,13 @@ export const INPUT_SPECS: PortSpec[] = [
   {
     key: 'emissivity', label: 'Infrared emissivity', unit: '', dimension: DIMENSIONLESS,
     min: 0.5, max: 0.99, defaultValue: 0.9,
-    description: 'How efficiently the radiator surface emits long-wave infrared.',
+    description: 'How efficiently the radiator surface emits long-wave infrared. The surface is modelled as an ideal selective surface: constant emissivity in the infrared band, independently of the constant solar absorptivity used for the visible and ultraviolet band.',
     typicalSource: 'A materials or surface-coatings module.',
   },
   {
     key: 'solarAbsorptivity', label: 'Solar absorptivity', unit: '', dimension: DIMENSIONLESS,
     min: 0.02, max: 0.8, defaultValue: 0.12,
-    description: 'Fraction of incident sunlight the radiator coating absorbs rather than reflects.',
+    description: 'Fraction of incident sunlight the radiator coating absorbs rather than reflects. Real thermal control coatings are selected specifically because this can be set independently of infrared emissivity, which is why the two are separate parameters here rather than a single value.',
     typicalSource: 'A materials or surface-coatings module.',
   },
   {
@@ -81,17 +81,17 @@ export const INPUT_SPECS: PortSpec[] = [
   {
     key: 'flowRateKgS', label: 'Coolant flow', unit: 'kg/s', dimension: DIM_MASS_FLOW,
     min: 0.01, max: 1.5, defaultValue: 0.35,
-    description: 'Mass flow rate of coolant around the loop.',
+    description: 'Mass flow rate of a single-phase, space-grade dielectric coolant (for example Galden PFPE) around the loop.',
   },
   {
     key: 'coolantDeltaT', label: 'Coolant temperature rise', unit: 'K', dimension: DIM_TEMPERATURE_DELTA,
     min: 1, max: 80, defaultValue: 10,
-    description: 'Allowed temperature rise of the coolant as it collects heat from the payload.',
+    description: 'Temperature rise of the coolant as it collects heat from the payload, up to the maximum the payload can tolerate on its hot side. Together with flow rate, this sets the heat the loop can move without exceeding that limit; it is a design limit rather than a hard physical wall.',
   },
   {
     key: 'parasiticHeatW', label: 'Parasitic heat', unit: 'W', dimension: DIM_POWER,
     min: 0, max: 500, defaultValue: 40,
-    description: 'Non-compute heat entering the loop, also used as a proxy for non-compute bus electrical draw.',
+    description: 'Heat from electronic and resistive bus losses, such as avionics and pump inefficiency, that also has to be rejected through the same loop. This does not cover heat from active heaters or power radiated away as RF by a communications payload, since electrical power does not map one-to-one onto waste heat for either of those.',
   },
   {
     key: 'solarPanelAreaM2', label: 'Solar array area', unit: 'm²', dimension: DIM_AREA,
@@ -110,6 +110,32 @@ export const INPUT_SPECS: PortSpec[] = [
     min: 0, max: 1, defaultValue: 0.95,
     description: 'How well the single-axis array drive keeps the array aimed at the Sun.',
     typicalSource: 'An attitude and pointing module.',
+  },
+  {
+    key: 'orbitAltitudeKm', label: 'Perigee altitude', unit: 'km', dimension: DIM_LENGTH,
+    min: 160, max: 40000, defaultValue: 550,
+    description: 'Altitude above mean Earth radius at closest approach. Together with the four inputs below, sets the orbit used to compute the eclipse duty cycle behind the power budget.',
+    typicalSource: 'An orbit design module.',
+  },
+  {
+    key: 'orbitEccentricity', label: 'Orbital eccentricity', unit: '', dimension: DIMENSIONLESS,
+    min: 0, max: 0.9, defaultValue: 0.01,
+    description: 'Shape of the orbit; 0 is circular. Affects eclipse duration because the satellite spends more time near apogee than perigee.',
+  },
+  {
+    key: 'orbitInclinationDeg', label: 'Orbital inclination', unit: '°', dimension: DIMENSIONLESS,
+    min: 0, max: 180, defaultValue: 51.6,
+    description: 'Tilt of the orbital plane relative to Earth\u2019s equator. A major factor in eclipse duration for a given fixed Sun direction.',
+  },
+  {
+    key: 'orbitRaanDeg', label: 'Right ascension of the ascending node', unit: '°', dimension: DIMENSIONLESS,
+    min: 0, max: 360, defaultValue: 25,
+    description: 'Orientation of the orbital plane about Earth\u2019s polar axis. Rotates the eclipse season relative to the fixed Sun direction used here.',
+  },
+  {
+    key: 'orbitArgumentDeg', label: 'Argument of perigee', unit: '°', dimension: DIMENSIONLESS,
+    min: 0, max: 360, defaultValue: 0,
+    description: 'Orientation of the ellipse within its own orbital plane. Only affects eclipse duration when eccentricity is greater than 0.',
   },
 ];
 
@@ -131,7 +157,9 @@ export const DESCRIPTOR: ModuleDescriptor = {
     { key: 'netRadiatorCapacityW', label: 'Net radiator capacity', unit: 'W', dimension: DIM_POWER, kind: 'quantity', description: 'Radiative rejection remaining after external and parasitic loads.' },
     { key: 'radiatorFluxWm2', label: 'Radiator heat flux', unit: 'W/m²', dimension: DIM_IRRADIANCE, kind: 'quantity', description: 'Gross radiative rejection per square metre of radiator area.' },
     { key: 'computeDeficitW', label: 'Compute thermal deficit', unit: 'W', dimension: DIM_POWER, kind: 'quantity', description: 'Requested compute power minus the rejectable heat ceiling. Positive means thermally unsustainable.' },
-    { key: 'generatedPowerW', label: 'Solar array power', unit: 'W', dimension: DIM_POWER, kind: 'quantity', description: 'Electrical power produced by the solar array.' },
+    { key: 'generatedPowerW', label: 'Solar array power (orbit average)', unit: 'W', dimension: DIM_POWER, kind: 'quantity', description: 'Electrical power produced by the solar array, averaged over a full orbit including the fraction spent in Earth\u2019s shadow. This is the figure used against the electrical load, because a continuous compute load has to be sustained across the whole orbit, not just the sunlit part.' },
+    { key: 'instantaneousGeneratedPowerW', label: 'Solar array power (instantaneous)', unit: 'W', dimension: DIM_POWER, kind: 'quantity', description: 'Electrical power the array would produce if sunlit at this moment, before the eclipse duty cycle is applied. Reported for comparison; not the figure used to judge sustainability.' },
+    { key: 'orbitSunlitFraction', label: 'Orbit sunlit fraction', unit: '', dimension: DIMENSIONLESS, kind: 'indicator', description: 'Fraction of the orbit, by time, spent in sunlight rather than Earth\u2019s shadow, from the orbit\u2019s shape and orientation relative to the Sun. 1 means the orbit has no eclipse.' },
     { key: 'busElectricalLoadW', label: 'Bus electrical load', unit: 'W', dimension: DIM_POWER, kind: 'quantity', description: 'Requested compute power plus non-compute bus draw.' },
     { key: 'powerDeficitW', label: 'Electrical power deficit', unit: 'W', dimension: DIM_POWER, kind: 'quantity', description: 'Bus electrical load minus array generation. Positive means the array cannot supply the load.' },
     { key: 'computeUtilisation', label: 'Thermal budget utilisation', unit: '', dimension: DIMENSIONLESS, kind: 'indicator', description: 'Requested compute power as a fraction of the rejectable heat ceiling.' },
@@ -139,13 +167,16 @@ export const DESCRIPTOR: ModuleDescriptor = {
     { key: 'overallUtilisation', label: 'Binding utilisation', unit: '', dimension: DIMENSIONLESS, kind: 'indicator', description: 'The worse of the thermal and power utilisations, which determines the status.' },
   ],
   assumptions: [
-    'Steady state only. There is no thermal mass, no transient temperature response and no battery state of charge, so a configuration is either sustainable indefinitely or it is not.',
+    'Steady state only for the thermal balance. There is no thermal mass and no transient temperature response, so a given moment is either thermally sustainable indefinitely or it is not.',
+    'The electrical power balance is averaged over a full orbit using the orbit\u2019s eclipse duty cycle, but still holds no battery state of charge. It answers whether a continuous load is sustainable on average across an orbit, not whether it can run through eclipse itself without a battery, and not through an extended eclipse season.',
+    'The Sun direction used for both the eclipse and the solar array tracking calculations is a single fixed vector, not tied to any real epoch, season or beta angle.',
+    'The eclipse duty cycle uses the standard cylindrical-shadow approximation (an infinite shadow cylinder of Earth\u2019s radius), ignoring the penumbra and Earth\u2019s finite angular size as seen from the satellite.',
     'The Earth view factor is supplied as an input rather than derived from radiator geometry and attitude during flight.',
-    'The coolant loop is a single-phase, water-like sensible heat transport with a fixed specific heat of 4180 J/kg·K. There is no two-phase behaviour and no pump power cost.',
-    'Parasitic heat is reused as a proxy for non-compute bus electrical draw, on the basis that electrical power in and waste heat out are close for electronic loads.',
+    'The coolant loop is single-phase, using a space-grade dielectric fluid such as Galden PFPE with a fixed specific heat of 1050 J/kg\u00b7K, rather than water or a water-glycol mixture, which would not survive deep-space eclipse temperatures and would pose a short-circuit risk near dense electronics. There is no two-phase behaviour and no pump power cost, and the transport figure represents the heat the loop can move while keeping the payload under its maximum allowable temperature, not a hard physical ceiling.',
+    'Parasitic heat is reused as a proxy for non-compute bus electrical draw, on the basis that electrical power in and waste heat out are close for resistive and electronic loads. It excludes power radiated away directly, such as by an RF payload, or diverted to active heaters, for which that equivalence does not hold.',
     'Compute electrical power is assumed to convert entirely to waste heat.',
     'Radiator temperature is uniform, with no gradients, conduction paths or multi-node spacecraft network.',
-    'Optical properties are grey, meaning emissivity and absorptivity do not vary with wavelength.',
+    'Surfaces are modelled as ideal selective surfaces: constant solar absorptivity in the ultraviolet and visible band, and constant thermal emissivity in the infrared band, each independent of the other. This is standard practice for spacecraft thermal coatings and is not the same as a true grey body, which requires the two to be equal.',
   ],
 };
 
@@ -161,6 +192,8 @@ export type OrbitalThermalOutputs = {
   radiatorFluxWm2: number;
   computeDeficitW: number;
   generatedPowerW: number;
+  instantaneousGeneratedPowerW: number;
+  orbitSunlitFraction: number;
   busElectricalLoadW: number;
   powerDeficitW: number;
   computeUtilisation: number;
@@ -208,6 +241,8 @@ export const orbitalThermalLimits: OrbitalThermalModule = {
         radiatorFluxWm2: out.radiatorFluxWm2,
         computeDeficitW: out.computeDeficitW,
         generatedPowerW: out.generatedPowerW,
+        instantaneousGeneratedPowerW: out.instantaneousGeneratedPowerW,
+        orbitSunlitFraction: out.orbitSunlitFraction,
         busElectricalLoadW: out.busElectricalLoadW,
         powerDeficitW: out.powerDeficitW,
         computeUtilisation: out.computeUtilisation,
