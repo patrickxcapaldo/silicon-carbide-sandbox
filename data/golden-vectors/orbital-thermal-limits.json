@@ -1,0 +1,197 @@
+{
+  "_meta": {
+    "description": "Golden vectors for orbital-thermal-limits (dossier §9.6). Each expect{} value was computed by actually running kernel.ts / lawLimitRadiatorAreaM2, compiled standalone with tsc outside the app build, on 2026-09-22 -- independent of whatever code path the live app takes, so a regression in runThermalKernel's wiring (not just its formula) will still be caught.",
+    "generated": "2026-09-22",
+    "tolerance": "Compare with relative tolerance 1e-9 unless noted; these are deterministic closed-form values, not measurements."
+  },
+  "vectors": [
+    {
+      "id": "gv-01-environment-off-27c",
+      "note": "Study 01: deep space, eps 0.9, 27C. Independent hand check: q=eps*sigma*(300.15^4-3^4)=414.1 W/m^2.",
+      "inputs": {
+        "radiatorArea": 1,
+        "emissivity": 0.9,
+        "solarAbsorptivity": 0.3,
+        "operatingTempC": 27,
+        "sinkTempK": 3,
+        "earthIrTempK": 255,
+        "earthViewFactor": 0,
+        "earthAlbedo": 0.3,
+        "solarLoadWm2": 1361,
+        "sunIncidence": 0,
+        "flowRateKgS": 1.5,
+        "coolantDeltaT": 80,
+        "parasiticHeatW": 0,
+        "computeWattsRequested": 100,
+        "solarPanelAreaM2": 1,
+        "solarPanelEfficiency": 0.3,
+        "solarPanelPointingFactor": 1,
+        "orbitAltitudeKm": 550,
+        "orbitEccentricity": 0.01,
+        "orbitInclinationDeg": 51.6,
+        "orbitRaanDeg": 0,
+        "orbitArgumentDeg": 0
+      },
+      "expect": {
+        "radiatorFluxWm2": 414.1976518638408,
+        "radiativeRejectionW": 414.1976518638408
+      }
+    },
+    {
+      "id": "gv-02-70c-no-earth-view-sink180",
+      "note": "Spark 02 baseline: 70C radiator, no Earth in view, 180K sink.",
+      "inputs": {
+        "radiatorArea": 1,
+        "emissivity": 0.9,
+        "solarAbsorptivity": 0.3,
+        "operatingTempC": 70,
+        "sinkTempK": 180,
+        "earthIrTempK": 255,
+        "earthViewFactor": 0,
+        "earthAlbedo": 0.3,
+        "solarLoadWm2": 1361,
+        "sunIncidence": 0,
+        "flowRateKgS": 1.5,
+        "coolantDeltaT": 80,
+        "parasiticHeatW": 0,
+        "computeWattsRequested": 100,
+        "solarPanelAreaM2": 1,
+        "solarPanelEfficiency": 0.3,
+        "solarPanelPointingFactor": 1,
+        "orbitAltitudeKm": 550,
+        "orbitEccentricity": 0.01,
+        "orbitInclinationDeg": 51.6,
+        "orbitRaanDeg": 0,
+        "orbitArgumentDeg": 0
+      },
+      "expect": {
+        "radiatorFluxWm2": 654.0311766927123,
+        "radiativeRejectionW": 654.0311766927123
+      }
+    },
+    {
+      "id": "gv-03-70c-earthview-0.88-sink180",
+      "note": "Spark 02: LEO flat-plate view factor at 400km, 180K sink.",
+      "inputs": {
+        "radiatorArea": 1,
+        "emissivity": 0.9,
+        "solarAbsorptivity": 0.3,
+        "operatingTempC": 70,
+        "sinkTempK": 180,
+        "earthIrTempK": 255,
+        "earthViewFactor": 0.88,
+        "earthAlbedo": 0.3,
+        "solarLoadWm2": 1361,
+        "sunIncidence": 0,
+        "flowRateKgS": 1.5,
+        "coolantDeltaT": 80,
+        "parasiticHeatW": 0,
+        "computeWattsRequested": 100,
+        "solarPanelAreaM2": 1,
+        "solarPanelEfficiency": 0.3,
+        "solarPanelPointingFactor": 1,
+        "orbitAltitudeKm": 550,
+        "orbitEccentricity": 0.01,
+        "orbitInclinationDeg": 51.6,
+        "orbitRaanDeg": 0,
+        "orbitArgumentDeg": 0
+      },
+      "expect": {
+        "radiatorFluxWm2": 511.28717979894424,
+        "radiativeRejectionW": 511.28717979894424
+      }
+    },
+    {
+      "id": "gv-04-70c-earthview-0.88-sink3",
+      "note": "Spark 02: same view factor against a 3K background.",
+      "inputs": {
+        "radiatorArea": 1,
+        "emissivity": 0.9,
+        "solarAbsorptivity": 0.3,
+        "operatingTempC": 70,
+        "sinkTempK": 3,
+        "earthIrTempK": 255,
+        "earthViewFactor": 0.88,
+        "earthAlbedo": 0.3,
+        "solarLoadWm2": 1361,
+        "sunIncidence": 0,
+        "flowRateKgS": 1.5,
+        "coolantDeltaT": 80,
+        "parasiticHeatW": 0,
+        "computeWattsRequested": 100,
+        "solarPanelAreaM2": 1,
+        "solarPanelEfficiency": 0.3,
+        "solarPanelPointingFactor": 1,
+        "orbitAltitudeKm": 550,
+        "orbitEccentricity": 0.01,
+        "orbitInclinationDeg": 51.6,
+        "orbitRaanDeg": 0,
+        "orbitArgumentDeg": 0
+      },
+      "expect": {
+        "radiatorFluxWm2": 517.7159141329965,
+        "radiativeRejectionW": 517.7159141329965
+      }
+    },
+    {
+      "id": "gv-05-70c-earthview-0.35-sink180",
+      "note": "Spark 02: the module's own default earthViewFactor.",
+      "inputs": {
+        "radiatorArea": 1,
+        "emissivity": 0.9,
+        "solarAbsorptivity": 0.3,
+        "operatingTempC": 70,
+        "sinkTempK": 180,
+        "earthIrTempK": 255,
+        "earthViewFactor": 0.35,
+        "earthAlbedo": 0.3,
+        "solarLoadWm2": 1361,
+        "sunIncidence": 0,
+        "flowRateKgS": 1.5,
+        "coolantDeltaT": 80,
+        "parasiticHeatW": 0,
+        "computeWattsRequested": 100,
+        "solarPanelAreaM2": 1,
+        "solarPanelEfficiency": 0.3,
+        "solarPanelPointingFactor": 1,
+        "orbitAltitudeKm": 550,
+        "orbitEccentricity": 0.01,
+        "orbitInclinationDeg": 51.6,
+        "orbitRaanDeg": 0,
+        "orbitArgumentDeg": 0
+      },
+      "expect": {
+        "radiatorFluxWm2": 597.2579961099636,
+        "radiativeRejectionW": 597.2579961099636
+      }
+    },
+    {
+      "id": "gv-06-law-limit-100mw-300k",
+      "note": "Dossier §5.3-A worked example: perfect emitter, 3K sink, 100 MW, 300 K.",
+      "call": "lawLimitRadiatorAreaM2",
+      "inputs": {
+        "computeWattsRequested": 100000000,
+        "operatingTempC": 26.85,
+        "sinkTempK": 3,
+        "emissivity": 1
+      },
+      "expect": {
+        "areaM2": 108861.23405215713
+      }
+    },
+    {
+      "id": "gv-07-law-limit-100mw-350k",
+      "note": "Same, at 350 K. Used in Study 01 and the CLM-0001 ledger entry.",
+      "call": "lawLimitRadiatorAreaM2",
+      "inputs": {
+        "computeWattsRequested": 100000000,
+        "operatingTempC": 76.85,
+        "sinkTempK": 3,
+        "emissivity": 1
+      },
+      "expect": {
+        "areaM2": 58760.582541562355
+      }
+    }
+  ]
+}

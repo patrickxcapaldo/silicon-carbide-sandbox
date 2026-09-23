@@ -1,0 +1,48 @@
+# Assumptions Registry (dossier §5.1, §9.4). Append-only: a changed value
+# creates a new revision; modules and ledger entries pin `id@revision`, so a
+# correction never silently alters a number that was already published.
+
+- id: const.stefan_boltzmann
+  kind: constant
+  value: 5.670374419e-8
+  unit: "W m^-2 K^-4"
+  source: "CODATA 2018/2022 recommended value (NIST); exact under the SI's fixed fundamental constants"
+  archive_url: "https://physics.nist.gov/cgi-bin/cuu/Value?sigma"
+  retrieved: 2026-09-22
+  confidence: high
+  load_bearing_for: [orbital-thermal-limits]
+  revision: 1
+
+- id: hw.iss_eatcs_radiator_loading
+  kind: engineering-parameter
+  value: { min: 160, nominal: 165.9, max: 172 }   # range covers the stated 70 kW rating +/- typical duty-cycle notes; nominal is the point value used in Study 01
+  unit: "W m^-2"
+  source: "Wang et al., 'Thermal Performance Evaluation of Space Radiator for Single-Phase Mechanically Pumped Fluid Loop', Journal of Spacecraft and Rockets. States: 6 deployed radiator arrays, 70 kW total heat rejection, 2 ammonia loops; a radiator assembly is 8 identical panels of 3.33 m x 2.64 m."
+  archive_url: "[ARCHIVE_URL]"   # TODO: Wayback "Save Page Now" on https://arc.aiaa.org/doi/10.2514/1.A35030, paste snapshot URL here
+  doi: "10.2514/1.A35030"
+  retrieved: 2026-09-22
+  confidence: high
+  load_bearing_for: [orbital-thermal-limits]
+  revision: 1
+
+- id: geom.football_field_area
+  kind: constant
+  value: 5352
+  unit: "m^2"
+  source: "US professional football field including end zones: 360 ft x 160 ft (109.73 m x 48.77 m)"
+  archive_url: TODO
+  retrieved: TODO
+  confidence: high
+  load_bearing_for: [orbital-thermal-limits]
+  revision: 1
+
+- id: rad.emissivity.example
+  kind: engineering-parameter
+  value: { min: 0.85, nominal: 0.9, max: 0.95 }
+  unit: "1"
+  source: TODO   # a specific spacecraft coating datasheet (e.g. a white thermal-control paint) should replace this illustrative range before it anchors a published verdict rather than a sensitivity sweep
+  archive_url: TODO
+  retrieved: TODO
+  confidence: low
+  load_bearing_for: [orbital-thermal-limits]
+  revision: 1

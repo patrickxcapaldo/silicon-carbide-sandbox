@@ -1,0 +1,22 @@
+# Errata log (dossier §9.6, Appendix D: "a published correction"). Append-only.
+# Each entry describes what changed, why, and which published numbers it affects.
+# A correction never edits history in place; it adds an entry here and, where the
+# original number was itself published, a visible note at the original location.
+
+- id: E-0001
+  date: 2026-09-20
+  title: "Founding example corrected: 'four football fields' was stated without a radiator temperature"
+  affects:
+    - "SiC dossier v2, §4 (internal draft; not previously published externally)"
+  description: >
+    The v2 dossier used "a 100 MW orbital data centre needs radiators the size
+    of four football fields" as an illustrative founding example without
+    stating the assumed radiator temperature. Study 01 shows the required
+    area varies by roughly 20x across the physically reasonable operating
+    range (20-180 C), so the original one-line claim cannot be scored true or
+    false as stated. The claim is preserved verbatim in the Claim Ledger
+    (CLM-0001) with a conditional verdict rather than silently edited or
+    removed.
+  corrected_by: "Study 01, 'Four football fields of radiator for 100 MW? It depends on one number'"
+  ledger_entry: CLM-0001
+  severity: low   # internal draft example, not a previously published external number

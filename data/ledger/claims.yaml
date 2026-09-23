@@ -1,0 +1,44 @@
+# Claim Ledger (dossier §5.1, §9.5). Append-only: a resolved or corrected
+# entry gets a new field set with an updated `resolution`, never an edit to
+# the original claim_text or framing fields. Schema follows the illustrative
+# example in dossier §5.3-G, with its TODOs filled from Cycle 1's actual
+# work (see Study 01 and cycle-1-record.md for the full derivation).
+
+- id: CLM-0001
+  status: published
+  claim_text: "A 100 MW orbital data centre needs radiators the size of four football fields."
+  claim_source: "SiC dossier v2, §4 (internal draft example, illustrative, not attributed to a third party)"
+  claim_archived_url: "[ARCHIVE_URL]"  # TODO: archive the internal v2 draft and paste the permalink here
+  framing_committed: 2026-09-20
+  expectation: "Underspecified; radiator temperature is not stated, so no single verdict is possible without a conditional."
+  module: orbital-thermal-limits@1.0.0
+  result:
+    tier1_law_limit_area_m2: 108861          # eps=1, T=300 K, two-sided, sink 3 K (dossier §5.3-A; matches lawLimitRadiatorAreaM2())
+    tier1_law_limit_area_m2_350k: 58761       # same, T=350 K
+    tier2_demonstrated_envelope:
+      value_w_per_m2: 165.9
+      basis: "ISS EATCS: 70 kW rated over 6 radiator assemblies x 8 panels x (3.33m x 2.64m) = 422.0 m2 of panel"
+      source: "Journal of Spacecraft and Rockets, 'Thermal Performance Evaluation of Space Radiator for Single-Phase Mechanically Pumped Fluid Loop', https://arc.aiaa.org/doi/10.2514/1.A35030"
+      archive_url: "[ARCHIVE_URL]"           # TODO: Wayback snapshot of the AIAA abstract/page
+      retrieved: 2026-09-22
+      area_needed_for_100mw_m2: 602892        # 1e8 / 165.9
+      area_needed_for_100mw_fields: 112.6
+    claimed_area_m2: 21408                    # 4 x 5,352 m2
+    claimed_w_per_m2: 4671
+  verdict: untestable-as-stated
+  conditional_verdict: "Consistent only if T_rad is approximately 463 K; at 300 K needs approximately 55 fields against the tool's own environment, and 20.3 fields against the idealised law limit; at 350 K needs approximately 17.9 (tool) or 11.0 (law limit) fields."
+  load_bearing_parameter: operatingTempC
+  sensitivity:
+    - parameter: operatingTempC
+      flip_factor: 1.0   # the verdict is already undetermined by this one input; see conditional_verdict
+      note: "Radiator temperature alone moves the required area by roughly 20x across the tool's supported range (20 to 180 C)."
+  assumptions_used:
+    - id: const.stefan_boltzmann
+      revision: 1
+    - id: geom.football_field_area
+      revision: 1
+    - id: hw.iss_eatcs_radiator_loading
+      revision: 1
+  resolution: n/a
+  verdict_committed: 2026-09-21
+  errata: E-0001

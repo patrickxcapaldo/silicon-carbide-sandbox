@@ -30,6 +30,35 @@ export const SOLAR_CONSTANT_WM2 = 1361;
  */
 export const COOLANT_CP_J_KG_K = 1050;
 
+/**
+ * Tier 1 law limit (dossier §5.2, §5.3-A): the minimum two-sided radiator
+ * area a perfect emitter would need to reject `computeWattsRequested` watts
+ * against a deep-space sink, with no environmental loads at all. This is the
+ * ceiling physics allows, not a design; it deliberately ignores everything
+ * `runThermalKernel` accounts for (view factor, solar/albedo load, coolant
+ * transport, parasitics), so it is always <= any realistic demonstrated
+ * envelope for the same power level.
+ *
+ * A = P / (2q), q = epsilon * sigma * (T_r^4 - T_sink^4)   [dossier §5.3-A]
+ *
+ * Kept as a standalone function, not derived from `runThermalKernel`, so
+ * that it stays independently checkable against the closed-form arithmetic
+ * in Study 01 and the golden vectors.
+ */
+export function lawLimitRadiatorAreaM2(params: {
+  computeWattsRequested: number;
+  operatingTempC: number;
+  sinkTempK?: number;
+  emissivity?: number;
+}): number {
+  const emissivity = params.emissivity ?? 1; // perfect emitter, per §5.3-A
+  const sinkTempK = params.sinkTempK ?? 3; // deep space, per §5.3-A
+  const opTempK = params.operatingTempC + 273.15;
+  const q = emissivity * STEFAN_BOLTZMANN * (Math.pow(opTempK, 4) - Math.pow(sinkTempK, 4));
+  if (q <= 0) return Number.POSITIVE_INFINITY;
+  return params.computeWattsRequested / (2 * q);
+}
+
 export type ThermalKernelInputs = {
   radiatorArea: number;
   emissivity: number;
