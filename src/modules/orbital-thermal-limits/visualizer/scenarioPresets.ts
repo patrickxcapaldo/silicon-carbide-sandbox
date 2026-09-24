@@ -88,4 +88,52 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       ...ECLIPSE_PRONE_ORBIT,
     },
   },
+  // ---------------------------------------------------------------------
+  // Fleet-architecture presets. Added alongside Study 01 (fleet invariance)
+  // and Spark 03. Unlike the five above, these three are pinned by golden
+  // vectors gv-08 to gv-10 in data/golden-vectors/orbital-thermal-limits.json,
+  // and model.test.ts fails if a preset here drifts from its vector.
+  // "Parasitic share" in the last two is parasiticHeatW divided by
+  // (radiativeRejectionW - externalHeatW), i.e. the heat budget before the
+  // parasitic deduction, taken straight from kernel outputs.
+  // ---------------------------------------------------------------------
+  {
+    id: 'transport-limited-monolith',
+    label: 'Transport-limited monolithic node',
+    summary: 'A large radiator on a thin coolant loop. Most of the radiating capacity sits idle because the loop cannot deliver the heat to it.',
+    explanation: 'A 15 m\u00b2 radiator at 80 \u00b0C could reject about 9,295 W net of solar, albedo and parasitic loads, but the coolant loop (0.05 kg/s with a 5 K rise) can move only about 263 W to it. The 2,000 W request is therefore about 762% of the usable thermal budget and the status reads Overheating, even though roughly 9,030 W of radiating capacity (about 97% of it) goes unused. Power is not the problem: the 30 m\u00b2 array covers this load using about 38% of its orbit-averaged output. This is what happens when radiator area keeps growing on a single node without growing the loop that feeds it: the binding limit stops being radiation and becomes plumbing, \u1e41\u00b7c\u209a\u00b7\u0394T. Raising the flow to 0.2 kg/s at a 10 K rise (about 2,100 W) lifts the ceiling above the request. In this tool the transport figure is a design limit rather than a physical wall, but it grows only as fast as the loop does, which is one reason large platforms split their heat across many loops and one reason fleets of smaller nodes are attractive.',
+    state: {
+      satelliteTempC: 50, operatingTempC: 80, radiatorArea: 15, emissivity: 0.9, solarAbsorptivity: 0.12,
+      sinkTempK: 200, earthIrTempK: 255, earthViewFactor: 0.2, earthAlbedo: 0.3,
+      solarLoadWm2: 1000, sunIncidence: 0.5, flowRateKgS: 0.05, coolantDeltaT: 5, parasiticHeatW: 30,
+      computeWattsRequested: 2000, solarPanelAreaM2: 30, solarPanelEfficiency: 0.29, solarPanelPointingFactor: 0.97,
+      ...LEO_ORBIT,
+    },
+  },
+  {
+    id: 'tiny-node-overhead',
+    label: 'Tiny node overhead (micro-swarm)',
+    summary: 'A 100 W node carrying 30 W of fixed avionics heat. The fixed tax is a large slice of a small radiator\u2019s budget.',
+    explanation: 'A 100 W compute request on a 1 m\u00b2 radiator at 65 \u00b0C, with 30 W of avionics and housekeeping heat that does not shrink just because the node does. The radiator can reject about 526 W net of solar and albedo loads before parasitics, so the fixed 30 W takes about 5.7% of that heat budget (and equals 30% of the compute heat itself). The node is comfortably Safe, at about 20% of the thermal budget and about 48% of the power budget on a 1.5 m\u00b2 array, so nothing fails here. The point is the overhead: at this size a large share of every radiator and array watt is spent keeping the node alive rather than computing, which is why swarms of very small nodes are an expensive way to buy a given amount of compute. Compare the next preset, which has the same flux per square metre.',
+    state: {
+      satelliteTempC: 40, operatingTempC: 65, radiatorArea: 1, emissivity: 0.9, solarAbsorptivity: 0.12,
+      sinkTempK: 180, earthIrTempK: 255, earthViewFactor: 0.3, earthAlbedo: 0.3,
+      solarLoadWm2: 1000, sunIncidence: 0.3, flowRateKgS: 0.1, coolantDeltaT: 8, parasiticHeatW: 30,
+      computeWattsRequested: 100, solarPanelAreaM2: 1.5, solarPanelEfficiency: 0.29, solarPanelPointingFactor: 0.97,
+      ...LEO_ORBIT,
+    },
+  },
+  {
+    id: 'scaled-node-overhead',
+    label: 'Scaled node overhead (modular fleet)',
+    summary: 'The same 30 W of fixed heat on a 1 kW node. Same flux per square metre, but the overhead share falls by about eight times.',
+    explanation: 'The previous preset scaled up: 1,000 W of compute on an 8 m\u00b2 radiator, at the same 65 \u00b0C, the same environment and the same 30 W of fixed parasitic heat. Gross radiator flux is identical at about 565 W/m\u00b2, so the area needed per watt of heat has not changed, which is the fleet-invariance point in Study 01: dividing a heat load between nodes does not change the total radiator area, only the overhead. What does change is the fixed tax. Net of solar and albedo loads the radiator can reject about 4,206 W before parasitics, so the same 30 W is now about 0.7% of that budget, down from 5.7%, and 3% of the compute heat instead of 30%. The status is Safe at about 24% of the thermal budget and about 57% of the power budget on a 10 m\u00b2 array. Beyond this size the overhead is already small, so further scaling buys little, while the loop and packaging demands shown in the transport-limited preset keep growing with the node.',
+    state: {
+      satelliteTempC: 40, operatingTempC: 65, radiatorArea: 8, emissivity: 0.9, solarAbsorptivity: 0.12,
+      sinkTempK: 180, earthIrTempK: 255, earthViewFactor: 0.3, earthAlbedo: 0.3,
+      solarLoadWm2: 1000, sunIncidence: 0.3, flowRateKgS: 0.5, coolantDeltaT: 10, parasiticHeatW: 30,
+      computeWattsRequested: 1000, solarPanelAreaM2: 10, solarPanelEfficiency: 0.29, solarPanelPointingFactor: 0.97,
+      ...LEO_ORBIT,
+    },
+  },
 ];

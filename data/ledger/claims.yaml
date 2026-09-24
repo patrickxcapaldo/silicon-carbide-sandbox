@@ -42,3 +42,74 @@
   resolution: n/a
   verdict_committed: 2026-09-21
   errata: E-0001
+
+# ---------------------------------------------------------------------------
+# CLM-0002 (added 2026-09-23). ID note: data/process/cycle-1-record.md section 5
+# had pre-assigned CLM-0002 to the pending forecast P1 about the same SpaceX
+# AI1 radiator (scenario S8, "became CLM-0002"). This entry is that subject, so
+# the two are merged rather than split: the disclosed-spec claim lives here and
+# forecast P1 is carried below as `related_forecast`. CLM-0003 and CLM-0004 in
+# that file keep their numbers. Nothing in cycle-1-record.md or
+# preregistration-2026-09-21.md was edited.
+# ---------------------------------------------------------------------------
+- id: CLM-0002
+  status: claimed-undemonstrated
+  tier: 3
+  classification: "Claimed / Un-demonstrated (Tier 3 design target)"
+  subject: "SpaceX / NVIDIA Starmind AI1 orbital datacenter satellite"
+  claim_text: "A Starmind AI1 satellite carries a compute payload of 175 kW average (250 kW peak) and rejects its heat through about 160 m2 of deployable liquid radiators."
+  claim_source: "SpaceX Starmind AI1 specification page, https://www.spacex.com/spacexai/starmind, figures as published August 2026. That page did not render as text when retrieved on 2026-09-23, so the figures below were taken from three secondary reports that agree with each other: Not a Tesla App, 2026-08-05 (175 kW average, 250 kW peak, 160 m2; https://www.notateslaapp.com/news/4537/spacex-partners-with-nvidia-for-starmind-ai-satellites), Tech Startups, 2026-08-04 (175 kW average, 250 kW peak; https://techstartups.com/2026/08/04/nvidia-partners-with-spacex-to-build-starmind-ai-orbital-data-centers-in-space/), and Technology.org, 2026-08-26 (175 kW average; 1,700 sq ft = 158 m2; https://www.technology.org/2026/08/26/spacex-starmind-nvidia-gpus-orbital-data-centers/). Sidedness and the earlier 110 m2 design come from the June 8, 2026 SpaceX presentation as quoted by DCD, 2026-07-27 (https://www.datacenterdynamics.com/en/news/spacex-details-ai1-satellite-data-center-claims-150kw-peak-compute/), and from BigGo Finance, 2026-08-21, which describes the August radiators as dual-sided (https://finance.biggo.com/news/d719d8d2-700b-44d6-ba85-d828129cffe4)."
+  claim_archived_url: "[ARCHIVE_URL]"  # TODO: still open as of 2026-09-24. The SpaceX Starmind page (https://www.spacex.com/spacexai/starmind) was re-checked directly and still returns only site metadata on a plain fetch, no page text -- needs a JS-capable browser and a Wayback "Save Page Now" snapshot. The Not a Tesla App article itself was independently re-verified by fetch on 2026-09-24 and its figures (250 kW peak / 175 kW average, 160 m² deployable liquid radiators, "initial deployments as early as 2027") match this entry; it still needs archiving, not re-checking.
+  retrieved: 2026-09-23
+  framing_committed: 2026-09-23
+  expectation: "None registered. The specs were public and scenario S8 had already been run on the earlier 110 m2 figures, so this entry is exploratory and cannot carry a pre-registered verdict."
+  module: orbital-thermal-limits@1.0.0
+  result:
+    disclosed:
+      payload_power_avg_w: 175000
+      payload_power_peak_w: 250000
+      radiator_area_m2: 160
+      radiator_description: "deployable liquid radiators, active fluid cooling, redundant pumped loops"
+      sidedness: "Both faces radiate. Musk said at the June 8 presentation that the radiators radiate on both sides, oriented knife-edge to the sun (DCD quote, about the 110 m2 design), and August coverage describes the AI1 radiators as dual-sided. I could not read SpaceX's own August page, so the August wording is second-hand."
+      spacex_stated_radiator_rating_w_per_m2: "about 1,400 (Musk, June 8, per DCD). That matches 150 kW / 110 m2 = 1,364 W/m2, so SpaceX quotes loading per m2 of panel, the same basis as the ISS figure. The August peak ratio is 250 kW / 160 m2 = 1,563."
+      earlier_disclosure: "June to July 2026 reports gave 110 m2 for 120 kW average and 150 kW peak (1,091 and 1,364 W/m2). The August figures raise power and area together and leave the average loading almost unchanged (1,094 W/m2)."
+    calculated_radiator_loading_w_per_m2:
+      average: 1093.75    # 175,000 / 160; about 1,090
+      peak: 1562.5        # 250,000 / 160; about 1,560
+      basis: "per m2 of disclosed radiator area, which SpaceX describes as radiating from both faces, so per m2 of panel like the ISS figure"
+    comparison_baseline:
+      tier2_flight_proven_w_per_m2: 165.9    # hw.iss_eatcs_radiator_loading@1, per m2 of panel, a design rating
+      ratio_average: 6.59
+      ratio_peak: 9.42                        # "about 7x to 9x"; 6.6x to 9.4x unrounded
+    tier1_context_w_per_m2_of_panel:
+      law_limit_300k_two_sided: 918.6         # 2 x 459.3 per face, eps 1, 3 K sink; same q as gv-06
+      law_limit_350k_two_sided: 1701.8        # 2 x 850.9 per face; same q as gv-07
+      note: "The average loading (1,094) is above the 300 K two-sided law limit (919), so the radiators must run hotter than 300 K. A one-face reading would need far more (1,094 per face against 459 at 300 K)."
+    tool_anchor_s8_method:
+      # Same method and settings as scenario S8 (default environment, sun incidence 0.3, sink 180 K, Earth view factor 0.35,
+      # emissivity 0.9, parasitic 0, coolant not limiting), solved for the mean radiator temperature that rejects the load.
+      # Run on the kernel directly because the page's area and temperature sliders stop at 20 m2 and 180 C.
+      two_sided_160m2_as_320m2_radiating: { average_c: 70.5, peak_c: 95.8 }   # primary reading, given the SpaceX statement that both faces radiate
+      one_face_160m2: { average_c: 123.1, peak_c: 155.8 }                      # alternative, not supported by the statement above
+      reproduces_s8: "The same method gives 122.9 and 142.8 C (one face) and 70.3 and 85.7 C (two-sided) for the earlier 110 m2 at 120 and 150 kW, matching the S8 card."
+  verdict: not-scored
+  conditional_verdict: "Not a demonstrated number. It is a design target with no flight data behind it, 6.6x to 9.4x above the only flight-proven loading in the registry, and no radiator temperature has been disclosed. SpaceX has said both faces radiate, and on that reading the tool needs a mean radiator temperature of about 71 C at the average load (96 C at peak). Tier 1 does not rule that out; it fixes that the radiators must run well above 300 K."
+  load_bearing_parameter: operatingTempC
+  status_rule: "Must NOT replace the ISS figure (hw.iss_eatcs_radiator_loading, 165.9 W/m2) as the flight-proven Tier 2 baseline. Eligible for reclassification to Tier 2 only when observed orbital data exist (heat rejected, radiating area and radiator temperature, all measured), which SpaceX plans to start producing with prototype launches targeted for 2027 (press reports of SpaceX statements: initial deployments as early as 2027, prototypes early 2027; not yet checked against a SpaceX primary source)."
+  related_forecast:
+    id: P1
+    text: "SpaceX AI1's radiator area is a two-sided panel area, or otherwise means at least 200 m2 of radiating surface, and not a single radiating face."
+    source_file: data/process/preregistration-2026-09-21.md
+    state: evidence-found-not-scored
+    note: "Found while verifying this entry, and NOT scored here: SpaceX said on June 8, 2026 (before the 2026-09-21 pre-registration) that the radiators radiate on both sides, with about 1,400 W/m2 quoted per m2 of area (DCD, 2026-07-27). That is what P1 predicts, but it was already public when P1 was written, so it cannot stand as a forward prediction and how to resolve or annotate P1 is the author's call. P1 was written against 110 m2 at 120 to 150 kW; the August figures are 160 m2 at 175 to 250 kW. The statement covers the June design, and I could not read the August page to confirm the wording carried over."
+  assumptions_used:
+    - id: const.stefan_boltzmann
+      revision: 1
+    - id: hw.iss_eatcs_radiator_loading
+      revision: 1
+    - id: hw.starmind_ai1_payload_power
+      revision: 1
+    - id: hw.starmind_ai1_radiator_area
+      revision: 1
+  resolution: pending
+  errata: none

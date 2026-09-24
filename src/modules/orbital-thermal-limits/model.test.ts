@@ -163,14 +163,39 @@ assert(defaultDiagnostics.length === 0, 'Declared defaults should not trigger cl
 // against the raw kernel.
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { lawLimitRadiatorAreaM2 } from './sandbox/kernel';
+import { lawLimitRadiatorAreaM2, kernelWarnings } from './sandbox/kernel';
+import { INPUT_SPECS } from './sandbox/module';
+import type { ThermalKernelInputs, ThermalKernelOutputs } from './sandbox/kernel';
+import { SCENARIO_PRESETS } from './visualizer/scenarioPresets';
+import { PARAM_META } from './visualizer/paramMeta';
 
 type GoldenVector = {
   id: string;
   note?: string;
   call?: 'lawLimitRadiatorAreaM2';
+  /** Id of the scenario preset whose state these inputs must match exactly. */
+  preset?: string;
   inputs: Record<string, number>;
   expect: Record<string, number>;
+  /** Quantities computed from the raw kernel outputs of the same run, by the formulas in DERIVED below. */
+  expectDerived?: Record<string, number>;
+  expectStatus?: string;
+  /** Substrings that must each appear in some kernelWarnings() message. */
+  expectWarnings?: string[];
+};
+
+/**
+ * Derived comparison quantities. Every one is a function of the kernel's own
+ * inputs and outputs and nothing else, so a vector can never quietly depend on
+ * a domain variable the kernel does not model (mass, cost, launch volume).
+ */
+const DERIVED: Record<string, (i: ThermalKernelInputs, o: ThermalKernelOutputs) => number> = {
+  // Fixed (parasitic) heat as a share of the heat budget available before that
+  // deduction: gross radiative rejection minus absorbed solar and albedo load.
+  parasiticFractionOfHeatBudget: (i, o) => i.parasiticHeatW / (o.radiativeRejectionW - o.externalHeatW),
+  // Radiating capacity the coolant loop cannot use.
+  unusedRadiatorCapacityW: (_i, o) => o.netRadiatorCapacityW - o.maxComputeHeatW,
+  transportShareOfNetCapacity: (_i, o) => o.transportCapacityW / o.netRadiatorCapacityW,
 };
 
 function checkGoldenVectors(): void {
@@ -186,11 +211,104 @@ function checkGoldenVectors(): void {
 
     for (const [key, expected] of Object.entries(v.expect)) {
       const got = actual[key];
+      assert(typeof got === 'number', `Golden vector ${v.id}: kernel produced no output named ${key}`);
       const rel = Math.abs(got - expected) / Math.max(Math.abs(expected), 1e-12);
       assert(rel < relTol, `Golden vector ${v.id}: ${key} expected ${expected}, got ${got} (${v.note ?? ''})`);
     }
+
+    // Derived quantities, status and warnings all come from the same kernel run.
+    if (v.expectDerived || v.expectStatus || v.expectWarnings) {
+      const ki = v.inputs as unknown as ThermalKernelInputs;
+      const ko = actual as unknown as ThermalKernelOutputs;
+      for (const [key, expected] of Object.entries(v.expectDerived ?? {})) {
+        const fn = DERIVED[key];
+        assert(fn !== undefined, `Golden vector ${v.id}: unknown derived quantity ${key}`);
+        const got = fn(ki, ko);
+        const rel = Math.abs(got - expected) / Math.max(Math.abs(expected), 1e-12);
+        assert(rel < relTol, `Golden vector ${v.id}: derived ${key} expected ${expected}, got ${got}`);
+      }
+      if (v.expectStatus !== undefined) {
+        assert(classifyStatus(ko) === v.expectStatus, `Golden vector ${v.id}: status expected ${v.expectStatus}, got ${classifyStatus(ko)}`);
+      }
+      const warnings = kernelWarnings(ki, ko);
+      for (const fragment of v.expectWarnings ?? []) {
+        assert(warnings.some((w) => w.includes(fragment)), `Golden vector ${v.id}: expected a warning containing "${fragment}", got ${JSON.stringify(warnings)}`);
+      }
+    }
   }
   console.log(`${doc.vectors.length} golden vectors passed.`);
+  checkFleetPresets(doc.vectors);
+}
+
+// --- Fleet-architecture presets (Study 01 section 4, Spark 03) --------------
+//
+// The three presets added for the fleet-invariance work are pinned to golden
+// vectors gv-08 to gv-10. These checks make sure the presets a person loads in
+// the UI are the states the vectors were generated from, that they load
+// without any input being clamped, and that the headline numbers quoted in
+// their explanation text and in the publications hold.
+function checkFleetPresets(vectors: GoldenVector[]): void {
+  const withPreset = vectors.filter((v) => v.preset !== undefined);
+  assert(withPreset.length === 3, 'Exactly three golden vectors should be tied to the fleet-architecture presets');
+
+  const ids = SCENARIO_PRESETS.map((p) => p.id);
+  assert(new Set(ids).size === ids.length, 'Scenario preset ids must be unique');
+
+  for (const v of withPreset) {
+    const preset = SCENARIO_PRESETS.find((p) => p.id === v.preset);
+    assert(preset !== undefined, `Golden vector ${v.id} names preset ${v.preset}, which does not exist in scenarioPresets.ts`);
+
+    // The preset's state must equal the vector's inputs on every kernel input.
+    for (const [key, value] of Object.entries(v.inputs)) {
+      assert(
+        (preset!.state as unknown as Record<string, number>)[key] === value,
+        `Preset ${preset!.id} has ${key}=${(preset!.state as unknown as Record<string, number>)[key]} but golden vector ${v.id} was generated with ${value}`,
+      );
+    }
+
+    // Every field of the state must sit inside the slider range, so loading it
+    // never puts a control outside its bounds, and the module must not need to
+    // clamp or default anything to run it.
+    for (const [key, meta] of Object.entries(PARAM_META)) {
+      const value = (preset!.state as unknown as Record<string, number>)[key];
+      assert(typeof value === 'number' && value >= meta.min && value <= meta.max, `Preset ${preset!.id}: ${key}=${value} is outside the slider range ${meta.min} to ${meta.max}`);
+    }
+    // Only the declared module inputs go to run(); satelliteTempC and orbitPhaseDeg are display-only state.
+    const state = preset!.state as unknown as Record<string, number>;
+    const run = orbitalThermalLimits.run(Object.fromEntries(INPUT_SPECS.map((spec) => [spec.key, state[spec.key]])));
+    const interventions = run.diagnostics.filter((d) => d.key !== undefined);
+    assert(interventions.length === 0, `Preset ${preset!.id}: module had to clamp or default inputs: ${JSON.stringify(interventions)}`);
+  }
+
+  const byId = (id: string) => vectors.find((v) => v.id === id)!;
+  const transport = byId('gv-08-transport-limited-monolith');
+  const tiny = byId('gv-09-tiny-node-overhead');
+  const scaled = byId('gv-10-scaled-node-overhead');
+
+  // Transport-limited monolith: radiating capacity about 9,295 W, usable about 263 W.
+  const tRun = orbitalThermalLimits.run(transport.inputs);
+  assert(Math.round(tRun.values.netRadiatorCapacityW) === 9295, 'gv-08: net radiator capacity should be about 9,295 W');
+  assert(Math.round(tRun.values.maxComputeHeatW) === 263, 'gv-08: usable heat rejection should be about 263 W');
+  assert(tRun.values.transportCapacityW < tRun.values.netRadiatorCapacityW, 'gv-08: the loop, not the radiator, must be the binding limit');
+  assert(
+    tRun.diagnostics.some((d) => d.severity === 'warning' && d.message.startsWith('Coolant transport capacity is the limiting factor.')),
+    'gv-08: the module must surface the transport-limit warning',
+  );
+
+  // Parasitic tax: 5.7% for the 100 W node, 0.7% for the 1 kW node.
+  const tinyShare = DERIVED.parasiticFractionOfHeatBudget(tiny.inputs as unknown as ThermalKernelInputs, runThermalKernel(tiny.inputs as never));
+  const scaledShare = DERIVED.parasiticFractionOfHeatBudget(scaled.inputs as unknown as ThermalKernelInputs, runThermalKernel(scaled.inputs as never));
+  assert(tiny.inputs.computeWattsRequested === 100 && tiny.inputs.parasiticHeatW === 30, 'gv-09: expected 100 W compute and 30 W parasitic');
+  assert(scaled.inputs.computeWattsRequested === 1000 && scaled.inputs.parasiticHeatW === 30, 'gv-10: expected 1,000 W compute and 30 W parasitic');
+  assert(Math.abs(tinyShare * 100 - 5.7) < 0.05, `gv-09: parasitic share of heat budget should be 5.7%, got ${(tinyShare * 100).toFixed(3)}%`);
+  assert(Math.abs(scaledShare * 100 - 0.7) < 0.05, `gv-10: parasitic share of heat budget should be 0.7%, got ${(scaledShare * 100).toFixed(3)}%`);
+
+  // Fleet invariance in the kernel itself: same temperature and environment
+  // means the same flux per square metre whatever the node's size.
+  const relFlux = Math.abs(tiny.expect.radiatorFluxWm2 - scaled.expect.radiatorFluxWm2) / tiny.expect.radiatorFluxWm2;
+  assert(relFlux < 1e-9, 'gv-09 and gv-10 must have identical radiator flux per square metre (area-independence of q)');
+  assert(scaled.inputs.radiatorArea === 8 * tiny.inputs.radiatorArea, 'gv-09 and gv-10 should differ by a factor of eight in radiator area');
+  console.log('Fleet-architecture preset checks passed.');
 }
 
 checkGoldenVectors();

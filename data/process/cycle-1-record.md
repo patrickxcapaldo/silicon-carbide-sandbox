@@ -129,6 +129,8 @@ Every number in Study 01 and the Sparks, with the route to rerun it.
 
 ## 5. Pending forecasts (ledger entries)
 
+> **Note, 2026-09-23.** `CLM-0002` was committed to `data/ledger/claims.yaml` as the SpaceX Starmind AI1 disclosed-loading entry, which is the same subject as the forecast below. The two were merged: the forecast survives inside that entry as `related_forecast: P1`, and the text of this section is left as it was written. `CLM-0003` and `CLM-0004` keep their numbers.
+
 Pre-registered on 21 September 2026 (see `preregistration-2026-09-21.md`). The tool number each one leans on is in the scenario library. Replace the date with the commit that actually records them.
 
 ```yaml

@@ -84,6 +84,25 @@ These are in the ledger as pending, and I'll score them when the information arr
 
 **P3** is that the total deployed array and radiator area of Orbital's 100 kW class satellite lands between 300 and 700 m² in its technical attachment, which brackets the tool's 373 to 530 m². I'm 70% confident, and the deadline is 31 December 2026.
 
+## Fleet architecture scenarios (added 23 September 2026)
+
+These three are the built-in presets behind section 4 of Study 01 and Spark 03. None was pre-registered: the outcomes they show were specified in advance in the brief for that work, but I chose the remaining slider values to reproduce those outcomes, so the match is by construction and isn't a test of the tool. What does protect them is that each is pinned by a golden vector (`gv-08` to `gv-10`) generated from the kernel compiled outside the app, and the test suite fails if a preset drifts from its vector. Settings not listed are the module's usual LEO values (550 km, e = 0.01, 51.6°, RAAN 25°, ε = 0.9, absorptivity 0.12, Earth IR 255 K, albedo 0.3, solar flux 1,000 W/m², solar array efficiency 0.29, pointing 0.97).
+
+### S12. A radiator that the loop can't feed (preset: Transport-limited monolithic node, `gv-08`)
+**Pre-registered:** no.
+
+Radiator 15 m² at 80 °C, sink 200 K, Earth view factor 0.2, sun incidence 0.5, coolant 0.05 kg/s with a 5 K rise, parasitic 30 W, compute 2,000 W, array 30 m². "Net Radiator Capacity" is 9,295 W, and the loop's transport capacity is 0.05 × 1,050 × 5 = 262.5 W, so the heat ceiling is 263 W and thermal utilisation is 762%. About 9,030 W of radiating capacity (97%) is unused. Power utilisation is 38%, so this is a plumbing limit and not an electrical one. The kernel's own warning, "Coolant transport capacity is the limiting factor", fires. This is a single-node illustration of why radiator area alone doesn't scale a monolith, and it says nothing about what a real 100 MW design would do.
+
+### S13. The fixed tax on a tiny node (preset: Tiny node overhead, `gv-09`)
+**Pre-registered:** no.
+
+Radiator 1 m² at 65 °C, sink 180 K, Earth view factor 0.3, sun incidence 0.3, coolant 0.1 kg/s with an 8 K rise, parasitic 30 W, compute 100 W, array 1.5 m². Gross radiator flux is 565 W/m² and the heat budget before parasitics (gross rejection minus absorbed solar and albedo) is 525.8 W, so the 30 W is **5.7%** of it. Thermal utilisation is 20% and power utilisation 48%, so the status is Safe. Measured against the compute heat rather than the budget, the same 30 W is 30%.
+
+### S14. The same tax on a scaled node (preset: Scaled node overhead, `gv-10`)
+**Pre-registered:** no.
+
+The S13 settings with the radiator at 8 m², coolant 0.5 kg/s with a 10 K rise, compute 1,000 W and array 10 m². Gross radiator flux is again 565 W/m² (the identical figure is the fleet-invariance point), the heat budget before parasitics is 4,206 W, and the same 30 W is **0.7%** of it, or 3% of the compute heat. Thermal utilisation is 24% and power utilisation 57%, so the status is Safe. The 5.7% and 0.7% depend on how I define the budget. Against compute heat alone the ratio between the two nodes is 10 to 1 instead of about 8 to 1, because the budget scales with radiator area (8 to 1) and not with compute (10 to 1).
+
 ## What these scenarios say about the next module
 
 None of this changes Module 1, and I'm not going to touch it. What it does is make the brief for the next module easier to write. The radiator and array areas that come out of the tool are exactly what a mass and launch module would need as inputs, and the quantity that keeps deciding the answer is radiator temperature. The AI1 comparison also suggests a mass module should be honest about what boundary it counts, since the claims I've seen (10 to 14 kg per kilowatt) and the independent estimate (34 to 59) probably count different things. Those go in the Module 2 brief, in the dossier's own words, and nowhere near Module 1.

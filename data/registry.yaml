@@ -46,3 +46,34 @@
   confidence: low
   load_bearing_for: [orbital-thermal-limits]
   revision: 1
+
+# Tier 3 design targets (added 2026-09-23). These are claims, not measurements. They exist so
+# CLM-0002 can pin its inputs; nothing here may be used as a demonstrated (Tier 2) envelope.
+
+- id: hw.starmind_ai1_payload_power
+  kind: design-target
+  tier: 3
+  demonstrated: false
+  value: { average: 175000, peak: 250000 }
+  unit: "W"
+  source: "SpaceX Starmind AI1 specification page (https://www.spacex.com/spacexai/starmind), August 2026, read via Not a Tesla App (2026-08-05), Tech Startups (2026-08-04) and Technology.org (2026-08-26). The primary page did not render as text on 2026-09-23. Supersedes the 120 kW average and 150 kW peak reported in June to July 2026."
+  archive_url: "[ARCHIVE_URL]"   # TODO: Wayback snapshot of the SpaceX page and the Not a Tesla App article
+  retrieved: 2026-09-23
+  confidence: low   # a vendor design target relayed by secondary reports; no flight data
+  load_bearing_for: [CLM-0002]
+  must_not_replace: hw.iss_eatcs_radiator_loading
+  revision: 1
+
+- id: hw.starmind_ai1_radiator_area
+  kind: design-target
+  tier: 3
+  demonstrated: false
+  value: { nominal: 160 }
+  unit: "m^2"
+  source: "As hw.starmind_ai1_payload_power. Described as deployable liquid radiators with redundant pumped loops. Technology.org gives 1,700 sq ft (158 m2). SpaceX said on June 8, 2026 that the radiators radiate on both sides (DCD, 2026-07-27, about the earlier 110 m2 design), and August coverage (BigGo, 2026-08-21) calls the AI1 radiators dual-sided, so treat 160 m2 as panel area with both faces radiating; the August page's own wording was not readable. Supersedes the 110 m2 reported in June to July 2026."
+  archive_url: "[ARCHIVE_URL]"   # TODO: as above
+  retrieved: 2026-09-23
+  confidence: low
+  load_bearing_for: [CLM-0002]
+  must_not_replace: hw.iss_eatcs_radiator_loading
+  revision: 1
