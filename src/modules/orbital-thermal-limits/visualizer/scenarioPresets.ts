@@ -90,12 +90,18 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
   },
   // ---------------------------------------------------------------------
   // Fleet-architecture presets. Added alongside Study 01 (fleet invariance)
-  // and Spark 03. Unlike the five above, these three are pinned by golden
-  // vectors gv-08 to gv-10 in data/golden-vectors/orbital-thermal-limits.json,
-  // and model.test.ts fails if a preset here drifts from its vector.
-  // "Parasitic share" in the last two is parasiticHeatW divided by
-  // (radiativeRejectionW - externalHeatW), i.e. the heat budget before the
-  // parasitic deduction, taken straight from kernel outputs.
+  // and Spark 03. The fourth and fifth (starmind-fleet-node, monolith-5gw)
+  // were added once the module's input bounds were raised to support
+  // gigawatt-scale aggregates directly (see PARAM_META and INPUT_SPECS);
+  // before that, neither could be entered without being silently clamped
+  // back to a single small-satellite scale, which is why an earlier
+  // version of this preset modelled Starmind AI1 as a scaled-down proxy
+  // instead. All five are pinned by golden vectors gv-08 to gv-12 in
+  // data/golden-vectors/orbital-thermal-limits.json, and model.test.ts
+  // fails if a preset here drifts from its vector.
+  // "Parasitic share" in tiny/scaled-node-overhead is parasiticHeatW
+  // divided by (radiativeRejectionW - externalHeatW), i.e. the heat budget
+  // before the parasitic deduction, taken straight from kernel outputs.
   // ---------------------------------------------------------------------
   {
     id: 'transport-limited-monolith',
@@ -133,6 +139,32 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       sinkTempK: 180, earthIrTempK: 255, earthViewFactor: 0.3, earthAlbedo: 0.3,
       solarLoadWm2: 1000, sunIncidence: 0.3, flowRateKgS: 0.5, coolantDeltaT: 10, parasiticHeatW: 30,
       computeWattsRequested: 1000, solarPanelAreaM2: 10, solarPanelEfficiency: 0.29, solarPanelPointingFactor: 0.97,
+      ...LEO_ORBIT,
+    },
+  },
+  {
+    id: 'starmind-fleet-node',
+    label: 'Starmind Fleet Node (175 kW disclosed design point)',
+    summary: 'One modular ~175 kW node, at its real disclosed size. A fleet of about 28,600 such nodes aggregates to 5 GW without changing flux per square metre.',
+    explanation: 'A single Starmind AI1-class modular node at its real, disclosed size: 175 kW continuous compute on a 160 m\\u00b2 dual-sided radiator at 122 \\u00b0C (ledger entry CLM-0002), with a 1,050 m\\u00b2 solar array. Net thermal capacity comes out to about 178.7 kW (radiator flux about 1,158 W/m\\u00b2), so the 175 kW request sits at about 97.9% thermal utilisation \\u2014 deliberately close to its ceiling, matching a design that discloses only an average and a peak figure with no stated margin. Electrical draw runs at about 93.9% of the array\\u2019s orbit-averaged generation (about 188.9 kW). Status reads Limit rather than Safe on both counts, and importantly not Overheating: there is a small amount of headroom on each budget, about 3.7 kW thermal and about 11.4 kW electrical. Because radiator flux depends only on temperature, emissivity and view factor \\u2014 not on node size \\u2014 a fleet of about 28,600 identical nodes (5 GW / 175 kW) reaches the same 5 GW aggregate as the Monolith preset while keeping every node\\u2019s coolant loop and packaging inside ordinary single-loop limits. This is the quantitative fleet-invariance point: total radiator area scales linearly with total heat, but each node stays within the transport and packaging regime a single thin coolant loop can serve. Compare directly with the Monolith (5 GW Concept) preset below.',
+    state: {
+      satelliteTempC: 55, operatingTempC: 122, radiatorArea: 160, emissivity: 0.9, solarAbsorptivity: 0.12,
+      sinkTempK: 180, earthIrTempK: 255, earthViewFactor: 0.2, earthAlbedo: 0.3,
+      solarLoadWm2: 1000, sunIncidence: 0.2, flowRateKgS: 15, coolantDeltaT: 15, parasiticHeatW: 2500,
+      computeWattsRequested: 175000, solarPanelAreaM2: 1050, solarPanelEfficiency: 0.29, solarPanelPointingFactor: 0.97,
+      ...LEO_ORBIT,
+    },
+  },
+  {
+    id: 'monolith-5gw',
+    label: 'Monolith (5 GW Concept)',
+    summary: 'A single multi-km platform aggregating 5 GW of compute heat across massive parallel coolant loops and radiator panels.',
+    explanation: 'The original Starcloud-style monolithic concept: 5 GW of continuous compute on one platform, with 1e7 m\\u00b2 of two-sided radiator (order of a few kilometres on a side) at 75 \\u00b0C, and an aggregate coolant flow of 320,000 kg/s standing in for many parallel loops rather than one physically continuous pipe. Net thermal capacity comes out to about 6.47 GW (radiator flux about 672 W/m\\u00b2), so the 5 GW request sits at about 77.3% thermal utilisation, with roughly 1.47 GW of headroom. That 320,000 kg/s flow gives a transport ceiling of about 6.72 GW at this 20 K coolant rise \\u2014 comfortably above the radiative ceiling, so unlike the Transport-limited monolithic node preset, plumbing is not the binding limit here (that preset shows what happens when it is, at a size small enough to put on a slider). The 3e7 m\\u00b2 solar array generates about 5.4 GW on an orbit-averaged basis against a bus load of about 5.0 GW (5 GW compute plus 2 MW parasitic), for about 92.7% power utilisation. Status reads Limit rather than Overheating on both counts. This configuration only works because the input ranges and coolant model now accept aggregate, multi-loop flow rather than clamping to a single small-satellite loop; an earlier version of this module capped compute at 5,000 W and radiator area at 20 m\\u00b2, which would have silently clamped this scenario back to something meaningless rather than actually modelling it (see PARAM_META and INPUT_SPECS). Compare directly with Starmind Fleet Node above: same aggregate 5 GW, similar order-of-magnitude thermal headroom, radically different plumbing.',
+    state: {
+      satelliteTempC: 50, operatingTempC: 75, radiatorArea: 1e7, emissivity: 0.9, solarAbsorptivity: 0.12,
+      sinkTempK: 180, earthIrTempK: 255, earthViewFactor: 0.15, earthAlbedo: 0.3,
+      solarLoadWm2: 1000, sunIncidence: 0.2, flowRateKgS: 320000, coolantDeltaT: 20, parasiticHeatW: 2e6,
+      computeWattsRequested: 5e9, solarPanelAreaM2: 3e7, solarPanelEfficiency: 0.29, solarPanelPointingFactor: 0.97,
       ...LEO_ORBIT,
     },
   },

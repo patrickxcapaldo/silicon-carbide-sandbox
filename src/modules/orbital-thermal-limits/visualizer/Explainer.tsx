@@ -59,7 +59,7 @@ export function Explainer() {
       <p>
         The scenario presets in the controls panel load these {SCENARIO_PRESETS.length} complete configurations directly. Each one was run
         through the model to confirm it lands on the outcome described rather than simply looking plausible. The last
-        three (the transport-limited node and the tiny and scaled node overhead pair) compare one large platform with
+        five (the transport-limited node, the tiny and scaled node overhead pair, and the Starmind Fleet Node / Monolith pair) compare one large platform with
         fleets of smaller ones, and are also pinned by golden vectors that fail the test suite if their numbers drift.
       </p>
       <ol style={{ paddingLeft: 20 }}>

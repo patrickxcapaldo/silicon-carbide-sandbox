@@ -103,8 +103,8 @@ assert(
 );
 
 // Out-of-range inputs are clamped and reported, not accepted silently.
-const clamped = mod.run({ ...base, radiatorArea: 9999 });
-assert(clamped.resolvedInputs.radiatorArea === 20, 'Radiator area should clamp to its declared maximum');
+const clamped = mod.run({ ...base, radiatorArea: 3e7 });
+assert(clamped.resolvedInputs.radiatorArea === 2e7, 'Radiator area should clamp to its declared maximum');
 assert(
   clamped.diagnostics.some((d) => d.key === 'radiatorArea' && d.severity === 'warning'),
   'Clamping should produce a warning diagnostic',
@@ -242,14 +242,14 @@ function checkGoldenVectors(): void {
 
 // --- Fleet-architecture presets (Study 01 section 4, Spark 03) --------------
 //
-// The three presets added for the fleet-invariance work are pinned to golden
-// vectors gv-08 to gv-10. These checks make sure the presets a person loads in
+// The five presets added for the fleet-invariance work are pinned to golden
+// vectors gv-08 to gv-12. These checks make sure the presets a person loads in
 // the UI are the states the vectors were generated from, that they load
 // without any input being clamped, and that the headline numbers quoted in
 // their explanation text and in the publications hold.
 function checkFleetPresets(vectors: GoldenVector[]): void {
   const withPreset = vectors.filter((v) => v.preset !== undefined);
-  assert(withPreset.length === 3, 'Exactly three golden vectors should be tied to the fleet-architecture presets');
+  assert(withPreset.length === 5, 'Exactly five golden vectors should be tied to the fleet-architecture presets');
 
   const ids = SCENARIO_PRESETS.map((p) => p.id);
   assert(new Set(ids).size === ids.length, 'Scenario preset ids must be unique');
@@ -308,6 +308,32 @@ function checkFleetPresets(vectors: GoldenVector[]): void {
   const relFlux = Math.abs(tiny.expect.radiatorFluxWm2 - scaled.expect.radiatorFluxWm2) / tiny.expect.radiatorFluxWm2;
   assert(relFlux < 1e-9, 'gv-09 and gv-10 must have identical radiator flux per square metre (area-independence of q)');
   assert(scaled.inputs.radiatorArea === 8 * tiny.inputs.radiatorArea, 'gv-09 and gv-10 should differ by a factor of eight in radiator area');
+
+  // Starmind Fleet Node: real, literal disclosed size (160 m^2, 175 kW,
+  // 122C), deliberately run close to its own thermal ceiling (about 97.9%
+  // utilisation, status LIMIT), not comfortably under it like the two
+  // overhead presets.
+  const starmind = byId('gv-11-starmind-fleet-node');
+  const sRun = orbitalThermalLimits.run(starmind.inputs);
+  assert(Math.abs(sRun.values.radiatorFluxWm2 - 1158) < 1, 'gv-11: radiator flux should be about 1,158 W/m^2 at 122C');
+  assert(sRun.values.computeUtilisation > 0.95 && sRun.values.computeUtilisation < 1, 'gv-11: thermal utilisation should be close to but under 100%');
+  assert(sRun.status === 'LIMIT', 'gv-11: status should read LIMIT, not SAFE or OVERHEATING');
+  assert(sRun.values.computeDeficitW < 0, 'gv-11: should have thermal headroom, not a deficit, despite reading LIMIT');
+
+  // Monolith (5 GW Concept): the aggregate counterpart. Radiative capacity
+  // (about 6.47 GW) exceeds the request (5 GW), and transport capacity
+  // (about 6.72 GW) exceeds radiative capacity, so radiation -- not the
+  // loop -- is the binding limit here, unlike gv-08 at small scale.
+  const monolith = byId('gv-12-monolith-5gw');
+  const mRun = orbitalThermalLimits.run(monolith.inputs);
+  assert(Math.abs(mRun.values.radiatorFluxWm2 - 671.85) < 1, 'gv-12: radiator flux should be about 671.85 W/m^2 at 75C');
+  assert(mRun.values.transportCapacityW > mRun.values.netRadiatorCapacityW, 'gv-12: the radiator, not the loop, must be the binding limit');
+  assert(mRun.status === 'LIMIT', 'gv-12: status should read LIMIT, not SAFE or OVERHEATING');
+  assert(mRun.values.computeDeficitW < 0, 'gv-12: should have thermal headroom, not a deficit, despite reading LIMIT');
+  assert(
+    Math.abs(monolith.inputs.computeWattsRequested - 28600 * starmind.inputs.computeWattsRequested) / monolith.inputs.computeWattsRequested < 0.005,
+    'gv-11 and gv-12 should represent the same ~5 GW aggregate: 28,600 Starmind Fleet Nodes vs. one Monolith',
+  );
   console.log('Fleet-architecture preset checks passed.');
 }
 

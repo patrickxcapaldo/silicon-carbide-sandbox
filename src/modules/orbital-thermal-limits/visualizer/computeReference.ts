@@ -29,4 +29,16 @@ export const COMPUTE_REFERENCES: ComputeReference[] = [
     watts: 1400,
     note: 'Recent Blackwell Ultra (GB300) GPUs are specified at around 1,400 W per chip, and a full NVL72 rack draws over 100 kW in total.',
   },
+  {
+    id: 'starmind-node',
+    label: 'Starmind-class node (disclosed average)',
+    watts: 175000,
+    note: 'SpaceX\u2019s disclosed average continuous compute draw for a Starmind AI1 node, about 175 kW (ledger entry CLM-0002). This button only sets compute power; load the \u201cStarmind Fleet Node\u201d preset instead for the disclosed radiator size, array and environment together.',
+  },
+  {
+    id: 'monolith',
+    label: '5 GW monolithic concept',
+    watts: 5e9,
+    note: 'Starcloud\u2019s original monolithic concept: one platform aggregating 5 GW of continuous compute. This button only sets compute power; load the \u201cMonolith (5 GW Concept)\u201d preset instead for the disclosed-scale radiator, array and coolant flow together.',
+  },
 ];

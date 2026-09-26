@@ -207,6 +207,15 @@ export function runThermalKernel(i: ThermalKernelInputs): ThermalKernelOutputs {
  */
 export function kernelWarnings(i: ThermalKernelInputs, o: ThermalKernelOutputs): string[] {
   const w: string[] = [];
+  // Self-contained on purpose -- see this file's header comment on why
+  // kernel.ts doesn't import the shared formatter in visualizer/format.ts.
+  const fmtPower = (watts: number) => {
+    const a = Math.abs(watts);
+    if (a >= 1e9) return `${(watts / 1e9).toFixed(2)} GW`;
+    if (a >= 1e6) return `${(watts / 1e6).toFixed(2)} MW`;
+    if (a >= 1e3) return `${(watts / 1e3).toFixed(2)} kW`;
+    return `${Math.round(watts)} W`;
+  };
   if (o.netRadiatorCapacityW <= 0) {
     w.push('External thermal loading and parasitic heat exceed net radiator rejection at the selected temperature.');
   }
@@ -220,10 +229,10 @@ export function kernelWarnings(i: ThermalKernelInputs, o: ThermalKernelOutputs):
     w.push('A high Earth view factor substantially reduces deep-space radiative rejection and increases Earth infrared loading.');
   }
   if (o.computeDeficitW > 0) {
-    w.push(`Requested compute power exceeds the rejectable heat budget by ${Math.round(o.computeDeficitW)} W. Reduce the compute load or increase radiator and coolant capacity.`);
+    w.push(`Requested compute power exceeds the rejectable heat budget by ${fmtPower(o.computeDeficitW)}. Reduce the compute load or increase radiator and coolant capacity.`);
   }
   if (o.powerDeficitW > 0) {
-    w.push(`Requested electrical load exceeds average solar array generation by ${Math.round(o.powerDeficitW)} W. Average generation already accounts for this orbit's eclipse duty cycle (${(o.orbitSunlitFraction * 100).toFixed(0)}% sunlit), but no battery is modelled to smooth the load across an orbit, so reduce the load, add array area, or improve Sun pointing.`);
+    w.push(`Requested electrical load exceeds average solar array generation by ${fmtPower(o.powerDeficitW)}. Average generation already accounts for this orbit's eclipse duty cycle (${(o.orbitSunlitFraction * 100).toFixed(0)}% sunlit), but no battery is modelled to smooth the load across an orbit, so reduce the load, add array area, or improve Sun pointing.`);
   }
   return w;
 }

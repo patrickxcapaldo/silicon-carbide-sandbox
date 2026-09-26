@@ -47,7 +47,11 @@ export function ThermalScene({ state, derived, viewMode, cameraFocus }: Props) {
     : (cameraFocus === 'satellite' ? satPos.toArray() as [number, number, number] : [0, 0, 0] as [number, number, number]);
 
   const [minDistance, maxDistance] = viewMode === 'closeup'
-    ? [0.7, 6]
+    // 14 (not 6): with radiatorArea/solarPanelAreaM2 now supporting
+    // multi-km monolithic platforms, the log-decade geometry in
+    // spacecraftGeometry.ts can render panels several scene units wide, so
+    // the close-up camera needs room to zoom out far enough to frame them.
+    ? [0.7, 14]
     : (cameraFocus === 'satellite' ? [0.15, 14] : [7, 22]);
 
   return <>

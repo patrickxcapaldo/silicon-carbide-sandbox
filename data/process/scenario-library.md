@@ -84,9 +84,9 @@ These are in the ledger as pending, and I'll score them when the information arr
 
 **P3** is that the total deployed array and radiator area of Orbital's 100 kW class satellite lands between 300 and 700 m² in its technical attachment, which brackets the tool's 373 to 530 m². I'm 70% confident, and the deadline is 31 December 2026.
 
-## Fleet architecture scenarios (added 23 September 2026)
+## Fleet architecture scenarios (added 23 September 2026; extended 24 September 2026)
 
-These three are the built-in presets behind section 4 of Study 01 and Spark 03. None was pre-registered: the outcomes they show were specified in advance in the brief for that work, but I chose the remaining slider values to reproduce those outcomes, so the match is by construction and isn't a test of the tool. What does protect them is that each is pinned by a golden vector (`gv-08` to `gv-10`) generated from the kernel compiled outside the app, and the test suite fails if a preset drifts from its vector. Settings not listed are the module's usual LEO values (550 km, e = 0.01, 51.6°, RAAN 25°, ε = 0.9, absorptivity 0.12, Earth IR 255 K, albedo 0.3, solar flux 1,000 W/m², solar array efficiency 0.29, pointing 0.97).
+These five are the built-in presets behind section 4 of Study 01 and Spark 03. None was pre-registered: the outcomes they show were specified in advance in the brief for that work, but I chose the remaining slider values to reproduce those outcomes, so the match is by construction and isn't a test of the tool. What does protect them is that each is pinned by a golden vector (`gv-08` to `gv-12`) generated from the kernel compiled outside the app, and the test suite fails if a preset drifts from its vector. Settings not listed are the module's usual LEO values (550 km, e = 0.01, 51.6°, RAAN 25°, ε = 0.9, absorptivity 0.12, Earth IR 255 K, albedo 0.3, solar flux 1,000 W/m², solar array efficiency 0.29, pointing 0.97).
 
 ### S12. A radiator that the loop can't feed (preset: Transport-limited monolithic node, `gv-08`)
 **Pre-registered:** no.
@@ -102,6 +102,16 @@ Radiator 1 m² at 65 °C, sink 180 K, Earth view factor 0.3, sun incidence 0.3, 
 **Pre-registered:** no.
 
 The S13 settings with the radiator at 8 m², coolant 0.5 kg/s with a 10 K rise, compute 1,000 W and array 10 m². Gross radiator flux is again 565 W/m² (the identical figure is the fleet-invariance point), the heat budget before parasitics is 4,206 W, and the same 30 W is **0.7%** of it, or 3% of the compute heat. Thermal utilisation is 24% and power utilisation 57%, so the status is Safe. The 5.7% and 0.7% depend on how I define the budget. Against compute heat alone the ratio between the two nodes is 10 to 1 instead of about 8 to 1, because the budget scales with radiator area (8 to 1) and not with compute (10 to 1).
+
+### S15. Starmind AI1 at its real size (preset: Starmind Fleet Node, `gv-11`)
+**Pre-registered:** no.
+
+Added once the module's input bounds were raised to hold SpaceX's disclosed Starmind AI1 node directly, rather than the scaled-down proxy S13-style presets this section used before that. Radiator 160 m² at 122 °C, sink 180 K, Earth view factor 0.2, sun incidence 0.2, coolant 15 kg/s with a 15 K rise, parasitic 2,500 W, compute 175,000 W, array 1,050 m². Gross radiator flux is 1,158 W/m², net thermal capacity is 178,745 W, so 175,000 W of compute is **97.9%** thermal utilisation, with about 3,745 W of headroom. Power utilisation is 93.96% (about 11,411 W of headroom on an orbit-averaged 188,911 W of generation). Status is Limit, not Overheating, on both counts, matching a disclosed design that states only an average and a peak with no stated margin. About 28,600 of these nodes (5 GW / 175 kW) sum to the same aggregate as S16.
+
+### S16. The monolithic counterpart at the same aggregate scale (preset: Monolith (5 GW Concept), `gv-12`)
+**Pre-registered:** no.
+
+Radiator 1e7 m² at 75 °C, sink 180 K, Earth view factor 0.15, sun incidence 0.2, coolant 320,000 kg/s with a 20 K rise (an aggregate figure standing in for many parallel loops, not one physical pipe), parasitic 2,000,000 W, compute 5,000,000,000 W, array 3e7 m². Gross radiator flux is 671.85 W/m², net thermal capacity is about 6.4657 GW, so 5 GW of compute is **77.3%** thermal utilisation, with about 1.4657 GW of headroom. Transport capacity at this flow (6.72 GW) exceeds net radiative capacity, so radiation, not the loop, is the binding limit here -- the opposite of S12 at small scale. Power utilisation is 92.67% (about 5.4 GW generated against a 5.002 GW bus load). Status is Limit on both counts. The 320,000 kg/s figure is not derived from a stated design; it was chosen to sit comfortably above the bare Q = ṁc_pΔT minimum for 5 GW at 20 K (about 238,000 kg/s), the same margin logic as any other preset here, and the model has no way to check whether an aggregate flow that large is buildable as an actual set of parallel loops, let alone what it would mass.
 
 ## What these scenarios say about the next module
 

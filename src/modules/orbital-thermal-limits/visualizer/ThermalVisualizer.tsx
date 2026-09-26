@@ -7,6 +7,7 @@ import { StatusBadge } from './StatusBadge';
 import { InfoTip } from './InfoTip';
 import { useOrbitClock } from './useOrbitClock';
 import { nadirEarthViewFactor } from './orbit';
+import { formatWatts } from './format';
 import type { OrbitPreset } from './orbitPresets';
 import type { ScenarioPreset } from './scenarioPresets';
 import type { ThermalDerived, ThermalState } from './types';
@@ -25,15 +26,34 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
   const [state, setState] = useState<ThermalState>({ ...INITIAL_STATE, ...initialState });
   const [viewMode, setViewMode] = useState<ViewMode>('orbit');
   const [cameraFocus, setCameraFocus] = useState<CameraFocus>('earth');
+  // Tracks which preset button, if any, produced the current state exactly,
+  // so the controls panel can highlight it. Set only by applyOrbitPreset /
+  // applyScenario below and cleared by handleChange whenever the person
+  // edits a slider the preset in question actually sets -- never by
+  // handlePhaseChange, so playback advancing orbitPhaseDeg does not itself
+  // clear a scenario or orbit preset's highlight.
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
+  const [selectedOrbitPresetId, setSelectedOrbitPresetId] = useState<string | null>(null);
 
   const setStateWithCallback: Dispatch<SetStateAction<ThermalState>> = useCallback((update) => setState(current => {
     const next = typeof update === 'function' ? (update as (s: ThermalState) => ThermalState)(current) : update;
     onStateChange?.(next); return next;
   }), [onStateChange]);
 
+  // Fields applyOrbitPreset itself sets (including the derived Earth view
+  // factor); only these should drop the orbit-preset highlight on edit.
+  const ORBIT_PRESET_FIELDS = useMemo(
+    () => new Set<keyof ThermalState>(['orbitAltitudeKm', 'orbitEccentricity', 'orbitInclinationDeg', 'orbitRaanDeg', 'orbitArgumentDeg', 'orbitPhaseDeg', 'earthViewFactor']),
+    [],
+  );
+
   const handleChange = useCallback((key: keyof ThermalState, value: number) => {
+    // A scenario preset sets every field at once, so editing any one of
+    // them by hand means the state is no longer exactly that scenario.
+    setSelectedScenarioId(null);
+    if (ORBIT_PRESET_FIELDS.has(key)) setSelectedOrbitPresetId(null);
     setStateWithCallback(current => ({ ...current, [key]: value }));
-  }, [setStateWithCallback]);
+  }, [setStateWithCallback, ORBIT_PRESET_FIELDS]);
 
   const lastSyncRef = useRef(0);
   const handlePhaseChange = useCallback((nextPhaseDeg: number) => {
@@ -68,6 +88,11 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
 
   const applyOrbitPreset = useCallback((preset: OrbitPreset) => {
     setPlaying(false);
+    setSelectedOrbitPresetId(preset.id);
+    // An orbit preset only overwrites the orbit fields, not a whole
+    // scenario, so whatever scenario was previously selected (if any) no
+    // longer matches the full state and should stop being highlighted.
+    setSelectedScenarioId(null);
     setStateWithCallback(current => ({
       ...current,
       orbitAltitudeKm: preset.altitudeKm,
@@ -84,6 +109,10 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
 
   const applyScenario = useCallback((scenario: ScenarioPreset) => {
     setPlaying(false);
+    setSelectedScenarioId(scenario.id);
+    // None of the built-in scenarios' orbit fields correspond to a named
+    // orbit preset, so clear that highlight rather than leave a stale one.
+    setSelectedOrbitPresetId(null);
     setStateWithCallback(() => ({ ...scenario.state }));
   }, [setPlaying, setStateWithCallback]);
 
@@ -114,7 +143,7 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
     };
   }, [state]);
 
-  const metric = (value: number, unit = 'W') => `${Math.abs(value) >= 1000 ? (value / 1000).toFixed(2) + ' kW' : Math.round(value) + ' ' + unit}`;
+  const metric = (value: number) => formatWatts(value);
 
   const TELEMETRY_INFO = {
     requestedCompute: 'The AI compute electrical power set with the "Requested compute power" slider. Almost all of it ultimately has to leave the spacecraft as heat.',
@@ -145,6 +174,8 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
       onChange={handleChange}
       onApplyOrbitPreset={applyOrbitPreset}
       onApplyScenario={applyScenario}
+      selectedScenarioId={selectedScenarioId}
+      selectedOrbitPresetId={selectedOrbitPresetId}
       viewMode={viewMode}
       setViewMode={setViewMode}
       cameraFocus={cameraFocus}

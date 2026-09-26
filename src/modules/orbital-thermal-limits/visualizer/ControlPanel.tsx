@@ -15,6 +15,10 @@ type Props = {
   onChange: (key: keyof ThermalState, value: number) => void;
   onApplyOrbitPreset: (preset: OrbitPreset) => void;
   onApplyScenario: (scenario: ScenarioPreset) => void;
+  /** Id of the scenario preset that produced the current state exactly, or null if none does (including after any manual edit). */
+  selectedScenarioId: string | null;
+  /** Id of the orbit preset whose fields the current state still matches exactly, or null if none does. */
+  selectedOrbitPresetId: string | null;
   viewMode: ViewMode;
   setViewMode: (v: ViewMode) => void;
   cameraFocus: CameraFocus;
@@ -48,6 +52,38 @@ function SegButton({ active, onClick, children }: { active: boolean; onClick: ()
   );
 }
 
+/**
+ * A left-aligned, full-width button for an item in a preset/reference list
+ * (scenario presets, orbit presets, compute references), with a visibly
+ * distinct selected state: a brighter border, a tinted background, a
+ * checkmark, and bold text, rather than relying on border colour alone.
+ * `active` should be true only when the current state exactly matches what
+ * this button would set, so at most one button in a given list is
+ * highlighted at a time.
+ */
+function PresetButton({ active, onClick, children, fontSize = 11 }: { active: boolean; onClick: () => void; children: ReactNode; fontSize?: number }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      style={{
+        flex: 1, textAlign: 'left', padding: '6px 8px', borderRadius: 6, fontSize,
+        display: 'flex', alignItems: 'center', gap: 6,
+        border: `1px solid ${active ? '#4fb3ff' : 'rgba(255,255,255,.2)'}`,
+        background: active ? 'rgba(79,179,255,.28)' : 'rgba(79,179,255,.08)',
+        color: active ? '#ffffff' : '#dff1ff',
+        fontWeight: active ? 700 : 400,
+        boxShadow: active ? '0 0 0 1px rgba(79,179,255,.35)' : 'none',
+        cursor: 'pointer',
+      }}
+    >
+      <span style={{ width: 12, flexShrink: 0, opacity: active ? 1 : 0, color: '#4fb3ff' }}>{'\u2713'}</span>
+      <span>{children}</span>
+    </button>
+  );
+}
+
 function Section({ title, defaultOpen, children }: { title: string; defaultOpen?: boolean; children: ReactNode }) {
   return (
     <details open={defaultOpen} style={{ marginBottom: 8, borderTop: '1px solid rgba(255,255,255,.1)', paddingTop: 8 }}>
@@ -58,7 +94,8 @@ function Section({ title, defaultOpen, children }: { title: string; defaultOpen?
 }
 
 export function ControlPanel({
-  state, onChange, onApplyOrbitPreset, onApplyScenario, viewMode, setViewMode, cameraFocus, setCameraFocus,
+  state, onChange, onApplyOrbitPreset, onApplyScenario, selectedScenarioId, selectedOrbitPresetId,
+  viewMode, setViewMode, cameraFocus, setCameraFocus,
   playing, setPlaying, speed, setSpeed, periodSeconds, secondsPerOrbitAtSpeed,
 }: Props) {
   const orbitProgress = ((state.orbitPhaseDeg % 360) + 360) % 360 / 360;
@@ -82,14 +119,9 @@ export function ControlPanel({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {SCENARIO_PRESETS.map((scenario) => (
             <div key={scenario.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <button
-                type="button"
-                onClick={() => onApplyScenario(scenario)}
-                style={{
-                  flex: 1, textAlign: 'left', padding: '6px 8px', borderRadius: 6, fontSize: 11,
-                  border: '1px solid rgba(255,255,255,.2)', background: 'rgba(79,179,255,.08)', color: '#dff1ff', cursor: 'pointer',
-                }}
-              >{scenario.label}</button>
+              <PresetButton active={selectedScenarioId === scenario.id} onClick={() => onApplyScenario(scenario)}>
+                {scenario.label}
+              </PresetButton>
               <InfoTip text={scenario.explanation} width={260} />
             </div>
           ))}
@@ -148,14 +180,9 @@ export function ControlPanel({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {ORBIT_PRESETS.map((preset) => (
             <div key={preset.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <button
-                type="button"
-                onClick={() => onApplyOrbitPreset(preset)}
-                style={{
-                  flex: 1, textAlign: 'left', padding: '6px 8px', borderRadius: 6, fontSize: 11,
-                  border: '1px solid rgba(255,255,255,.16)', background: 'rgba(255,255,255,.04)', color: '#dff1ff', cursor: 'pointer',
-                }}
-              >{preset.label}</button>
+              <PresetButton active={selectedOrbitPresetId === preset.id} onClick={() => onApplyOrbitPreset(preset)}>
+                {preset.label}
+              </PresetButton>
               <InfoTip text={preset.blurb} width={250} />
             </div>
           ))}
@@ -168,14 +195,9 @@ export function ControlPanel({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 2 }}>
           {COMPUTE_REFERENCES.map((ref) => (
             <div key={ref.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <button
-                type="button"
-                onClick={() => onChange('computeWattsRequested', ref.watts)}
-                style={{
-                  flex: 1, textAlign: 'left', padding: '5px 8px', borderRadius: 6, fontSize: 10.6,
-                  border: '1px solid rgba(255,255,255,.14)', background: 'rgba(255,255,255,.03)', color: '#bcdcf0', cursor: 'pointer',
-                }}
-              >{ref.label} {'\u2014'} {ref.watts.toLocaleString()} W</button>
+              <PresetButton active={state.computeWattsRequested === ref.watts} onClick={() => onChange('computeWattsRequested', ref.watts)} fontSize={10.6}>
+                {ref.label} {'\u2014'} {ref.watts.toLocaleString()} W
+              </PresetButton>
               <InfoTip text={ref.note} width={240} />
             </div>
           ))}

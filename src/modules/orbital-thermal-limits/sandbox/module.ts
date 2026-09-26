@@ -18,14 +18,14 @@ const DIM_TEMPERATURE_DELTA = DIM_TEMPERATURE;
 export const INPUT_SPECS: PortSpec[] = [
   {
     key: 'computeWattsRequested', label: 'Requested compute power', unit: 'W', dimension: DIM_POWER,
-    min: 0, max: 5000, defaultValue: 300,
-    description: 'Continuous electrical power drawn by the onboard AI compute, almost all of which becomes waste heat.',
+    min: 0, max: 1e10, defaultValue: 300,
+    description: 'Continuous electrical power drawn by the onboard AI compute, almost all of which becomes waste heat. Supports single-node (W–kW) through aggregate fleet / monolithic platform (MW–GW) scales.',
     typicalSource: 'An accelerator or datacentre workload module that converts a model size and throughput target into a power draw.',
   },
   {
     key: 'radiatorArea', label: 'Radiator area', unit: 'm²', dimension: DIM_AREA,
-    min: 0.5, max: 20, defaultValue: 2,
-    description: 'Total two-sided radiating area of the panels.',
+    min: 0.5, max: 2e7, defaultValue: 2,
+    description: 'Total two-sided radiating area of the panels. Supports micro-nodes through multi-km monolithic platforms (e.g. ~1e7 m\u00b2 for a several-km-scale concept).',
     typicalSource: 'A spacecraft mass and volume budget module, since radiator area trades against launch mass and stowed volume.',
   },
   {
@@ -80,8 +80,8 @@ export const INPUT_SPECS: PortSpec[] = [
   },
   {
     key: 'flowRateKgS', label: 'Coolant flow', unit: 'kg/s', dimension: DIM_MASS_FLOW,
-    min: 0.01, max: 1.5, defaultValue: 0.35,
-    description: 'Mass flow rate of a single-phase, space-grade dielectric coolant (for example Galden PFPE) around the loop.',
+    min: 0.01, max: 5e5, defaultValue: 0.35,
+    description: 'Mass flow rate of a single-phase, space-grade dielectric coolant (for example Galden PFPE). For a single loop this is typically <2 kg/s; for aggregate / multi-loop platforms this models the sum of parallel loops, so gigawatt-scale heat transport remains representable.',
   },
   {
     key: 'coolantDeltaT', label: 'Coolant temperature rise', unit: 'K', dimension: DIM_TEMPERATURE_DELTA,
@@ -90,13 +90,13 @@ export const INPUT_SPECS: PortSpec[] = [
   },
   {
     key: 'parasiticHeatW', label: 'Parasitic heat', unit: 'W', dimension: DIM_POWER,
-    min: 0, max: 500, defaultValue: 40,
-    description: 'Heat from electronic and resistive bus losses, such as avionics and pump inefficiency, that also has to be rejected through the same loop. This does not cover heat from active heaters or power radiated away as RF by a communications payload, since electrical power does not map one-to-one onto waste heat for either of those.',
+    min: 0, max: 1e7, defaultValue: 40,
+    description: 'Heat from electronic and resistive bus losses, such as avionics and pump inefficiency, that also has to be rejected through the same loop. This does not cover heat from active heaters or power radiated away as RF by a communications payload, since electrical power does not map one-to-one onto waste heat for either of those. Supports node-scale through aggregate-platform parasitics.',
   },
   {
     key: 'solarPanelAreaM2', label: 'Solar array area', unit: 'm²', dimension: DIM_AREA,
-    min: 0.5, max: 30, defaultValue: 4,
-    description: 'Total active solar cell area across both deployed wings.',
+    min: 0.5, max: 3e7, defaultValue: 4,
+    description: 'Total active solar cell area across both deployed wings (or the aggregate array of a monolithic platform). Supports micro-nodes through multi-km solar farms.',
     typicalSource: 'A spacecraft mass and volume budget module.',
   },
   {

@@ -7,6 +7,16 @@ export type ParamMeta = {
   max: number;
   step: number;
   description: string;
+  /** When true, ParamSlider.tsx maps the slider handle's position through a
+   * logarithmic curve rather than linearly, so a range spanning many orders
+   * of magnitude (e.g. 0.5 to 2e7) still gives usable resolution near the
+   * low end. Only meaningful together with logFloor. */
+  logScale?: boolean;
+  /** The smallest value the log curve treats as non-zero (must be > 0). For
+   * fields whose true min is 0 (compute power, parasitic heat), this is the
+   * practical low end of the log range; dragging the slider to its very
+   * bottom still yields the field's real `min` (including 0). */
+  logFloor?: number;
 };
 
 export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
@@ -38,8 +48,8 @@ export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
 
   // Radiator / loop
   radiatorArea: {
-    label: 'Radiator area', unit: 'm\u00b2', min: 0.5, max: 20, step: 0.5,
-    description: 'Total two-sided radiating area of the panels. More area rejects more heat at the same temperature, at the cost of mass, drag and stowage volume.',
+    label: 'Radiator area', unit: 'm\u00b2', min: 0.5, max: 2e7, step: 0.5, logScale: true, logFloor: 0.5,
+    description: 'Total two-sided radiating area of the panels. More area rejects more heat at the same temperature, at the cost of mass, drag and stowage volume. Supports micro-nodes through multi-km monolithic platforms.',
   },
   operatingTempC: {
     label: 'Radiator temperature', unit: '\u00b0C', min: 20, max: 180, step: 1,
@@ -74,12 +84,12 @@ export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
     description: 'Temperature rise of the coolant as it picks up heat from the compute payload, up to the maximum the payload can tolerate on its hot side. A larger \u0394T moves more heat at the same flow rate, but is a design limit set by the payload rather than a hard physical ceiling on the fluid itself.',
   },
   flowRateKgS: {
-    label: 'Coolant flow', unit: 'kg/s', min: 0.01, max: 1.5, step: 0.01,
-    description: 'Mass flow rate of a single-phase, space-grade dielectric coolant such as Galden PFPE around the loop. Together with \u0394T this sets how much heat the loop can move (P = \u1e41\u00b7c\u209a\u00b7\u0394T) while keeping the payload under its temperature limit. Pumping coolant faster costs more electrical power for the pump itself, which is not modelled here.',
+    label: 'Coolant flow', unit: 'kg/s', min: 0.01, max: 5e5, step: 0.01, logScale: true, logFloor: 0.01,
+    description: 'Mass flow rate of a single-phase, space-grade dielectric coolant such as Galden PFPE. Together with \u0394T this sets how much heat the loop can move (P = \u1e41\u00b7c\u209a\u00b7\u0394T). For a single loop this is typically <2 kg/s; for aggregate / multi-loop platforms this models the sum of parallel loops. Pumping costs are not modelled.',
   },
   parasiticHeatW: {
-    label: 'Parasitic heat', unit: 'W', min: 0, max: 500, step: 5,
-    description: 'Heat from electronic and resistive bus losses, such as pumps, avionics and wiring, that also has to be rejected through the same radiator. It is also used as a stand-in for that hardware\u2019s electrical draw in the power budget below, which does not extend to active heaters or an RF payload, since electrical power does not map one-to-one onto waste heat for either of those.',
+    label: 'Parasitic heat', unit: 'W', min: 0, max: 1e7, step: 5, logScale: true, logFloor: 5,
+    description: 'Heat from electronic and resistive bus losses, such as pumps, avionics and wiring, that also has to be rejected through the same radiator. It is also used as a stand-in for that hardware\u2019s electrical draw in the power budget below, which does not extend to active heaters or an RF payload, since electrical power does not map one-to-one onto waste heat for either of those. Supports node-scale through aggregate-platform parasitics.',
   },
 
   // Spacecraft / environment
@@ -98,14 +108,14 @@ export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
 
   // Compute
   computeWattsRequested: {
-    label: 'Requested compute power', unit: 'W', min: 0, max: 5000, step: 10,
-    description: 'Continuous electrical power drawn by the onboard AI compute, almost all of which ends up as waste heat that must cross the same radiator and coolant path. For scale, an edge inference module draws tens of watts, a single H100-class GPU is around 700 W, and a GB300-class GPU is around 1,400 W. The quick-select buttons below set these values directly.',
+    label: 'Requested compute power', unit: 'W', min: 0, max: 1e10, step: 10, logScale: true, logFloor: 1,
+    description: 'Continuous electrical power drawn by the onboard AI compute, almost all of which ends up as waste heat that must cross the same radiator and coolant path. Supports single-node (W\u2013kW) through aggregate fleet / monolithic platform (MW\u2013GW) scales. For scale, an edge inference module draws tens of watts, a single H100-class GPU is around 700 W, a GB300-class GPU is around 1,400 W, a Starmind-class node is around 175 kW, and a 5 GW monolithic concept is 5e9 W. The quick-select buttons below set common node-scale values directly.',
   },
 
   // Power / solar array
   solarPanelAreaM2: {
-    label: 'Solar array area', unit: 'm\u00b2', min: 0.5, max: 30, step: 0.5,
-    description: 'Total active solar cell area across both deployed array wings. Larger arrays generate more power but add mass, drag and deployment complexity.',
+    label: 'Solar array area', unit: 'm\u00b2', min: 0.5, max: 3e7, step: 0.5, logScale: true, logFloor: 0.5,
+    description: 'Total active solar cell area across both deployed array wings (or the aggregate array of a monolithic platform). Larger arrays generate more power but add mass, drag and deployment complexity. Supports micro-nodes through multi-km solar farms.',
   },
   solarPanelEfficiency: {
     label: 'Solar cell efficiency', unit: '\u03b7', min: 0.05, max: 0.4, step: 0.01,
