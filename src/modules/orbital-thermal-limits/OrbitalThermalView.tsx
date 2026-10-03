@@ -37,7 +37,6 @@ export const OrbitalThermalView: React.FC<OrbitalThermalViewProps> = ({ inputs, 
     anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
   };
-
   return <div style={{ width: '100%', minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
     <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1.5rem' }}>
       <header style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
@@ -48,12 +47,12 @@ export const OrbitalThermalView: React.FC<OrbitalThermalViewProps> = ({ inputs, 
             Module {orbitalThermalLimits.descriptor.releaseVersion} · Sandbox {BUILD_INFO.sandboxVersion}
           </p>
         </div>
-        <button
+<button
           type="button"
           onClick={handleExport}
           style={{ background: 'var(--accent)', color: '#fff', border: 0, borderRadius: '6px', padding: '0.6rem 0.85rem', font: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
         >
-          Export run JSON
+          Export
         </button>
       </header>
       <Explainer />

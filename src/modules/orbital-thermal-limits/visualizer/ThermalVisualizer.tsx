@@ -21,9 +21,9 @@ const INITIAL_STATE: ThermalState = {
   ...DAWN_DUSK_SSO_ORBIT,
 };
 
-type ThermalVisualizerProps = { initialState?: Partial<ThermalState>; onStateChange?: (state: ThermalState) => void; };
+type ThermalVisualizerProps = { initialState?: Partial<ThermalState>; onStateChange?: (state: ThermalState) => void; onExport?: () => void; };
 
-export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange }: ThermalVisualizerProps) {
+export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange, onExport }: ThermalVisualizerProps) {
   const [state, setState] = useState<ThermalState>({ ...INITIAL_STATE, ...initialState });
   const [viewMode, setViewMode] = useState<ViewMode>('orbit');
   const [cameraFocus, setCameraFocus] = useState<CameraFocus>('earth');
@@ -192,6 +192,7 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
       onChange={handleChange}
       onApplyOrbitPreset={applyOrbitPreset}
       onApplyScenario={applyScenario}
+      onExport={onExport}
       selectedScenarioId={selectedScenarioId}
       selectedOrbitPresetId={selectedOrbitPresetId}
       viewMode={viewMode}

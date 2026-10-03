@@ -172,6 +172,7 @@ import { sunlitFraction } from './sandbox/orbitalMechanics';
 import { PARAM_META } from './visualizer/paramMeta';
 import { manifest } from './manifest';
 import { createRunRecord, verifyRunRecord } from './runRecord';
+import { createPresetResultsBundle } from './presetResults';
 
 type GoldenVector = {
   id: string;
@@ -396,6 +397,20 @@ assert(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(mod.descriptor.contract
     rejectedWrongVersion = true;
   }
   assert(rejectedWrongVersion, 'Replay must reject a record made by a different module release');
+}
+
+{
+  const createdAt = new Date('2026-10-03T00:00:00.000Z');
+  const bundle = createPresetResultsBundle(createdAt);
+  assert(bundle.presets.length === SCENARIO_PRESETS.length, 'Preset results bundle must include every scenario preset');
+  assert(bundle.createdAt === createdAt.toISOString(), 'Preset results bundle must preserve its creation timestamp');
+  for (const [index, item] of bundle.presets.entries()) {
+    const sourcePreset = SCENARIO_PRESETS[index];
+    assert(item.id === sourcePreset.id, `Preset bundle entry ${index} must preserve the preset id`);
+    assert(JSON.stringify(item.configuration) === JSON.stringify(sourcePreset.state), `Preset ${item.id} must preserve its complete configuration`);
+    assert(item.run.resolvedInputs.computeWattsRequested === sourcePreset.state.computeWattsRequested, `Preset ${item.id} run record must use the preset inputs`);
+    verifyRunRecord(item.run);
+  }
 }
 
 console.log('All model, contract and golden-vector assertions completed.');

@@ -15,6 +15,7 @@ type Props = {
   onChange: (key: keyof ThermalState, value: number) => void;
   onApplyOrbitPreset: (preset: OrbitPreset) => void;
   onApplyScenario: (scenario: ScenarioPreset) => void;
+  onExport?: () => void;
   /** Id of the scenario preset that produced the current state exactly, or null if none does (including after any manual edit). */
   selectedScenarioId: string | null;
   /** Id of the orbit preset whose fields the current state still matches exactly, or null if none does. */
@@ -94,7 +95,8 @@ function Section({ title, defaultOpen, children }: { title: string; defaultOpen?
 }
 
 export function ControlPanel({
-  state, onChange, onApplyOrbitPreset, onApplyScenario, selectedScenarioId, selectedOrbitPresetId,
+  state, onChange, onApplyOrbitPreset, onApplyScenario, onExport,
+  selectedScenarioId, selectedOrbitPresetId,
   viewMode, setViewMode, cameraFocus, setCameraFocus,
   playing, setPlaying, speed, setSpeed, periodSeconds, secondsPerOrbitAtSpeed,
 }: Props) {
@@ -108,7 +110,22 @@ export function ControlPanel({
       color: '#eaf6ff', fontSize: 12, boxShadow: '0 14px 34px rgba(0,0,0,.4)',
     }}>
       <PanelBoundsProvider value={panelRef}>
-      <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 10 }}>Controls</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
+        <div style={{ fontWeight: 700, fontSize: 13.5 }}>Controls</div>
+        {onExport && (
+          <button
+            type="button"
+            onClick={onExport}
+            style={{
+              background: 'var(--accent)', color: '#fff', border: 0, borderRadius: 6,
+              padding: '0.45rem 0.7rem', font: 'inherit', fontSize: 10.5, fontWeight: 700,
+              cursor: 'pointer', whiteSpace: 'nowrap',
+            }}
+          >
+            Export
+          </button>
+        )}
+      </div>
 
       {/* Scenario presets */}
       <div style={{ marginBottom: 12 }}>
@@ -174,21 +191,6 @@ export function ControlPanel({
         </div>
       </div>
 
-      {/* Orbit presets */}
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4 }}>Orbit presets</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-          {ORBIT_PRESETS.map((preset) => (
-            <div key={preset.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <PresetButton active={selectedOrbitPresetId === preset.id} onClick={() => onApplyOrbitPreset(preset)}>
-                {preset.label}
-              </PresetButton>
-              <InfoTip text={preset.blurb} width={250} />
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* AI compute */}
       <Section title="AI compute load" defaultOpen>
         <ParamSlider meta={PARAM_META.computeWattsRequested} value={state.computeWattsRequested} onChange={(v) => onChange('computeWattsRequested', v)} />
@@ -206,6 +208,19 @@ export function ControlPanel({
 
       {/* Orbit params */}
       <Section title="Orbit">
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4 }}>Orbit presets</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {ORBIT_PRESETS.map((preset) => (
+              <div key={preset.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <PresetButton active={selectedOrbitPresetId === preset.id} onClick={() => onApplyOrbitPreset(preset)}>
+                  {preset.label}
+                </PresetButton>
+                <InfoTip text={preset.blurb} width={250} />
+              </div>
+            ))}
+          </div>
+        </div>
         {ORBIT_KEYS.map((key) => (
           <ParamSlider
             key={key}
