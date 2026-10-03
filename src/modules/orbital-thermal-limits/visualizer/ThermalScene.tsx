@@ -59,7 +59,6 @@ export function ThermalScene({ state, derived, viewMode, cameraFocus }: Props) {
       <>
         <ThermalEnvironment
           solarLoadWm2={state.solarLoadWm2}
-          sinkTempK={state.sinkTempK}
           earthIrTempK={state.earthIrTempK}
           earthViewFactor={state.earthViewFactor}
           earthAlbedo={state.earthAlbedo}

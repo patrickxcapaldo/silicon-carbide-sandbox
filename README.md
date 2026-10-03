@@ -42,7 +42,7 @@ Whether the subject is orbital compute thermal limits, radar range equations or 
 
 ### Prerequisites
 
-- Node.js (v18 or later)
+- Node.js (v22.12 or later)
 - `npm`
 
 ### Installation
@@ -119,6 +119,32 @@ result.status;                  // same classification the interface shows
 result.diagnostics;             // clamping, unknown keys, physical warnings
 result.resolvedInputs;          // exactly what was used, for reproducibility
 ```
+
+## Versioning and Reproducibility
+
+The Sandbox version in the root `package.json` identifies the whole application release. Each module has its own `releaseVersion`, which identifies its calculation, assumptions, defaults, public inputs and outputs. The module descriptor also has a separate `contractVersion` for input/output compatibility; do not cite that as the module release. The current version assignments (`0.1.0`) are a baseline, not an immutable release until a matching Git tag is published.
+
+Use this module SemVer policy:
+
+- **PATCH:** documentation or presentation changes that do not alter calculated results.
+- **MINOR:** additive or backward-compatible model changes and scientific corrections, including corrections that change results for some inputs.
+- **MAJOR:** breaking changes to public inputs, outputs, or their meanings.
+
+Any released version is immutable. A correction creates a new version and release; never move or replace a tag that an article has cited. Sandbox releases use annotated Git tags named `v<package version>` and a GitHub Release based on that tag. Releases must be cut from a clean commit. Build metadata includes the source commit and whether the working tree was dirty.
+
+The orbital module's **Export run JSON** control downloads the exact model inputs, resolved inputs, full-precision outputs, status, diagnostics, declared assumptions, module and Sandbox versions, source commit, and a schema version. UI-only orbit animation state is excluded because it does not affect the calculation. Special non-finite outputs are represented by the strings `"Infinity"`, `"-Infinity"`, or `"NaN"` so JSON does not silently turn them into `null`. The `assumptionRegistryRevisions` array is empty by default because registry entries are not yet linked to module assumptions automatically; add relevant `{ "id", "revision" }` entries when a published analysis relies on registry values.
+
+For an article, commit its exported record under `data/runs/` and cite the GitHub permalinks for the Sandbox release/tag and run-record file. A record exported from a dirty working tree is marked `sourceDirty: true`; do not present that as a replayable release. The live site is not version-hosted: GitHub preserves the code and data, and readers can check out the tag locally to replay the calculation.
+
+```bash
+git checkout --detach <recorded-source-commit>
+npm ci
+npm run replay -- /path/to/downloaded-article-run-record.json
+```
+
+Download the JSON from its GitHub permalink before checking out the recorded source commit; the run record may have been committed after that source commit. The replay command rejects dirty records and mismatched Sandbox versions, commits, module releases, or contracts, then verifies resolved inputs, outputs, status, and diagnostics. The module-specific citation and replay steps are in [`src/modules/orbital-thermal-limits/README.md`](src/modules/orbital-thermal-limits/README.md).
+
+Historical ledger entries that say `orbital-thermal-limits@1.0.0` predate immutable module releases and refer to the descriptor's former contract version. Their original claims are preserved; see [erratum E-0002](data/ledger/errata.yaml). Do not treat those labels as proof that a tagged historical build exists.
 
 Because inputs and outputs carry dimensions, connections between modules can be checked:
 

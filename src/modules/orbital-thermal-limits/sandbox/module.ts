@@ -7,6 +7,7 @@ import {
   classifyStatus, kernelWarnings, runThermalKernel,
   type ThermalKernelInputs,
 } from './kernel';
+import { MODULE_CONTRACT_VERSION, MODULE_RELEASE_VERSION } from '../version';
 
 /**
  * Temperature difference, as opposed to absolute temperature. Same dimension,
@@ -141,7 +142,8 @@ export const INPUT_SPECS: PortSpec[] = [
 
 export const DESCRIPTOR: ModuleDescriptor = {
   id: 'orbital-thermal-limits',
-  version: '1.0.0',
+  releaseVersion: MODULE_RELEASE_VERSION,
+  contractVersion: MODULE_CONTRACT_VERSION,
   title: 'Orbital thermal and power limits',
   summary: 'Steady-state heat rejection and electrical power balance for an AI compute payload on an Earth-orbiting spacecraft.',
   domains: ['thermodynamics', 'radiative heat transfer', 'orbital mechanics', 'photovoltaics'],

@@ -6,7 +6,7 @@ import { EARTH_RADIUS_SCENE, satelliteOrbitPosition } from './orbit';
 import { SUN_DIRECTION } from './sceneConstants';
 
 type Props = {
-  solarLoadWm2: number; sinkTempK: number; earthIrTempK: number; earthViewFactor: number; earthAlbedo: number;
+  solarLoadWm2: number; earthIrTempK: number; earthViewFactor: number; earthAlbedo: number;
   sunIncidence: number; orbitAltitudeKm: number; orbitEccentricity: number; orbitInclinationDeg: number; orbitRaanDeg: number; orbitArgumentDeg: number; orbitPhaseDeg: number;
 };
 
@@ -27,7 +27,7 @@ function VectorArrow({ start, end, color, opacity = 0.8, headSize = 0.10 }: { st
   </group>;
 }
 
-export function ThermalEnvironment({ solarLoadWm2, sinkTempK, earthIrTempK, earthViewFactor, earthAlbedo, sunIncidence, orbitAltitudeKm, orbitEccentricity, orbitInclinationDeg, orbitRaanDeg, orbitArgumentDeg, orbitPhaseDeg }: Props) {
+export function ThermalEnvironment({ solarLoadWm2, earthIrTempK, earthViewFactor, earthAlbedo, sunIncidence, orbitAltitudeKm, orbitEccentricity, orbitInclinationDeg, orbitRaanDeg, orbitArgumentDeg, orbitPhaseDeg }: Props) {
   const solar = clamp01(solarLoadWm2 / 1600);
   const earthHeat = inverseLerp(200, 300, earthIrTempK);
   const satPos = useMemo(() => satelliteOrbitPosition(orbitAltitudeKm, orbitInclinationDeg, orbitRaanDeg, orbitArgumentDeg, orbitPhaseDeg, orbitEccentricity), [orbitAltitudeKm, orbitEccentricity, orbitInclinationDeg, orbitRaanDeg, orbitArgumentDeg, orbitPhaseDeg]);

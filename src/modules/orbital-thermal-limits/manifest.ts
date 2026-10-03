@@ -1,8 +1,10 @@
 import type { Manifest } from '../../core/types';
 import { equations } from './equations';
+import { MODULE_RELEASE_VERSION } from './version';
 
 export const manifest: Manifest = {
   id: 'orbital-thermal-limits',
+  releaseVersion: MODULE_RELEASE_VERSION,
   title: 'Orbital Compute Thermal Rejection Limits',
   summary: 'Interactive first-order thermal balance for a spacecraft radiator in Earth orbit, including solar, albedo, Earth IR, coolant transport, and orbital geometry.',
   tags: ['space', 'thermal-physics', 'orbital-compute', 'ai-infrastructure'],

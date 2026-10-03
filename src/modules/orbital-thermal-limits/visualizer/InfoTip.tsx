@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 // rendered outside the sidebar (e.g. the telemetry bar / status badge)
 // simply have no provider in scope and fall back to centering on the
 // button itself.
-const PanelBoundsContext = createContext<RefObject<HTMLElement> | null>(null);
+const PanelBoundsContext = createContext<RefObject<HTMLElement | null> | null>(null);
 export const PanelBoundsProvider = PanelBoundsContext.Provider;
 
 type Props = {

@@ -20,3 +20,22 @@
   corrected_by: "Study 01, 'Four football fields of radiator for 100 MW? It depends on one number'"
   ledger_entry: CLM-0001
   severity: low   # internal draft example, not a previously published external number
+
+- id: E-0002
+  date: 2026-10-03
+  title: "Clarification: historical module version labels were not immutable releases"
+  affects:
+    - "CLM-0001 and CLM-0002 in data/ledger/claims.yaml"
+  description: >
+    These claim records identify orbital-thermal-limits as version 1.0.0,
+    matching the module descriptor's contract version at the time. The
+    repository had no Git release tags when this clarification was prepared,
+    so that label did not identify an immutable, replayable module release.
+    The original records and calculations are preserved unchanged. From the
+    new release metadata onward, module release versions identify model
+    behavior and are distinct from the input/output contract version. Future
+    article runs should include a committed JSON run record and cite a GitHub
+    release tag plus its source commit.
+  corrected_by: "Repository release and run-record policy"
+  ledger_entry: "CLM-0001, CLM-0002"
+  severity: low

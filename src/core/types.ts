@@ -93,6 +93,7 @@ export interface SubstackArticle {
 
 export interface Manifest {
   id: string;
+  releaseVersion: string;
   title: string;
   summary: string;
   tags: string[];

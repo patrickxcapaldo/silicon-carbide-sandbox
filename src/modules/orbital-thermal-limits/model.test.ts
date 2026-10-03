@@ -161,13 +161,15 @@ assert(defaultDiagnostics.length === 0, 'Declared defaults should not trigger cl
 // when the kernel is called from `sandbox/module.ts` or `model.ts`, rather
 // than called directly, would slip past a vector that was only ever checked
 // against the raw kernel.
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { lawLimitRadiatorAreaM2, kernelWarnings } from './sandbox/kernel';
 import { INPUT_SPECS } from './sandbox/module';
 import type { ThermalKernelInputs, ThermalKernelOutputs } from './sandbox/kernel';
 import { SCENARIO_PRESETS } from './visualizer/scenarioPresets';
 import { PARAM_META } from './visualizer/paramMeta';
+import { manifest } from './manifest';
+import { createRunRecord, verifyRunRecord } from './runRecord';
 
 type GoldenVector = {
   id: string;
@@ -199,7 +201,7 @@ const DERIVED: Record<string, (i: ThermalKernelInputs, o: ThermalKernelOutputs) 
 };
 
 function checkGoldenVectors(): void {
-  const path = join(__dirname, '..', '..', '..', 'data', 'golden-vectors', 'orbital-thermal-limits.json');
+  const path = fileURLToPath(new URL('../../../data/golden-vectors/orbital-thermal-limits.json', import.meta.url));
   const doc: { vectors: GoldenVector[] } = JSON.parse(readFileSync(path, 'utf8'));
   const relTol = 1e-6; // generous vs. the 1e-9 the vectors were generated at, to tolerate JS float rounding across two separate compiles
 
@@ -338,5 +340,29 @@ function checkFleetPresets(vectors: GoldenVector[]): void {
 }
 
 checkGoldenVectors();
+
+assert(manifest.releaseVersion === mod.descriptor.releaseVersion, 'UI manifest and module descriptor must expose the same module release version');
+assert(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(mod.descriptor.releaseVersion), 'Module release version must be SemVer');
+assert(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(mod.descriptor.contractVersion), 'Module contract version must be SemVer');
+{
+  const record = createRunRecord({ ...base, orbitPhaseDeg: 123 }, new Date('2026-10-03T00:00:00.000Z'));
+  const replay = mod.run(record.requestedInputs);
+  assert(record.schemaVersion === 1, 'Run record must declare its schema version');
+  assert(record.software.moduleId === mod.descriptor.id, 'Run record must identify its module');
+  assert(record.software.moduleReleaseVersion === mod.descriptor.releaseVersion, 'Run record must identify the module release');
+  assert(record.createdAt === '2026-10-03T00:00:00.000Z', 'Run record must preserve its creation timestamp');
+  assert(!Object.hasOwn(record.requestedInputs, 'orbitPhaseDeg'), 'Visual-only orbit phase must not be included as a model input');
+  assert(record.resolvedInputs.radiatorArea === replay.resolvedInputs.radiatorArea, 'Run record must preserve inputs actually used');
+  assert(record.outputs.maxComputeHeatW === replay.values.maxComputeHeatW, 'Run record outputs must retain full precision for replay');
+  assert(record.assumptions.length === mod.descriptor.assumptions.length, 'Run record must include the module assumptions');
+  verifyRunRecord(record);
+  let rejectedWrongVersion = false;
+  try {
+    verifyRunRecord({ ...record, software: { ...record.software, moduleReleaseVersion: '9.9.9' } });
+  } catch {
+    rejectedWrongVersion = true;
+  }
+  assert(rejectedWrongVersion, 'Replay must reject a record made by a different module release');
+}
 
 console.log('All model, contract and golden-vector assertions completed.');

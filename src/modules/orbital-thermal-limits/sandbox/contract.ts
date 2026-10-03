@@ -102,8 +102,10 @@ export type OutputSpec = {
 export type ModuleDescriptor = {
   /** Stable ecosystem identifier, for example 'orbital-thermal-limits'. */
   id: string;
-  /** Semantic version of the *contract*, not the implementation. */
-  version: string;
+  /** Semantic version of the module's model, assumptions, and public behavior. */
+  releaseVersion: string;
+  /** Compatibility version of the module input/output contract. */
+  contractVersion: string;
   title: string;
   summary: string;
   /** Scientific domains this module draws on, for ecosystem navigation. */

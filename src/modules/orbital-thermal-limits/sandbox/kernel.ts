@@ -12,7 +12,7 @@
  * adapters, never here.
  */
 
-import { orbitalPeriodSeconds, sunlitFraction, type Vec3 } from './orbitalMechanics';
+import { sunlitFraction } from './orbitalMechanics';
 
 export const STEFAN_BOLTZMANN = 5.670374419e-8; // W/m²K⁴
 export const EARTH_RADIUS_KM = 6371;
