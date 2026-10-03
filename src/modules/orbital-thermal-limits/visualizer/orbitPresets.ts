@@ -1,3 +1,5 @@
+import { DAWN_DUSK_SSO_ORBIT } from '../sandbox/orbitalMechanics';
+
 export type OrbitPreset = {
   id: string;
   label: string;
@@ -22,9 +24,20 @@ export const ORBIT_PRESETS: OrbitPreset[] = [
   },
   {
     id: 'leo-sso',
-    label: 'Sun-synchronous LEO',
-    blurb: 'Roughly 600 km circular at about 97.8°, which is retrograde and near-polar. It keeps a consistent local solar time on each pass, so it is common for imaging satellites.',
+    label: 'Sun-synchronous LEO (generic)',
+    blurb: 'Representative 600 km, 97.8° retrograde near-polar geometry. This simplified model does not propagate J2 nodal precession, and eclipse duration still depends on the plane orientation against its fixed Sun direction.',
     altitudeKm: 600, eccentricity: 0.001, inclinationDeg: 97.8, raanDeg: 25, argumentDeg: 0, phaseDeg: 0,
+  },
+  {
+    id: 'leo-dawn-dusk-sso',
+    label: 'High-beta dawn-dusk SSO (no eclipse)',
+    blurb: 'Idealized 600 km, 97.8° high-beta dawn-dusk orientation. RAAN 68.7° gives a 69.7° beta angle and 100% sunlight with the model’s fixed Sun direction; seasonal Sun motion and J2 nodal precession are not simulated, so this is a no-eclipse model case rather than a full real-orbit SSO propagation.',
+    altitudeKm: DAWN_DUSK_SSO_ORBIT.orbitAltitudeKm,
+    eccentricity: DAWN_DUSK_SSO_ORBIT.orbitEccentricity,
+    inclinationDeg: DAWN_DUSK_SSO_ORBIT.orbitInclinationDeg,
+    raanDeg: DAWN_DUSK_SSO_ORBIT.orbitRaanDeg,
+    argumentDeg: DAWN_DUSK_SSO_ORBIT.orbitArgumentDeg,
+    phaseDeg: DAWN_DUSK_SSO_ORBIT.orbitPhaseDeg,
   },
   {
     id: 'meo-gps',

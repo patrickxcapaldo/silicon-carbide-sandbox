@@ -167,6 +167,8 @@ import { lawLimitRadiatorAreaM2, kernelWarnings } from './sandbox/kernel';
 import { INPUT_SPECS } from './sandbox/module';
 import type { ThermalKernelInputs, ThermalKernelOutputs } from './sandbox/kernel';
 import { SCENARIO_PRESETS } from './visualizer/scenarioPresets';
+import { ORBIT_PRESETS } from './visualizer/orbitPresets';
+import { sunlitFraction } from './sandbox/orbitalMechanics';
 import { PARAM_META } from './visualizer/paramMeta';
 import { manifest } from './manifest';
 import { createRunRecord, verifyRunRecord } from './runRecord';
@@ -256,6 +258,37 @@ function checkFleetPresets(vectors: GoldenVector[]): void {
   const ids = SCENARIO_PRESETS.map((p) => p.id);
   assert(new Set(ids).size === ids.length, 'Scenario preset ids must be unique');
 
+  const dawnDuskOrbit = ORBIT_PRESETS.find((preset) => preset.id === 'leo-dawn-dusk-sso');
+  assert(new Set(ORBIT_PRESETS.map((preset) => preset.id)).size === ORBIT_PRESETS.length, 'Orbit preset ids must be unique');
+  assert(dawnDuskOrbit !== undefined, 'The dawn-dusk sun-synchronous orbit preset must exist');
+  assert(
+    sunlitFraction(dawnDuskOrbit!.altitudeKm, dawnDuskOrbit!.eccentricity, dawnDuskOrbit!.inclinationDeg, dawnDuskOrbit!.raanDeg, dawnDuskOrbit!.argumentDeg) === 1,
+    'The dawn-dusk orbit preset must be eclipse-free in the fixed-Sun model',
+  );
+  for (const scenario of SCENARIO_PRESETS.filter((preset) => !['oversized-geo', 'eclipse-trap'].includes(preset.id))) {
+    assert(
+      scenario.state.orbitAltitudeKm === dawnDuskOrbit!.altitudeKm &&
+      scenario.state.orbitEccentricity === dawnDuskOrbit!.eccentricity &&
+      scenario.state.orbitInclinationDeg === dawnDuskOrbit!.inclinationDeg &&
+      scenario.state.orbitRaanDeg === dawnDuskOrbit!.raanDeg &&
+      scenario.state.orbitArgumentDeg === dawnDuskOrbit!.argumentDeg &&
+      scenario.state.orbitPhaseDeg === dawnDuskOrbit!.phaseDeg,
+      `Scenario preset ${scenario.id} must use the dawn-dusk SSO orbit preset`,
+    );
+  }
+  for (const key of ['orbitAltitudeKm', 'orbitEccentricity', 'orbitInclinationDeg', 'orbitRaanDeg'] as const) {
+    const inputDefault = INPUT_SPECS.find((spec) => spec.key === key)?.defaultValue;
+    const manifestDefault = manifest.parameters.find((parameter) => parameter.id === key)?.defaultValue;
+    const presetValue = {
+      orbitAltitudeKm: dawnDuskOrbit!.altitudeKm,
+      orbitEccentricity: dawnDuskOrbit!.eccentricity,
+      orbitInclinationDeg: dawnDuskOrbit!.inclinationDeg,
+      orbitRaanDeg: dawnDuskOrbit!.raanDeg,
+    }[key];
+    assert(inputDefault === presetValue, `Module default ${key} must match dawn-dusk SSO`);
+    assert(manifestDefault === presetValue, `Manifest default ${key} must match dawn-dusk SSO`);
+  }
+
   for (const v of withPreset) {
     const preset = SCENARIO_PRESETS.find((p) => p.id === v.preset);
     assert(preset !== undefined, `Golden vector ${v.id} names preset ${v.preset}, which does not exist in scenarioPresets.ts`);
@@ -330,7 +363,7 @@ function checkFleetPresets(vectors: GoldenVector[]): void {
   const mRun = orbitalThermalLimits.run(monolith.inputs);
   assert(Math.abs(mRun.values.radiatorFluxWm2 - 671.85) < 1, 'gv-12: radiator flux should be about 671.85 W/m^2 at 75C');
   assert(mRun.values.transportCapacityW > mRun.values.netRadiatorCapacityW, 'gv-12: the radiator, not the loop, must be the binding limit');
-  assert(mRun.status === 'LIMIT', 'gv-12: status should read LIMIT, not SAFE or OVERHEATING');
+  assert(mRun.status === 'MARGIN', 'gv-12: full-sun power headroom should make overall status MARGIN');
   assert(mRun.values.computeDeficitW < 0, 'gv-12: should have thermal headroom, not a deficit, despite reading LIMIT');
   assert(
     Math.abs(monolith.inputs.computeWattsRequested - 28600 * starmind.inputs.computeWattsRequested) / monolith.inputs.computeWattsRequested < 0.005,

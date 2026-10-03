@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { ThermalVisualizer } from './visualizer/ThermalVisualizer';
 import { Explainer } from './visualizer/Explainer';
 import type { ThermalState } from './visualizer/types';
+import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 
 interface ViewProps { inputs: Record<string, number>; onChange: (id: string, value: number) => void; results: unknown; }
 
@@ -13,8 +14,12 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
     solarLoadWm2: inputs.solarLoadWm2 ?? 700, sunIncidence: inputs.sunIncidence ?? 0.75, flowRateKgS: inputs.flowRateKgS ?? 0.35,
     coolantDeltaT: inputs.coolantDeltaT ?? 10, parasiticHeatW: inputs.parasiticHeatW ?? 40, computeWattsRequested: inputs.computeWattsRequested ?? 300,
     solarPanelAreaM2: inputs.solarPanelAreaM2 ?? 4, solarPanelEfficiency: inputs.solarPanelEfficiency ?? 0.29, solarPanelPointingFactor: inputs.solarPanelPointingFactor ?? 0.95,
-    orbitAltitudeKm: inputs.orbitAltitudeKm ?? 550, orbitEccentricity: inputs.orbitEccentricity ?? 0.01, orbitInclinationDeg: inputs.orbitInclinationDeg ?? 51.6,
-    orbitRaanDeg: inputs.orbitRaanDeg ?? 25, orbitArgumentDeg: inputs.orbitArgumentDeg ?? 0, orbitPhaseDeg: inputs.orbitPhaseDeg ?? 35,
+    orbitAltitudeKm: inputs.orbitAltitudeKm ?? DAWN_DUSK_SSO_ORBIT.orbitAltitudeKm,
+    orbitEccentricity: inputs.orbitEccentricity ?? DAWN_DUSK_SSO_ORBIT.orbitEccentricity,
+    orbitInclinationDeg: inputs.orbitInclinationDeg ?? DAWN_DUSK_SSO_ORBIT.orbitInclinationDeg,
+    orbitRaanDeg: inputs.orbitRaanDeg ?? DAWN_DUSK_SSO_ORBIT.orbitRaanDeg,
+    orbitArgumentDeg: inputs.orbitArgumentDeg ?? DAWN_DUSK_SSO_ORBIT.orbitArgumentDeg,
+    orbitPhaseDeg: inputs.orbitPhaseDeg ?? DAWN_DUSK_SSO_ORBIT.orbitPhaseDeg,
   }), [inputs]);
   return <div style={{ width: '100%', minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
     <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1.5rem' }}>

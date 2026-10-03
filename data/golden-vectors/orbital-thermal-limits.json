@@ -15,6 +15,14 @@
             {
                 "date": "2026-09-24",
                 "description": "Raised input bounds (module.ts / paramMeta.ts) to support GW-scale aggregates: computeWattsRequested to 1e10 W, radiatorArea/solarPanelAreaM2 to 2e7 m^2, flowRateKgS to 5e5 kg/s, parasiticHeatW to 1e7 W. Replaced gv-11 (starmind-class-node, a scaled-down proxy needed only because the old 5,000 W / 20 m^2 caps couldn't hold the real disclosed node) with gv-11-starmind-fleet-node at its real, literal size, and added gv-12-monolith-5gw. Both generated the same way as gv-01 to gv-10: kernel.ts compiled standalone with tsc, run outside the app build. gv-01 to gv-10 are unchanged."
+            },
+            {
+                "date": "2026-10-03",
+                "description": "Aligned the Starmind Fleet Node and Monolith scenario presets to the existing 600 km sun-synchronous orbit configuration. Recomputed gv-11 and gv-12 using kernel.ts compiled standalone with tsc; unrelated vectors are unchanged."
+            },
+            {
+                "date": "2026-10-03",
+                "description": "Added the idealized eclipse-free dawn-dusk SSO option and made it the default for the module and ordinary LEO scenarios. Recomputed gv-08 to gv-12 for the 600 km, 97.8-degree, RAAN 68.7-degree orbit against the fixed-Sun model; unrelated vectors are unchanged."
             }
         ]
     },
@@ -229,10 +237,10 @@
                 "solarLoadWm2": 1000,
                 "solarPanelEfficiency": 0.29,
                 "solarPanelPointingFactor": 0.97,
-                "orbitAltitudeKm": 550,
-                "orbitEccentricity": 0.01,
-                "orbitInclinationDeg": 51.6,
-                "orbitRaanDeg": 25,
+                "orbitAltitudeKm": 600,
+                "orbitEccentricity": 0.001,
+                "orbitInclinationDeg": 97.8,
+                "orbitRaanDeg": 68.7,
                 "orbitArgumentDeg": 0
             },
             "expect": {
@@ -244,8 +252,8 @@
                 "radiatorFluxWm2": 685.2843449114197,
                 "computeDeficitW": 1737.5,
                 "computeUtilisation": 7.619047619047619,
-                "powerUtilisation": 0.3761039658819974,
-                "orbitSunlitFraction": 0.6395833333333333
+                "powerUtilisation": 0.24054982817869416,
+                "orbitSunlitFraction": 1
             },
             "expectDerived": {
                 "unusedRadiatorCapacityW": 9032.765173671296,
@@ -278,10 +286,10 @@
                 "solarLoadWm2": 1000,
                 "solarPanelEfficiency": 0.29,
                 "solarPanelPointingFactor": 0.97,
-                "orbitAltitudeKm": 550,
-                "orbitEccentricity": 0.01,
-                "orbitInclinationDeg": 51.6,
-                "orbitRaanDeg": 25,
+                "orbitAltitudeKm": 600,
+                "orbitEccentricity": 0.001,
+                "orbitInclinationDeg": 97.8,
+                "orbitRaanDeg": 68.7,
                 "orbitArgumentDeg": 0
             },
             "expect": {
@@ -293,8 +301,8 @@
                 "radiatorFluxWm2": 565.0194471234731,
                 "computeDeficitW": -395.7794471234731,
                 "computeUtilisation": 0.2017025929174816,
-                "powerUtilisation": 0.481709512952312,
-                "orbitSunlitFraction": 0.6395833333333333
+                "powerUtilisation": 0.3080933759924162,
+                "orbitSunlitFraction": 1
             },
             "expectDerived": {
                 "parasiticFractionOfHeatBudget": 0.05705814512934899
@@ -324,10 +332,10 @@
                 "solarLoadWm2": 1000,
                 "solarPanelEfficiency": 0.29,
                 "solarPanelPointingFactor": 0.97,
-                "orbitAltitudeKm": 550,
-                "orbitEccentricity": 0.01,
-                "orbitInclinationDeg": 51.6,
-                "orbitRaanDeg": 25,
+                "orbitAltitudeKm": 600,
+                "orbitEccentricity": 0.001,
+                "orbitInclinationDeg": 97.8,
+                "orbitRaanDeg": 68.7,
                 "orbitArgumentDeg": 0
             },
             "expect": {
@@ -339,8 +347,8 @@
                 "radiatorFluxWm2": 565.0194471234731,
                 "computeDeficitW": -3176.235576987785,
                 "computeUtilisation": 0.23945009364660294,
-                "powerUtilisation": 0.5724932288548631,
-                "orbitSunlitFraction": 0.6395833333333333
+                "powerUtilisation": 0.3661571276217561,
+                "orbitSunlitFraction": 1
             },
             "expectDerived": {
                 "parasiticFractionOfHeatBudget": 0.007132268141168623
@@ -370,10 +378,10 @@
                 "solarLoadWm2": 1000,
                 "solarPanelEfficiency": 0.29,
                 "solarPanelPointingFactor": 0.97,
-                "orbitAltitudeKm": 550,
-                "orbitEccentricity": 0.01,
-                "orbitInclinationDeg": 51.6,
-                "orbitRaanDeg": 25,
+                "orbitAltitudeKm": 600,
+                "orbitEccentricity": 0.001,
+                "orbitInclinationDeg": 97.8,
+                "orbitRaanDeg": 68.7,
                 "orbitArgumentDeg": 0
             },
             "expect": {
@@ -385,8 +393,8 @@
                 "radiatorFluxWm2": 1158.2197545275199,
                 "computeDeficitW": -3744.760724403197,
                 "computeUtilisation": 0.9790496755864244,
-                "powerUtilisation": 0.9395982258135755,
-                "orbitSunlitFraction": 0.6395833333333333
+                "powerUtilisation": 0.6009513652599326,
+                "orbitSunlitFraction": 1
             },
             "expectStatus": "LIMIT",
             "expectWarnings": []
@@ -413,10 +421,10 @@
                 "solarLoadWm2": 1000,
                 "solarPanelEfficiency": 0.29,
                 "solarPanelPointingFactor": 0.97,
-                "orbitAltitudeKm": 550,
-                "orbitEccentricity": 0.01,
-                "orbitInclinationDeg": 51.6,
-                "orbitRaanDeg": 25,
+                "orbitAltitudeKm": 600,
+                "orbitEccentricity": 0.001,
+                "orbitInclinationDeg": 97.8,
+                "orbitRaanDeg": 68.7,
                 "orbitArgumentDeg": 0
             },
             "expect": {
@@ -428,10 +436,10 @@
                 "radiatorFluxWm2": 671.8516639536435,
                 "computeDeficitW": -1465716639.5364351,
                 "computeUtilisation": 0.773309484276824,
-                "powerUtilisation": 0.9267349937644093,
-                "orbitSunlitFraction": 0.6395833333333333
+                "powerUtilisation": 0.5927242564284868,
+                "orbitSunlitFraction": 1
             },
-            "expectStatus": "LIMIT",
+            "expectStatus": "MARGIN",
             "expectWarnings": []
         }
     ]

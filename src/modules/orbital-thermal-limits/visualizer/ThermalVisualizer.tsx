@@ -7,8 +7,9 @@ import { StatusBadge } from './StatusBadge';
 import { InfoTip } from './InfoTip';
 import { useOrbitClock } from './useOrbitClock';
 import { nadirEarthViewFactor } from './orbit';
+import { DAWN_DUSK_SSO_ORBIT } from '../sandbox/orbitalMechanics';
 import { formatWatts } from './format';
-import type { OrbitPreset } from './orbitPresets';
+import { ORBIT_PRESETS, type OrbitPreset } from './orbitPresets';
 import type { ScenarioPreset } from './scenarioPresets';
 import type { ThermalDerived, ThermalState } from './types';
 
@@ -17,7 +18,7 @@ const INITIAL_STATE: ThermalState = {
   sinkTempK: 180, earthIrTempK: 255, earthViewFactor: 0.35, earthAlbedo: 0.30,
   solarLoadWm2: 700, sunIncidence: 0.75, flowRateKgS: 0.35, coolantDeltaT: 10, parasiticHeatW: 40,
   computeWattsRequested: 300, solarPanelAreaM2: 4, solarPanelEfficiency: 0.29, solarPanelPointingFactor: 0.95,
-  orbitAltitudeKm: 550, orbitEccentricity: 0.01, orbitInclinationDeg: 51.6, orbitRaanDeg: 25, orbitArgumentDeg: 0, orbitPhaseDeg: 35,
+  ...DAWN_DUSK_SSO_ORBIT,
 };
 
 type ThermalVisualizerProps = { initialState?: Partial<ThermalState>; onStateChange?: (state: ThermalState) => void; };
@@ -33,7 +34,18 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
   // handlePhaseChange, so playback advancing orbitPhaseDeg does not itself
   // clear a scenario or orbit preset's highlight.
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
-  const [selectedOrbitPresetId, setSelectedOrbitPresetId] = useState<string | null>(null);
+  const [selectedOrbitPresetId, setSelectedOrbitPresetId] = useState<string | null>(() => {
+    const dawnDusk = ORBIT_PRESETS.find((preset) => preset.id === 'leo-dawn-dusk-sso');
+    return dawnDusk &&
+      state.orbitAltitudeKm === dawnDusk.altitudeKm &&
+      state.orbitEccentricity === dawnDusk.eccentricity &&
+      state.orbitInclinationDeg === dawnDusk.inclinationDeg &&
+      state.orbitRaanDeg === dawnDusk.raanDeg &&
+      state.orbitArgumentDeg === dawnDusk.argumentDeg &&
+      state.orbitPhaseDeg === dawnDusk.phaseDeg
+      ? dawnDusk.id
+      : null;
+  });
 
   const setStateWithCallback: Dispatch<SetStateAction<ThermalState>> = useCallback((update) => setState(current => {
     const next = typeof update === 'function' ? (update as (s: ThermalState) => ThermalState)(current) : update;
@@ -110,9 +122,15 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange 
   const applyScenario = useCallback((scenario: ScenarioPreset) => {
     setPlaying(false);
     setSelectedScenarioId(scenario.id);
-    // None of the built-in scenarios' orbit fields correspond to a named
-    // orbit preset, so clear that highlight rather than leave a stale one.
-    setSelectedOrbitPresetId(null);
+    const matchingOrbitPreset = ORBIT_PRESETS.find((preset) =>
+      scenario.state.orbitAltitudeKm === preset.altitudeKm &&
+      scenario.state.orbitEccentricity === preset.eccentricity &&
+      scenario.state.orbitInclinationDeg === preset.inclinationDeg &&
+      scenario.state.orbitRaanDeg === preset.raanDeg &&
+      scenario.state.orbitArgumentDeg === preset.argumentDeg &&
+      scenario.state.orbitPhaseDeg === preset.phaseDeg,
+    );
+    setSelectedOrbitPresetId(matchingOrbitPreset?.id ?? null);
     setStateWithCallback(() => ({ ...scenario.state }));
   }, [setPlaying, setStateWithCallback]);
 

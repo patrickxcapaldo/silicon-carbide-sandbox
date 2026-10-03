@@ -8,6 +8,7 @@ import {
   type ThermalKernelInputs,
 } from './kernel';
 import { MODULE_CONTRACT_VERSION, MODULE_RELEASE_VERSION } from '../version';
+import { DAWN_DUSK_SSO_ORBIT } from './orbitalMechanics';
 
 /**
  * Temperature difference, as opposed to absolute temperature. Same dimension,
@@ -114,23 +115,23 @@ export const INPUT_SPECS: PortSpec[] = [
   },
   {
     key: 'orbitAltitudeKm', label: 'Perigee altitude', unit: 'km', dimension: DIM_LENGTH,
-    min: 160, max: 40000, defaultValue: 550,
+    min: 160, max: 40000, defaultValue: DAWN_DUSK_SSO_ORBIT.orbitAltitudeKm,
     description: 'Altitude above mean Earth radius at closest approach. Together with the four inputs below, sets the orbit used to compute the eclipse duty cycle behind the power budget.',
     typicalSource: 'An orbit design module.',
   },
   {
     key: 'orbitEccentricity', label: 'Orbital eccentricity', unit: '', dimension: DIMENSIONLESS,
-    min: 0, max: 0.9, defaultValue: 0.01,
+    min: 0, max: 0.9, defaultValue: DAWN_DUSK_SSO_ORBIT.orbitEccentricity,
     description: 'Shape of the orbit; 0 is circular. Affects eclipse duration because the satellite spends more time near apogee than perigee.',
   },
   {
     key: 'orbitInclinationDeg', label: 'Orbital inclination', unit: '°', dimension: DIMENSIONLESS,
-    min: 0, max: 180, defaultValue: 51.6,
+    min: 0, max: 180, defaultValue: DAWN_DUSK_SSO_ORBIT.orbitInclinationDeg,
     description: 'Tilt of the orbital plane relative to Earth\u2019s equator. A major factor in eclipse duration for a given fixed Sun direction.',
   },
   {
     key: 'orbitRaanDeg', label: 'Right ascension of the ascending node', unit: '°', dimension: DIMENSIONLESS,
-    min: 0, max: 360, defaultValue: 25,
+    min: 0, max: 360, defaultValue: DAWN_DUSK_SSO_ORBIT.orbitRaanDeg,
     description: 'Orientation of the orbital plane about Earth\u2019s polar axis. Rotates the eclipse season relative to the fixed Sun direction used here.',
   },
   {

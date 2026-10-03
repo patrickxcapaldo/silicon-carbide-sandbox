@@ -5,6 +5,7 @@ import type { ThermalState } from './visualizer/types';
 import { orbitalThermalLimits } from './sandbox/module';
 import { createRunRecord } from './runRecord';
 import { BUILD_INFO } from '../../core/buildInfo';
+import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 import type { Result } from '../../core/types';
 
 interface OrbitalThermalViewProps { inputs: Record<string, number>; onChange: (id: string, value: number) => void; results: Result; }
@@ -17,8 +18,12 @@ export const OrbitalThermalView: React.FC<OrbitalThermalViewProps> = ({ inputs, 
     solarLoadWm2: inputs.solarLoadWm2 ?? 700, sunIncidence: inputs.sunIncidence ?? 0.75, flowRateKgS: inputs.flowRateKgS ?? 0.35,
     coolantDeltaT: inputs.coolantDeltaT ?? 10, parasiticHeatW: inputs.parasiticHeatW ?? 40, computeWattsRequested: inputs.computeWattsRequested ?? 300,
     solarPanelAreaM2: inputs.solarPanelAreaM2 ?? 4, solarPanelEfficiency: inputs.solarPanelEfficiency ?? 0.29, solarPanelPointingFactor: inputs.solarPanelPointingFactor ?? 0.95,
-    orbitAltitudeKm: inputs.orbitAltitudeKm ?? 550, orbitEccentricity: inputs.orbitEccentricity ?? 0.01, orbitInclinationDeg: inputs.orbitInclinationDeg ?? 51.6,
-    orbitRaanDeg: inputs.orbitRaanDeg ?? 25, orbitArgumentDeg: inputs.orbitArgumentDeg ?? 0, orbitPhaseDeg: inputs.orbitPhaseDeg ?? 35,
+    orbitAltitudeKm: inputs.orbitAltitudeKm ?? DAWN_DUSK_SSO_ORBIT.orbitAltitudeKm,
+    orbitEccentricity: inputs.orbitEccentricity ?? DAWN_DUSK_SSO_ORBIT.orbitEccentricity,
+    orbitInclinationDeg: inputs.orbitInclinationDeg ?? DAWN_DUSK_SSO_ORBIT.orbitInclinationDeg,
+    orbitRaanDeg: inputs.orbitRaanDeg ?? DAWN_DUSK_SSO_ORBIT.orbitRaanDeg,
+    orbitArgumentDeg: inputs.orbitArgumentDeg ?? DAWN_DUSK_SSO_ORBIT.orbitArgumentDeg,
+    orbitPhaseDeg: inputs.orbitPhaseDeg ?? DAWN_DUSK_SSO_ORBIT.orbitPhaseDeg,
   }), [inputs]);
   const handleExport = () => {
     const record = createRunRecord(inputs);
