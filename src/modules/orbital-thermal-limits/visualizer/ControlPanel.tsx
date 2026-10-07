@@ -155,10 +155,12 @@ export function ControlPanel({
           <SegButton active={viewMode === 'orbit'} onClick={() => setViewMode('orbit')}>Orbit</SegButton>
           <SegButton active={viewMode === 'closeup'} onClick={() => setViewMode('closeup')}>Close-up</SegButton>
         </div>
-        <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4, opacity: viewMode === 'closeup' ? 0.4 : 1 }}>Camera focus</div>
+        <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4 }}>Camera focus</div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <SegButton active={cameraFocus === 'earth' || viewMode === 'closeup'} onClick={() => setCameraFocus('earth')}>Earth</SegButton>
-          <SegButton active={cameraFocus === 'satellite' && viewMode === 'orbit'} onClick={() => setCameraFocus('satellite')}>Satellite</SegButton>
+          {viewMode === 'orbit' && (
+            <SegButton active={cameraFocus === 'earth'} onClick={() => setCameraFocus('earth')}>Earth</SegButton>
+          )}
+          <SegButton active={viewMode === 'closeup' || cameraFocus === 'satellite'} onClick={() => setCameraFocus('satellite')}>Satellite</SegButton>
         </div>
       </div>
 

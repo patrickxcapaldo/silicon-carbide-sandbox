@@ -28,6 +28,12 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
   const [state, setState] = useState<ThermalState>({ ...INITIAL_STATE, ...initialState });
   const [viewMode, setViewMode] = useState<ViewMode>('orbit');
   const [cameraFocus, setCameraFocus] = useState<CameraFocus>('earth');
+
+  const handleViewModeChange = useCallback((nextViewMode: ViewMode) => {
+    setViewMode(nextViewMode);
+    if (nextViewMode === 'closeup') setCameraFocus('satellite');
+  }, []);
+
   // Tracks which preset button, if any, produced the current state exactly,
   // so the controls panel can highlight it. Set only by applyOrbitPreset /
   // applyScenario below and cleared by handleChange whenever the person
@@ -201,7 +207,7 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
       selectedScenarioId={selectedScenarioId}
       selectedOrbitPresetId={selectedOrbitPresetId}
       viewMode={viewMode}
-      setViewMode={setViewMode}
+      setViewMode={handleViewModeChange}
       cameraFocus={cameraFocus}
       setCameraFocus={setCameraFocus}
       playing={playing}
