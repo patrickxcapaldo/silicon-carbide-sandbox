@@ -345,12 +345,12 @@ function checkFleetPresets(vectors: GoldenVector[]): void {
   assert(relFlux < 1e-9, 'gv-09 and gv-10 must have identical radiator flux per square metre (area-independence of q)');
   assert(scaled.inputs.radiatorArea === 8 * tiny.inputs.radiatorArea, 'gv-09 and gv-10 should differ by a factor of eight in radiator area');
 
-  // Starmind Fleet Node: real, literal disclosed size (160 m^2, 175 kW,
+  // Fleet Node (175 kW class): representative model size (160 m^2, 175 kW,
   // 122C), deliberately run close to its own thermal ceiling (about 97.9%
   // utilisation, status LIMIT), not comfortably under it like the two
   // overhead presets.
-  const starmind = byId('gv-11-starmind-fleet-node');
-  const sRun = orbitalThermalLimits.run(starmind.inputs);
+  const fleetNode = byId('gv-11-fleet-node-175kw-class');
+  const sRun = orbitalThermalLimits.run(fleetNode.inputs);
   assert(Math.abs(sRun.values.radiatorFluxWm2 - 1158) < 1, 'gv-11: radiator flux should be about 1,158 W/m^2 at 122C');
   assert(sRun.values.computeUtilisation > 0.95 && sRun.values.computeUtilisation < 1, 'gv-11: thermal utilisation should be close to but under 100%');
   assert(sRun.status === 'LIMIT', 'gv-11: status should read LIMIT, not SAFE or OVERHEATING');
@@ -367,8 +367,8 @@ function checkFleetPresets(vectors: GoldenVector[]): void {
   assert(mRun.status === 'MARGIN', 'gv-12: full-sun power headroom should make overall status MARGIN');
   assert(mRun.values.computeDeficitW < 0, 'gv-12: should have thermal headroom, not a deficit, despite reading LIMIT');
   assert(
-    Math.abs(monolith.inputs.computeWattsRequested - 28600 * starmind.inputs.computeWattsRequested) / monolith.inputs.computeWattsRequested < 0.005,
-    'gv-11 and gv-12 should represent the same ~5 GW aggregate: 28,600 Starmind Fleet Nodes vs. one Monolith',
+    Math.abs(monolith.inputs.computeWattsRequested - 28600 * fleetNode.inputs.computeWattsRequested) / monolith.inputs.computeWattsRequested < 0.005,
+    'gv-11 and gv-12 should represent the same ~5 GW aggregate: 28,600 Fleet Nodes vs. one Monolith',
   );
   console.log('Fleet-architecture preset checks passed.');
 }

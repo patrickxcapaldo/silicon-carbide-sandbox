@@ -48,8 +48,8 @@ export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
 
   // Radiator / loop
   radiatorArea: {
-    label: 'Radiator area', unit: 'm\u00b2', min: 0.5, max: 2e7, step: 0.5, logScale: true, logFloor: 0.5,
-    description: 'Total two-sided radiating area of the panels. More area rejects more heat at the same temperature, at the cost of mass, drag and stowage volume. Supports micro-nodes through multi-km monolithic platforms.',
+    label: 'Radiator area (total radiating area, all emitting faces)', unit: 'm\u00b2', min: 0.5, max: 2e7, step: 0.5, logScale: true, logFloor: 0.5,
+    description: 'Total two-sided radiating area of the panels. No separate faces or sides multiplier is applied; the input already represents all emitting faces. More area rejects more heat at the same temperature, at the cost of mass, drag and stowage volume. Supports micro-nodes through multi-km monolithic platforms.',
   },
   operatingTempC: {
     label: 'Radiator temperature', unit: '\u00b0C', min: 20, max: 180, step: 1,

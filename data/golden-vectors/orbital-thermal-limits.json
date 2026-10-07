@@ -10,15 +10,15 @@
             },
             {
                 "date": "2026-09-24",
-                "description": "Added gv-11 for the new starmind-class-node preset (fleet-architecture work, requested during external-draft review). Same generation method as gv-08 to gv-10: kernel.ts compiled standalone with tsc, run outside the app build. gv-01 to gv-10 are unchanged."
+                "description": "Added gv-11 for the new fleet-node-175kw-class preset (fleet-architecture work, requested during external-draft review). Same generation method as gv-08 to gv-10: kernel.ts compiled standalone with tsc, run outside the app build. gv-01 to gv-10 are unchanged."
             },
             {
                 "date": "2026-09-24",
-                "description": "Raised input bounds (module.ts / paramMeta.ts) to support GW-scale aggregates: computeWattsRequested to 1e10 W, radiatorArea/solarPanelAreaM2 to 2e7 m^2, flowRateKgS to 5e5 kg/s, parasiticHeatW to 1e7 W. Replaced gv-11 (starmind-class-node, a scaled-down proxy needed only because the old 5,000 W / 20 m^2 caps couldn't hold the real disclosed node) with gv-11-starmind-fleet-node at its real, literal size, and added gv-12-monolith-5gw. Both generated the same way as gv-01 to gv-10: kernel.ts compiled standalone with tsc, run outside the app build. gv-01 to gv-10 are unchanged."
+                "description": "Raised input bounds (module.ts / paramMeta.ts) to support GW-scale aggregates: computeWattsRequested to 1e10 W, radiatorArea/solarPanelAreaM2 to 2e7 m^2, flowRateKgS to 5e5 kg/s, parasiticHeatW to 1e7 W. Replaced gv-11 (fleet-node-175kw-class, a representative 175 kW-class node) with gv-11-fleet-node-175kw-class at its current model size, and added gv-12-monolith-5gw. Both generated the same way as gv-01 to gv-10: kernel.ts compiled standalone with tsc, run outside the app build. gv-01 to gv-10 are unchanged."
             },
             {
                 "date": "2026-10-03",
-                "description": "Aligned the Starmind Fleet Node and Monolith scenario presets to the existing 600 km sun-synchronous orbit configuration. Recomputed gv-11 and gv-12 using kernel.ts compiled standalone with tsc; unrelated vectors are unchanged."
+                "description": "Aligned the Fleet Node (175 kW class) and Monolith scenario presets to the existing 600 km sun-synchronous orbit configuration. Recomputed gv-11 and gv-12 using kernel.ts compiled standalone with tsc; unrelated vectors are unchanged."
             },
             {
                 "date": "2026-10-03",
@@ -357,9 +357,9 @@
             "expectWarnings": []
         },
         {
-            "id": "gv-11-starmind-fleet-node",
-            "preset": "starmind-fleet-node",
-            "note": "Fleet-architecture preset. Starmind AI1-class node at its real, literal disclosed size (160 m2, 175 kW, 122C) -- representable directly now that computeWattsRequested and radiatorArea bounds support single-node MW scale, let alone this. computeUtilisation = computeWattsRequested / maxComputeHeatW.",
+            "id": "gv-11-fleet-node-175kw-class",
+            "preset": "fleet-node-175kw-class",
+            "note": "Fleet-architecture preset. Representative 175 kW-class node at 160 m2, 122C; reported AI1 figures range from 120 kW average to 175 kW average, while Starcloud-3 is described as about 200 kW. computeUtilisation = computeWattsRequested / maxComputeHeatW.",
             "inputs": {
                 "radiatorArea": 160,
                 "emissivity": 0.9,
