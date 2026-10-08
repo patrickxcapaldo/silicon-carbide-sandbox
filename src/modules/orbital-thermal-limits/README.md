@@ -1,80 +1,108 @@
-# Orbital Thermal Limits
+# Module 1: Orbital Thermal Limits
 
-A back-of-the-envelope calculator and 3D visualisation for whether a given combination of AI compute load, radiator, solar array and orbit is thermally and electrically sustainable on a spacecraft.
+An interactive engineering model for one question: can an AI compute payload in Earth orbit reject its waste heat and generate enough electrical power to run continuously?
 
-For a full explanation of the physics, the 3D scene and how the project was developed, see `HOW_IT_WORKS.md`. The list below is a changelog.
+The module evaluates thermal rejection and solar power as separate budgets. It includes radiator radiation to deep space and Earth, absorbed sunlight and Earth albedo, coolant transport, parasitic bus loads, solar-array performance, and the orbit's time in Earth's shadow. Its 3D visualisation makes those trade-offs inspectable; the same calculation is also available as a deterministic, headless TypeScript module.
 
-## First pass: visuals and physics corrections
+## What It Calculates
 
-- Removed the misleading blue Earth-to-space circle and beam.
-- Replaced static and misaligned ArrowHelpers with dynamically constructed vectors whose shafts and heads share the same start and end points.
-- Added a proper Earth-centred orbital path.
-- Added orbital altitude, eccentricity, inclination, RAAN, argument of perigee and phase controls, and made the satellite position follow them.
-- Gave Earth an orbital-context scale. The spacecraft was intentionally enlarged so that it stayed visible, since a truly physical Earth-to-spacecraft size ratio would make a metre-scale satellite effectively invisible. The second and third passes below replaced this compromise with something better.
-- Brightened the scene considerably using ambient, hemisphere and directional lighting, with a more readable Earth and space palette.
-- Connected radiator temperature, emissivity, solar absorptivity, space sink, Earth infrared, Earth view factor, albedo, coolant flow, coolant ΔT and parasitic heat to the thermal calculation, so that each now has visible consequences in the telemetry and the visuals.
-- Made coolant particles move around a closed loop from the hot side to the radiator and back, with flow rate affecting both the animation and the calculated heat-transport ceiling.
-- Made radiator area change the rendered panel dimensions as well as the thermal capacity.
-- Separated gross long-wave radiation from external solar and albedo loads and from coolant transport capacity.
-- Added warnings for overheating, low coolant transport capacity and high Earth view factor.
+The thermal budget is limited by whichever is smaller: the net radiator capacity or the heat the coolant loop can transport while keeping the payload below its allowed temperature.
 
-## Second pass: controls and interaction
+```text
+Radiator rejection = εσA[(1 - F)(Tᵣ⁴ - T_space⁴) + F(Tᵣ⁴ - T_Earth⁴)]
+Net radiator capacity = radiator rejection - absorbed solar - absorbed albedo - parasitic heat
+Maximum compute heat = max(0, min(net radiator capacity, ṁ cₚ ΔT))
+```
 
-- **Orbit presets.** Five real orbit classes: an ISS-like low Earth orbit, a Sun-synchronous low Earth orbit, a GPS-like medium Earth orbit, geostationary orbit, and a Molniya-type highly elliptical orbit. Each sets altitude, eccentricity, inclination, RAAN and argument of perigee together, and also seeds the Earth view factor from the closed-form nadir-pointing formula `F = (R⊕/(R⊕+h))²` for that altitude. The view factor remains manually adjustable afterwards.
-- **Controls panel.** Replaces the old lil-gui panel and is titled simply "Controls".
-- **Play, pause and speed.** Speed multipliers run from 1× to 10,000×. Orbital phase advances through a real two-body Kepler propagation, going from mean anomaly to eccentric anomaly by Newton-Raphson and then to true anomaly, so eccentric orbits correctly move quickly at perigee and slowly at apogee rather than at a constant angular rate. The panel shows the true orbital period from Kepler's third law alongside the real time per orbit at the current speed.
-- **Coloured, explained status.** A status pill in green, yellow, orange or red for Safe, Margin, At limit and Overheating, with an explanation of what each state means physically and what to do about it.
-- **Camera focus and view mode.** Orbit view keeps Earth and the orbital geometry true to scale, with the spacecraft drawn as a small marker that is dynamically sized to a fraction of the real gap between the orbit and Earth's surface, verified safe at every altitude from 160 km to geostationary. Close-up view shows the spacecraft at full component detail with Earth as a schematic backdrop that is explicitly labelled as not to scale. Camera focus, on Earth or on the satellite, is selectable independently in Orbit view.
-- **AI compute load.** A new `computeWattsRequested` input, with quick-select buttons for an edge inference module, an H100 SXM-class GPU at 700 W and a GB300-class GPU at about 1,400 W, is compared against the radiator and coolant thermal budget. The derived outputs `computeDeficitW` and `computeUtilization` reflect whether the requested compute load is actually sustainable rather than only reporting the environmental margin.
-- **Parameter tooltips.** Every slider has an information button explaining what the parameter means physically, and the orbit and compute presets have their own tooltips with reference figures.
+The electrical budget compares the array's orbit-averaged generation with compute power plus parasitic bus draw:
 
-## Third pass: bug fixes and solar arrays
+```text
+Average array power = solar flux × array area × efficiency × pointing factor × sunlit fraction
+Bus load = requested compute power + parasitic heat
+```
 
-- **Fixed play and pause stalling.** The animation loop was calling the host's `onStateChange` on every frame, roughly 60 times a second and once per state key, and whatever the host did in response was racing the animation. The fix keeps the 60 fps visual phase update local and forwards to the host only a few times a second, plus one authoritative synchronisation the moment playback pauses.
-- **Fixed oversized coolant flow markers in Orbit view.** The point size of a `THREE.Points` object is not affected by a parent group's `scale`, although its position is, so the flow dots stayed at full absolute size even when the spacecraft model was shrunk to a non-clipping marker. The point sprites were replaced entirely with a scrolling emissive stripe texture on the tube's own geometry, which inherits scale correctly in both views and reads more clearly as directional flow along the pipe.
-- **Added solar arrays**, which were previously missing from both the visuals and the physics:
-  - Two deployable array wings, rendered with a cell-grid texture, that rotate on a single-axis drive to track the Sun. `solarPanelPointingFactor` controls tracking accuracy. This is independent of the radiator, which stays body-fixed and is instead oriented through `sunIncidence` to minimise solar loading, making the tension between the two visible and adjustable.
-  - New `solarPanelAreaM2`, `solarPanelEfficiency` and `solarPanelPointingFactor` inputs feed a real power-generation calculation, `generatedPowerW = solarFlux × area × efficiency × pointingFactor`.
-  - This is compared against `computeWattsRequested + parasiticHeatW`, with the latter now also acting as a rough proxy for non-compute bus electrical draw, producing a second independent constraint in `powerDeficitW` and `powerUtilization` alongside the existing thermal one. The status badge, warnings and telemetry now reflect whichever of heat rejection and power generation is more limiting.
-  - Known simplification: this is an instantaneous power balance with no battery or eclipse buffering. During eclipse, when `solarLoadWm2` is near 0, generation drops to approximately 0 immediately, whereas a real spacecraft would run from batteries for a while.
+The radiator surface is an ideal selective surface: solar absorptivity and infrared emissivity are independent. Coolant transport uses a fixed specific heat of 1,050 J/kg·K, representative of a single-phase dielectric spacecraft coolant. Both thermal and electrical utilisation are reported; the worse budget determines the status.
 
-## Fourth pass: sizing, tooltips and scenario presets
+## Using The Visualiser
 
-- **Fixed radiator and solar array size plateaus.** The panel width and height and the wing length and width formulas each used a hard `Math.min(value, cap)`, duplicated independently across `Radiator.tsx`, `CoolantLoop.tsx` and `SolarPanel.tsx`. Past the cap, dragging the area slider produced no visible change. All of it was consolidated into `visualizer/spacecraftGeometry.ts` using a `tanh`-based smooth cap, which tracks the raw value closely for small areas and approaches a ceiling asymptotically for large ones. The slider always does something visible while the output stays strictly bounded, which is also what allows `ThermalScene` to derive its no-clip safety margin from these shared constants rather than a separately guessed number.
-- **Fixed tooltips being cut off or hidden behind the sidebar.** There were two distinct causes. Tooltips anchored to their own button's position with a fixed width overflowed past the sidebar's left edge for buttons not near the right edge. Separately, the status badge's tooltip sits inside the telemetry bar, which has its own `z-index`, and `z-index` only resolves ordering within a shared stacking context, so every descendant of that bar renders behind the sidebar regardless of what `z-index` the descendant declares. Both were fixed by rewriting `InfoTip` to render through a React portal directly into `document.body` with `position: fixed` and computed screen coordinates, centred within the sidebar panel where there is one and clamped to the viewport otherwise.
-- Added information buttons to every telemetry bar field, placed next to the label rather than the value, using the same portal-based tooltip.
-- **Added full scenario presets** in `visualizer/scenarioPresets.ts`: five complete parameter configurations, every field rather than a partial patch, each run through the model to confirm the stated outcome. They cover a comfortable baseline, an oversized geostationary payload that fails both budgets, two deliberately mirrored cases that isolate a power-only failure and a heat-only failure at the same 900 W request, and an eclipse case that shows the battery-buffering limitation directly.
-- **Added an explainer block** in `visualizer/Explainer.tsx` for the host page to render above the visualisation, covering motivation, the two-budget approach, the main parameters and the scenario presets. The scenario list is pulled directly from `scenarioPresets.ts` so that the two cannot drift apart.
+Open **Orbital Thermal Limits** in the sandbox and start with a scenario preset. Presets cover a comfortable baseline, thermal- or power-limited cases, an eclipse power example, coolant transport limits, small-node overhead, and fleet-scale comparisons up to a 5 GW concept. Orbit presets cover LEO, sun-synchronous LEO, MEO, GEO, and a Molniya-type orbit.
 
-## Fifth pass: engineering change request from spacecraft systems engineers
+Adjust the compute request, radiator, coolant loop, solar array, surface properties, and orbital elements. The telemetry separates thermal capacity from orbit-averaged electrical generation, so a power deficit is not mistaken for a radiator problem. The orbital view keeps Earth and the orbit to scale; close-up view shows component detail with Earth as a schematic backdrop.
 
-Feedback from spacecraft systems engineers identified five places where the model's assumptions or terminology diverged from real orbital engineering practice. All five were addressed in the kernel and carried through to the descriptor, the tooltips and this documentation, and every scenario preset was re-verified against the corrected physics rather than left as-is.
+Status is based on the more constrained budget:
 
-- **Coolant fluid corrected.** The kernel's specific heat changed from water's 4184 J/kg\u00b7K to 1050 J/kg\u00b7K, representative of a Galden PFPE-class single-phase dielectric fluid, the kind of coolant real spacecraft loops actually use, since water would freeze solid at deep-space eclipse temperatures and poses a short-circuit risk near dense electronics. This roughly quarters the coolant loop's transport capacity for the same flow rate and temperature rise versus the previous default.
-- **Earth albedo was already implemented.** On review, the kernel already included the requested `Q_albedo = \u03b1 \u00b7 S_solar \u00b7 A_radiator \u00b7 F_earth \u00b7 a_earth` term with a default albedo of 0.30, correctly subtracted from net radiator capacity. No change was needed here; it is noted so the record is accurate rather than silently skipped.
-- **Orbit-averaged power balance for eclipse, genuinely implemented.** This was the substantial addition. A new dependency-free orbital mechanics module (`sandbox/orbitalMechanics.ts`) computes the fraction of an orbit spent in Earth's shadow, using the standard cylindrical-shadow approximation and sampled uniformly in mean anomaly so the result is correctly time-weighted for eccentric orbits. The power budget now checks requested load against `P_generated_avg = P_solar_instantaneous \u00d7 \u03b7_sun`, not the instantaneous full-sun figure, while remaining a pure function with no battery state of charge. This module is shared with the 3D visualisation's own orbital mechanics, removing a previously separate, duplicated implementation of Kepler propagation.
-- **Surface terminology corrected.** Documentation and descriptor text no longer describe the radiator coating as a "grey body", since a true grey body requires equal absorptivity and emissivity, which this model does not assume. It is now described as an ideal selective surface, with independent constant solar absorptivity and infrared emissivity, which is both more accurate and standard language for spacecraft thermal coatings.
-- **Transport ceiling and parasitic heat reframed.** Documentation now describes the coolant transport figure as the heat the loop can move while keeping the payload under its maximum allowable temperature, rather than as a hard physical wall, and states plainly that parasitic heat covers electronic and resistive bus losses only, not active heaters or power radiated away by an RF payload.
+- **Safe:** utilisation is at most 60%.
+- **Margin:** utilisation is above 60% and at most 85%.
+- **Limit:** utilisation is above 85%, but the requested load remains within both budgets.
+- **Overheating:** requested compute exceeds the thermal or electrical budget.
 
-Every scenario preset was re-run against the corrected kernel rather than assumed to still be valid. The coolant change did not alter any preset's outcome, since none of them were transport-limited, but the eclipse averaging changed every LEO scenario's power figures. The original eclipse scenario, which worked by manually setting Solar Flux to 0 W/m\u00b2, was replaced outright: automatic eclipse averaging made its premise redundant; even without touching the flux slider, any orbit with a genuine eclipse fraction now shows reduced average power. Its replacement, "The instantaneous-power trap", demonstrates the more interesting and more honest failure mode the change request was actually pointing at: a load that reads as comfortable Margin if judged against instantaneous full-sun generation alone, but is genuinely unsustainable once averaged correctly over the orbit.
+## Programmatic Use
 
-## Thermal model
+The composable entry point is `sandbox/module.ts`. It resolves omitted inputs to declared defaults, clamps out-of-range inputs with diagnostics, and returns full-precision values, status, diagnostics, and the inputs actually used.
 
-The core calculation is a first-order engineering model:
+```ts
+import { orbitalThermalLimits } from './sandbox/module';
 
-`P_compute,max = min(P_rad - P_solar - P_albedo - P_parasitic, mdot * cp * ΔT)`
+const result = orbitalThermalLimits.run({
+  computeWattsRequested: 700,
+  radiatorArea: 4,
+  solarPanelAreaM2: 8,
+});
 
-with radiator exchange approximated by:
+console.log(result.status);
+console.log(result.values.maxComputeHeatW);
+console.log(result.values.generatedPowerW); // orbit-averaged array output
+console.log(result.diagnostics);
+```
 
-`P_rad = εσA[(1-F_E)(T_r^4-T_space^4) + F_E(T_r^4-T_EarthIR^4)]`
+Inputs and outputs, units, supported ranges, and model assumptions are available on `orbitalThermalLimits.descriptor`. See [`sandbox/headless.example.ts`](sandbox/headless.example.ts) for a parameter sweep and an example of checking module connections.
 
-This is deliberately not a spacecraft-qualified thermal network. It omits detailed conduction paths, battery state of charge through eclipse, radiator temperature gradients, multi-node spacecraft thermal capacitance, exact Earth view factors derived from geometry, and full wavelength-resolved optical properties beyond the two-band (solar absorptivity, infrared emissivity) selective-surface treatment described above. The orbital eclipse duty cycle itself, unlike battery state of charge, is modelled: see the "Fifth pass" section above.
+## Versioned Article Runs
 
-## Sixth pass: fleet-architecture presets and golden vectors
+The module's `releaseVersion` identifies its model behaviour, assumptions, defaults, and public inputs and outputs. Its separate `contractVersion` identifies input/output compatibility only. The current baseline is module release **0.1.0**, contract **1.0.0**; this is not an immutable published release until it is included in a GitHub tag. Sandbox version comes from the root `package.json` and identifies the complete application release.
 
-No change to `sandbox/kernel.ts` or any other physics. This pass adds three scenario presets, three golden vectors and the test wiring that keeps them honest.
+Module version policy:
 
-- **Three new presets** in `visualizer/scenarioPresets.ts`, for Study 01 (section 4, fleet invariance) and Spark 03. "Transport-limited monolithic node" is the first preset limited by the coolant loop rather than the radiator: a 15 m² radiator could reject about 9,295 W net, but a 0.05 kg/s loop with a 5 K rise moves about 263 W, and the existing kernel warning ("Coolant transport capacity is the limiting factor.") fires. The earlier note that no preset was transport-limited therefore no longer holds. "Tiny node overhead" and "Scaled node overhead" hold radiator temperature, environment and 30 W of fixed parasitic heat constant and scale one node from 100 W on a 1 m² radiator to 1 kW on 8 m². Gross flux is identical (about 565 W/m², which is fleet invariance in the kernel); parasitic heat falls from 5.7% to 0.7% of the heat budget, defined as `parasiticHeatW / (radiativeRejectionW - externalHeatW)`.
-- **Golden vectors gv-08 to gv-10** in `data/golden-vectors/orbital-thermal-limits.json`, generated from `kernel.ts` compiled standalone, as for gv-01 to gv-07. The harness gained optional `expectDerived` (computed only from the kernel's own inputs and outputs), `expectStatus` and `expectWarnings` fields, and a `preset` field that ties a vector to a preset.
-- **New checks in `model.test.ts`**: each preset must equal its vector's inputs exactly, sit inside the slider ranges in `visualizer/paramMeta.ts`, and run through the module without any input being clamped or defaulted; the transport preset must surface its warning; the two overhead vectors must give 5.7% and 0.7% and identical flux per square metre.
-- `visualizer/Explainer.tsx` now takes the preset count from `SCENARIO_PRESETS.length` instead of saying "five".
+- **PATCH:** documentation or presentation changes that do not alter computed results.
+- **MINOR:** additive or compatible model changes, including scientific corrections that change results for some inputs.
+- **MAJOR:** breaking changes to public inputs, outputs, or their meanings.
+
+Each release is immutable. Corrected model results require a new module version; never rewrite a release tag cited by an article. The module's **Export run JSON** button captures the calculation's requested and resolved inputs, full-precision outputs, status, diagnostics, declared assumptions, module release and contract versions, Sandbox version, source commit, and record schema version. The visual orbit phase is intentionally not recorded as a model input because it does not affect the calculation. JSON encodes non-finite results as `"Infinity"`, `"-Infinity"`, or `"NaN"` strings.
+
+The record includes an `assumptionRegistryRevisions` array. It is empty by default because registry values are not yet linked automatically to module assumptions. If an article relies on a specific registry entry, add its ID and revision to the record before committing it.
+
+Before publishing an article:
+
+1. Export the run from a clean, released build. Confirm `sourceDirty` is `false`; a dirty-tree record cannot be reproduced from its commit alone.
+2. Commit the record under `data/runs/`, using a descriptive name such as `orbital-thermal-limits-2026-10-03-spacecraft-case.json`.
+3. Cite the Sandbox tag and module release alongside a GitHub permalink to the run record. For example: `Silicon Carbide Sandbox v0.1.0, module orbital-thermal-limits v0.1.0, run record <permalink>`.
+
+To reproduce a committed record, check out the Sandbox tag and source commit it names, install the locked dependencies, and run:
+
+```bash
+git checkout --detach <recorded-source-commit>
+npm ci
+npm run replay -- /path/to/downloaded-article-run-record.json
+```
+
+Download the run record from its GitHub permalink before checking out the recorded source commit; the JSON may have been committed after that commit. The replay command rejects dirty records and mismatched Sandbox versions, commits, module releases, or contracts, then compares resolved inputs, outputs, status, and diagnostics with a fresh calculation. GitHub preserves the tagged source and run record; the live site itself does not serve historical versions. Earlier ledger entries using `orbital-thermal-limits@1.0.0` referred to the old contract version, not an immutable module release; see [erratum E-0002](../../../data/ledger/errata.yaml).
+
+## Scope And Limitations
+
+This is a first-order screening model, not a spacecraft-qualified design tool. Thermal behaviour is steady-state: it does not simulate thermal mass, temperature changes over time, radiator gradients, detailed conduction paths, or a multi-node spacecraft network. The Earth view factor is an input rather than a geometry-derived flight value, and optical properties are simplified to constant solar absorptivity and infrared emissivity.
+
+The power budget accounts for the orbit's eclipse duty cycle using a cylindrical Earth shadow and a fixed Sun direction. It checks average generation over an orbit, but does not model battery capacity or state of charge; passing the average budget does not guarantee uninterrupted operation through eclipse. Parasitic heat approximates electronic and resistive bus losses. It does not include active heaters or electrical power radiated away by an RF payload. Gigawatt-scale inputs represent aggregate platforms and fleets; the model does not resolve their structural, deployment, or thermal-network design.
+
+Treat the results as a way to compare assumptions and identify the binding constraint, not as a substitute for detailed mission analysis.
+
+## Development Checks
+
+From the repository root:
+
+```bash
+npm test
+npm run build
+npm run replay -- data/runs/<article-run-record>.json
+```
+
+The model assertions and pinned golden vectors are in [`model.test.ts`](model.test.ts) and [`data/golden-vectors/orbital-thermal-limits.json`](../../../data/golden-vectors/orbital-thermal-limits.json). The kernel is implemented in [`sandbox/kernel.ts`](sandbox/kernel.ts); the visual controls and scenario definitions live in [`visualizer/ControlPanel.tsx`](visualizer/ControlPanel.tsx) and [`visualizer/scenarioPresets.ts`](visualizer/scenarioPresets.ts).

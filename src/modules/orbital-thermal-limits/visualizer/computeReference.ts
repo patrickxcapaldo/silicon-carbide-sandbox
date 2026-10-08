@@ -29,4 +29,16 @@ export const COMPUTE_REFERENCES: ComputeReference[] = [
     watts: 1400,
     note: 'Recent Blackwell Ultra (GB300) GPUs are specified at around 1,400 W per chip, and a full NVL72 rack draws over 100 kW in total.',
   },
+  {
+    id: 'fleet-node-175kw-class',
+    label: 'Fleet node (175 kW class)',
+    watts: 175000,
+    note: 'Representative 175 kW fleet-node class. Reported AI1 figures range from 120 kW average (Musk/SpaceX) to 175 kW average (one outlet); Starcloud-3 is described as ~200 kW. This button only sets compute power; load the \u201cFleet Node (175 kW class)\u201d preset instead for the radiator size, array and environment together.',
+  },
+  {
+    id: 'monolith',
+    label: '5 GW monolithic concept',
+    watts: 5e9,
+    note: 'Starcloud\u2019s original monolithic concept: one platform aggregating 5 GW of continuous compute. This button only sets compute power; load the \u201cMonolith (5 GW Concept)\u201d preset instead for the scale radiator, array and coolant flow together.',
+  },
 ];

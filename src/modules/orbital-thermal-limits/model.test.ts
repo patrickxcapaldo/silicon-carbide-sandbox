@@ -103,8 +103,8 @@ assert(
 );
 
 // Out-of-range inputs are clamped and reported, not accepted silently.
-const clamped = mod.run({ ...base, radiatorArea: 9999 });
-assert(clamped.resolvedInputs.radiatorArea === 20, 'Radiator area should clamp to its declared maximum');
+const clamped = mod.run({ ...base, radiatorArea: 3e7 });
+assert(clamped.resolvedInputs.radiatorArea === 2e7, 'Radiator area should clamp to its declared maximum');
 assert(
   clamped.diagnostics.some((d) => d.key === 'radiatorArea' && d.severity === 'warning'),
   'Clamping should produce a warning diagnostic',
@@ -161,13 +161,18 @@ assert(defaultDiagnostics.length === 0, 'Declared defaults should not trigger cl
 // when the kernel is called from `sandbox/module.ts` or `model.ts`, rather
 // than called directly, would slip past a vector that was only ever checked
 // against the raw kernel.
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { lawLimitRadiatorAreaM2, kernelWarnings } from './sandbox/kernel';
 import { INPUT_SPECS } from './sandbox/module';
 import type { ThermalKernelInputs, ThermalKernelOutputs } from './sandbox/kernel';
 import { SCENARIO_PRESETS } from './visualizer/scenarioPresets';
+import { ORBIT_PRESETS } from './visualizer/orbitPresets';
+import { sunlitFraction } from './sandbox/orbitalMechanics';
 import { PARAM_META } from './visualizer/paramMeta';
+import { manifest } from './manifest';
+import { createRunRecord, verifyRunRecord } from './runRecord';
+import { createPresetResultsBundle } from './presetResults';
 
 type GoldenVector = {
   id: string;
@@ -199,7 +204,7 @@ const DERIVED: Record<string, (i: ThermalKernelInputs, o: ThermalKernelOutputs) 
 };
 
 function checkGoldenVectors(): void {
-  const path = join(__dirname, '..', '..', '..', 'data', 'golden-vectors', 'orbital-thermal-limits.json');
+  const path = fileURLToPath(new URL('../../../data/golden-vectors/orbital-thermal-limits.json', import.meta.url));
   const doc: { vectors: GoldenVector[] } = JSON.parse(readFileSync(path, 'utf8'));
   const relTol = 1e-6; // generous vs. the 1e-9 the vectors were generated at, to tolerate JS float rounding across two separate compiles
 
@@ -242,17 +247,48 @@ function checkGoldenVectors(): void {
 
 // --- Fleet-architecture presets (Study 01 section 4, Spark 03) --------------
 //
-// The three presets added for the fleet-invariance work are pinned to golden
-// vectors gv-08 to gv-10. These checks make sure the presets a person loads in
+// The five presets added for the fleet-invariance work are pinned to golden
+// vectors gv-08 to gv-12. These checks make sure the presets a person loads in
 // the UI are the states the vectors were generated from, that they load
 // without any input being clamped, and that the headline numbers quoted in
 // their explanation text and in the publications hold.
 function checkFleetPresets(vectors: GoldenVector[]): void {
   const withPreset = vectors.filter((v) => v.preset !== undefined);
-  assert(withPreset.length === 3, 'Exactly three golden vectors should be tied to the fleet-architecture presets');
+  assert(withPreset.length === 5, 'Exactly five golden vectors should be tied to the fleet-architecture presets');
 
   const ids = SCENARIO_PRESETS.map((p) => p.id);
   assert(new Set(ids).size === ids.length, 'Scenario preset ids must be unique');
+
+  const dawnDuskOrbit = ORBIT_PRESETS.find((preset) => preset.id === 'leo-dawn-dusk-sso');
+  assert(new Set(ORBIT_PRESETS.map((preset) => preset.id)).size === ORBIT_PRESETS.length, 'Orbit preset ids must be unique');
+  assert(dawnDuskOrbit !== undefined, 'The dawn-dusk sun-synchronous orbit preset must exist');
+  assert(
+    sunlitFraction(dawnDuskOrbit!.altitudeKm, dawnDuskOrbit!.eccentricity, dawnDuskOrbit!.inclinationDeg, dawnDuskOrbit!.raanDeg, dawnDuskOrbit!.argumentDeg) === 1,
+    'The dawn-dusk orbit preset must be eclipse-free in the fixed-Sun model',
+  );
+  for (const scenario of SCENARIO_PRESETS.filter((preset) => !['oversized-geo', 'eclipse-trap'].includes(preset.id))) {
+    assert(
+      scenario.state.orbitAltitudeKm === dawnDuskOrbit!.altitudeKm &&
+      scenario.state.orbitEccentricity === dawnDuskOrbit!.eccentricity &&
+      scenario.state.orbitInclinationDeg === dawnDuskOrbit!.inclinationDeg &&
+      scenario.state.orbitRaanDeg === dawnDuskOrbit!.raanDeg &&
+      scenario.state.orbitArgumentDeg === dawnDuskOrbit!.argumentDeg &&
+      scenario.state.orbitPhaseDeg === dawnDuskOrbit!.phaseDeg,
+      `Scenario preset ${scenario.id} must use the dawn-dusk SSO orbit preset`,
+    );
+  }
+  for (const key of ['orbitAltitudeKm', 'orbitEccentricity', 'orbitInclinationDeg', 'orbitRaanDeg'] as const) {
+    const inputDefault = INPUT_SPECS.find((spec) => spec.key === key)?.defaultValue;
+    const manifestDefault = manifest.parameters.find((parameter) => parameter.id === key)?.defaultValue;
+    const presetValue = {
+      orbitAltitudeKm: dawnDuskOrbit!.altitudeKm,
+      orbitEccentricity: dawnDuskOrbit!.eccentricity,
+      orbitInclinationDeg: dawnDuskOrbit!.inclinationDeg,
+      orbitRaanDeg: dawnDuskOrbit!.raanDeg,
+    }[key];
+    assert(inputDefault === presetValue, `Module default ${key} must match dawn-dusk SSO`);
+    assert(manifestDefault === presetValue, `Manifest default ${key} must match dawn-dusk SSO`);
+  }
 
   for (const v of withPreset) {
     const preset = SCENARIO_PRESETS.find((p) => p.id === v.preset);
@@ -308,9 +344,73 @@ function checkFleetPresets(vectors: GoldenVector[]): void {
   const relFlux = Math.abs(tiny.expect.radiatorFluxWm2 - scaled.expect.radiatorFluxWm2) / tiny.expect.radiatorFluxWm2;
   assert(relFlux < 1e-9, 'gv-09 and gv-10 must have identical radiator flux per square metre (area-independence of q)');
   assert(scaled.inputs.radiatorArea === 8 * tiny.inputs.radiatorArea, 'gv-09 and gv-10 should differ by a factor of eight in radiator area');
+
+  // Fleet Node (175 kW class): representative model size (160 m^2, 175 kW,
+  // 122C), deliberately run close to its own thermal ceiling (about 97.9%
+  // utilisation, status LIMIT), not comfortably under it like the two
+  // overhead presets.
+  const fleetNode = byId('gv-11-fleet-node-175kw-class');
+  const sRun = orbitalThermalLimits.run(fleetNode.inputs);
+  assert(Math.abs(sRun.values.radiatorFluxWm2 - 1158) < 1, 'gv-11: radiator flux should be about 1,158 W/m^2 at 122C');
+  assert(sRun.values.computeUtilisation > 0.95 && sRun.values.computeUtilisation < 1, 'gv-11: thermal utilisation should be close to but under 100%');
+  assert(sRun.status === 'LIMIT', 'gv-11: status should read LIMIT, not SAFE or OVERHEATING');
+  assert(sRun.values.computeDeficitW < 0, 'gv-11: should have thermal headroom, not a deficit, despite reading LIMIT');
+
+  // Monolith (5 GW Concept): the aggregate counterpart. Radiative capacity
+  // (about 6.47 GW) exceeds the request (5 GW), and transport capacity
+  // (about 6.72 GW) exceeds radiative capacity, so radiation -- not the
+  // loop -- is the binding limit here, unlike gv-08 at small scale.
+  const monolith = byId('gv-12-monolith-5gw');
+  const mRun = orbitalThermalLimits.run(monolith.inputs);
+  assert(Math.abs(mRun.values.radiatorFluxWm2 - 671.85) < 1, 'gv-12: radiator flux should be about 671.85 W/m^2 at 75C');
+  assert(mRun.values.transportCapacityW > mRun.values.netRadiatorCapacityW, 'gv-12: the radiator, not the loop, must be the binding limit');
+  assert(mRun.status === 'MARGIN', 'gv-12: full-sun power headroom should make overall status MARGIN');
+  assert(mRun.values.computeDeficitW < 0, 'gv-12: should have thermal headroom, not a deficit, despite reading LIMIT');
+  assert(
+    Math.abs(monolith.inputs.computeWattsRequested - 28600 * fleetNode.inputs.computeWattsRequested) / monolith.inputs.computeWattsRequested < 0.005,
+    'gv-11 and gv-12 should represent the same ~5 GW aggregate: 28,600 Fleet Nodes vs. one Monolith',
+  );
   console.log('Fleet-architecture preset checks passed.');
 }
 
 checkGoldenVectors();
+
+assert(manifest.releaseVersion === mod.descriptor.releaseVersion, 'UI manifest and module descriptor must expose the same module release version');
+assert(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(mod.descriptor.releaseVersion), 'Module release version must be SemVer');
+assert(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(mod.descriptor.contractVersion), 'Module contract version must be SemVer');
+{
+  const record = createRunRecord({ ...base, orbitPhaseDeg: 123 }, new Date('2026-10-03T00:00:00.000Z'));
+  const replay = mod.run(record.requestedInputs);
+  assert(record.schemaVersion === 1, 'Run record must declare its schema version');
+  assert(record.software.moduleId === mod.descriptor.id, 'Run record must identify its module');
+  assert(record.software.moduleReleaseVersion === mod.descriptor.releaseVersion, 'Run record must identify the module release');
+  assert(record.createdAt === '2026-10-03T00:00:00.000Z', 'Run record must preserve its creation timestamp');
+  assert(!Object.hasOwn(record.requestedInputs, 'orbitPhaseDeg'), 'Visual-only orbit phase must not be included as a model input');
+  assert(record.resolvedInputs.radiatorArea === replay.resolvedInputs.radiatorArea, 'Run record must preserve inputs actually used');
+  assert(record.outputs.maxComputeHeatW === replay.values.maxComputeHeatW, 'Run record outputs must retain full precision for replay');
+  assert(record.assumptions.length === mod.descriptor.assumptions.length, 'Run record must include the module assumptions');
+  verifyRunRecord(record);
+  let rejectedWrongVersion = false;
+  try {
+    verifyRunRecord({ ...record, software: { ...record.software, moduleReleaseVersion: '9.9.9' } });
+  } catch {
+    rejectedWrongVersion = true;
+  }
+  assert(rejectedWrongVersion, 'Replay must reject a record made by a different module release');
+}
+
+{
+  const createdAt = new Date('2026-10-03T00:00:00.000Z');
+  const bundle = createPresetResultsBundle(createdAt);
+  assert(bundle.presets.length === SCENARIO_PRESETS.length, 'Preset results bundle must include every scenario preset');
+  assert(bundle.createdAt === createdAt.toISOString(), 'Preset results bundle must preserve its creation timestamp');
+  for (const [index, item] of bundle.presets.entries()) {
+    const sourcePreset = SCENARIO_PRESETS[index];
+    assert(item.id === sourcePreset.id, `Preset bundle entry ${index} must preserve the preset id`);
+    assert(JSON.stringify(item.configuration) === JSON.stringify(sourcePreset.state), `Preset ${item.id} must preserve its complete configuration`);
+    assert(item.run.resolvedInputs.computeWattsRequested === sourcePreset.state.computeWattsRequested, `Preset ${item.id} run record must use the preset inputs`);
+    verifyRunRecord(item.run);
+  }
+}
 
 console.log('All model, contract and golden-vector assertions completed.');

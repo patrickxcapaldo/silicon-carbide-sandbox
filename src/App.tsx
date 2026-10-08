@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getAllModules, getModuleById } from './core/registry';
 import { ModuleShell } from './core/ModuleShell';
 import { HomePage } from './core/HomePage';
+import { BUILD_INFO } from './core/buildInfo';
 
 export function App() {
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(() => {
@@ -82,7 +83,7 @@ export function App() {
               letterSpacing: '0.02em',
             }}
           >
-            SiC Sandbox v1.0
+            SiC Sandbox v{BUILD_INFO.sandboxVersion}
           </span>
         </nav>
         <div style={{ flex: 1 }}>

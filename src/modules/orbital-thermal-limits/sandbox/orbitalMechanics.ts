@@ -26,6 +26,15 @@ export const EARTH_MU_KM3_S2 = 398600.4418;
  */
 export const DEFAULT_SUN_DIRECTION: Vec3 = normalize3([-0.82, 0.32, 0.47]);
 
+export const DAWN_DUSK_SSO_ORBIT = {
+  orbitAltitudeKm: 600,
+  orbitEccentricity: 0.001,
+  orbitInclinationDeg: 97.8,
+  orbitRaanDeg: 68.7,
+  orbitArgumentDeg: 0,
+  orbitPhaseDeg: 0,
+} as const;
+
 function clampEccentricity(e: number): number {
   return Math.min(0.95, Math.max(0, e));
 }

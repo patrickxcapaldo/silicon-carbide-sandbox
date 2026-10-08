@@ -1,8 +1,11 @@
 import type { Manifest } from '../../core/types';
 import { equations } from './equations';
+import { MODULE_RELEASE_VERSION } from './version';
+import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 
 export const manifest: Manifest = {
   id: 'orbital-thermal-limits',
+  releaseVersion: MODULE_RELEASE_VERSION,
   title: 'Orbital Compute Thermal Rejection Limits',
   summary: 'Interactive first-order thermal balance for a spacecraft radiator in Earth orbit, including solar, albedo, Earth IR, coolant transport, and orbital geometry.',
   tags: ['space', 'thermal-physics', 'orbital-compute', 'ai-infrastructure'],
@@ -25,12 +28,12 @@ export const manifest: Manifest = {
     { id: 'solarPanelAreaM2', name: 'Solar Array Area', unit: 'm²', min: 0.5, max: 30, step: 0.5, defaultValue: 4, description: 'Total active solar cell area across both deployed array wings.' },
     { id: 'solarPanelEfficiency', name: 'Solar Cell Efficiency', unit: 'η', min: 0.05, max: 0.4, step: 0.01, defaultValue: 0.29, description: 'Net array electrical efficiency, covering cell, packing and wiring losses. About 0.29 is representative of modern triple-junction space cells.' },
     { id: 'solarPanelPointingFactor', name: 'Solar Pointing Accuracy', unit: '0-1', min: 0, max: 1, step: 0.01, defaultValue: 0.95, description: 'How well the single-axis-tracking array is aimed at the Sun, where 1 is perfect tracking.' },
-    { id: 'orbitEccentricity', name: 'Eccentricity', unit: 'e', min: 0, max: 0.75, step: 0.01, defaultValue: 0.01, description: 'Orbital eccentricity. A value of 0 is circular, rising to about 0.74 for a Molniya-type highly elliptical orbit.' },
-    { id: 'orbitAltitudeKm', name: 'Perigee Altitude', unit: 'km', min: 160, max: 40000, step: 10, defaultValue: 550, description: 'Altitude above mean Earth radius at closest approach (perigee).' },
-    { id: 'orbitInclinationDeg', name: 'Inclination', unit: '°', min: 0, max: 98, step: 1, defaultValue: 51.6, description: 'Orbital inclination. A major factor, together with RAAN, in how much of the orbit falls in Earth\u2019s shadow, which now feeds directly into the power budget.' },
-    { id: 'orbitRaanDeg', name: 'RAAN', unit: '°', min: 0, max: 360, step: 1, defaultValue: 25, description: 'Right ascension of the ascending node. Rotates the orbital plane relative to the fixed Sun direction used here, which can noticeably shift eclipse duration.' },
+    { id: 'orbitEccentricity', name: 'Eccentricity', unit: 'e', min: 0, max: 0.75, step: 0.01, defaultValue: DAWN_DUSK_SSO_ORBIT.orbitEccentricity, description: 'Orbital eccentricity. A value of 0 is circular, rising to about 0.74 for a Molniya-type highly elliptical orbit.' },
+    { id: 'orbitAltitudeKm', name: 'Perigee Altitude', unit: 'km', min: 160, max: 40000, step: 10, defaultValue: DAWN_DUSK_SSO_ORBIT.orbitAltitudeKm, description: 'Altitude above mean Earth radius at closest approach (perigee).' },
+    { id: 'orbitInclinationDeg', name: 'Inclination', unit: '°', min: 0, max: 98, step: 1, defaultValue: DAWN_DUSK_SSO_ORBIT.orbitInclinationDeg, description: 'Orbital inclination. A major factor, together with RAAN, in how much of the orbit falls in Earth\u2019s shadow, which now feeds directly into the power budget.' },
+    { id: 'orbitRaanDeg', name: 'RAAN', unit: '°', min: 0, max: 360, step: 1, defaultValue: DAWN_DUSK_SSO_ORBIT.orbitRaanDeg, description: 'Right ascension of the ascending node. Rotates the orbital plane relative to the fixed Sun direction used here, which can noticeably shift eclipse duration.' },
     { id: 'orbitArgumentDeg', name: 'Argument of Perigee', unit: '°', min: 0, max: 360, step: 1, defaultValue: 0, description: 'Rotates the ellipse within its orbital plane, determining where perigee points. It only has a visible effect when eccentricity is greater than 0.' },
-    { id: 'orbitPhaseDeg', name: 'Orbital Phase', unit: '°', min: 0, max: 360, step: 1, defaultValue: 35, description: 'Satellite true anomaly, meaning its position around the orbit measured from perigee. It can be played forward automatically using real Kepler propagation.' },
+    { id: 'orbitPhaseDeg', name: 'Orbital Phase', unit: '°', min: 0, max: 360, step: 1, defaultValue: DAWN_DUSK_SSO_ORBIT.orbitPhaseDeg, description: 'Satellite true anomaly, meaning its position around the orbit measured from perigee. It can be played forward automatically using real Kepler propagation.' },
   ],
   equations,
 };

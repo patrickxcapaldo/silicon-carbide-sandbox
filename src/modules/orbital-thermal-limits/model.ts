@@ -1,6 +1,7 @@
 import type { Result } from '../../core/types';
 import { orbitalThermalLimits } from './sandbox/module';
 import { EARTH_RADIUS_KM } from './sandbox/kernel';
+import { splitWatts } from './visualizer/format';
 
 /**
  * Host framework adapter.
@@ -32,8 +33,9 @@ export function compute(inputs: Record<string, number>): Result {
         description: 'Continuous compute heat that can be transported and rejected after environmental and parasitic loads.',
       },
       maxTdpKw: {
-        label: 'Maximum Compute Heat', value: parseFloat((v.maxComputeHeatW / 1000).toFixed(2)), unit: 'kW',
-        description: 'Maximum continuous compute heat in kilowatts.',
+        label: 'Maximum Compute Heat',
+        ...splitWatts(v.maxComputeHeatW),
+        description: 'Maximum continuous compute heat, auto-scaled to kW / MW / GW so gigawatt-scale aggregates display sensibly rather than as a seven-digit kilowatt figure.',
       },
       radiativeRejectionW: {
         label: 'Gross Radiative Rejection', value: Math.round(v.radiativeRejectionW), unit: 'W',
