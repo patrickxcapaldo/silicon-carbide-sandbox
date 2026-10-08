@@ -23,6 +23,44 @@
   retrieved: 2026-09-22
   confidence: high
   load_bearing_for: [orbital-thermal-limits]
+  status: superseded
+  source_type: secondary
+  area_basis: unverified
+  superseded_by: hw.iss_eatcs
+  superseded_reason: "The source is a secondary paper and its 422 m2 area basis is unverified; NASA's ISS EATCS overview supplies the corrected baseline."
+  revision: 1
+
+- id: hw.iss_eatcs
+  kind: engineering-parameter
+  value: { power_kw: 70, area_m2: 475.3, loading_w_per_m2: 147.3 }
+  unit: "W m^-2"
+  source: "NASA, ISS Active Thermal Control System (ATCS) overview, https://www.nasa.gov/wp-content/uploads/2021/02/473486main_iss_atcs_overview.pdf. 70 kW over 475.3 m2, six radiator units of 23.3 m x 3.4 m, one face, gives 147.3 W/m2 per m2 of panel footprint."
+  archive_url: "https://www.nasa.gov/wp-content/uploads/2021/02/473486main_iss_atcs_overview.pdf"
+  retrieved: 2026-10-08
+  confidence: high
+  load_bearing_for: [orbital-thermal-limits]
+  revision: 1
+
+- id: hw.iss_pvtcs
+  kind: engineering-parameter
+  value: { power_kw: 56, area_m2: 169.7, loading_w_per_m2: 330 }
+  unit: "W m^-2"
+  source: "NASA, ISS Active Thermal Control System (ATCS) overview, https://www.nasa.gov/wp-content/uploads/2021/02/473486main_iss_atcs_overview.pdf. 56 kW over 169.7 m2, four PVRs of 3.12 m x 13.6 m, one face, gives 330 W/m2 per m2 of panel footprint."
+  archive_url: "https://www.nasa.gov/wp-content/uploads/2021/02/473486main_iss_atcs_overview.pdf"
+  retrieved: 2026-10-08
+  confidence: high
+  load_bearing_for: [orbital-thermal-limits]
+  revision: 1
+
+- id: hw.iss_combined
+  kind: engineering-parameter
+  value: { power_kw: 126, area_m2: 645, loading_w_per_m2: 195.3 }
+  unit: "W m^-2"
+  source: "NASA, ISS Active Thermal Control System (ATCS) overview, https://www.nasa.gov/wp-content/uploads/2021/02/473486main_iss_atcs_overview.pdf. Combined 126 kW over 645 m2 gives 195.3 W/m2."
+  archive_url: "https://www.nasa.gov/wp-content/uploads/2021/02/473486main_iss_atcs_overview.pdf"
+  retrieved: 2026-10-08
+  confidence: high
+  load_bearing_for: [orbital-thermal-limits]
   revision: 1
 
 - id: geom.football_field_area
