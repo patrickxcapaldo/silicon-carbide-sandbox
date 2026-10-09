@@ -4,6 +4,8 @@ import { Explainer } from './visualizer/Explainer';
 import type { ThermalState } from './visualizer/types';
 import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 import { createRunRecord } from './runRecord';
+import { manifest } from './manifest';
+import { ModulePageFrame } from '../../core/ModulePageFrame';
 
 interface ViewProps { inputs: Record<string, number>; onChange: (id: string, value: number) => void; results: unknown; }
 
@@ -34,13 +36,11 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
     anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
   };
-  return <div style={{ width: '100%', minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
-    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1.5rem' }}>
-      <header style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
-        <h1 style={{ margin: 0, fontSize: '1.75rem', color: 'var(--text-h)' }}>Orbital Compute Thermal Rejection Limits</h1>
-        <p style={{ margin: '0.5rem 0 0', color: 'var(--text-muted)' }}>Thermal balance, radiator loading, coolant transport and orbital geometry.</p>
-      </header>
-      <Explainer />
+  return (
+    <ModulePageFrame manifest={manifest}>
+        <div style={{ maxWidth: 780 }}>
+          <Explainer />
+      </div>
       <ThermalVisualizer
         initialState={initialState}
         onStateChange={(state) => {
@@ -48,7 +48,7 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
         }}
         onExport={handleExport}
       />
-    </div>
-  </div>;
+    </ModulePageFrame>
+  );
 };
 export default View;

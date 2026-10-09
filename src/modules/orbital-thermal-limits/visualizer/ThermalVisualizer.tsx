@@ -8,7 +8,6 @@ import { InfoTip } from './InfoTip';
 import { useOrbitClock } from './useOrbitClock';
 import { nadirEarthViewFactor } from './orbit';
 import { DAWN_DUSK_SSO_ORBIT } from '../sandbox/orbitalMechanics';
-import { MODULE_RELEASE_VERSION } from '../version';
 import { formatWatts } from './format';
 import { ORBIT_PRESETS, type OrbitPreset } from './orbitPresets';
 import type { ScenarioPreset } from './scenarioPresets';
@@ -184,10 +183,6 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
     <Canvas shadows dpr={[1, 2]} camera={{ position: [8.4, 6.4, 9.2], fov: 45, near: 0.05, far: 120 }} gl={{ antialias: true, powerPreference: 'high-performance' }}>
       <Suspense fallback={null}><ThermalScene state={state} derived={derived} viewMode={viewMode} cameraFocus={cameraFocus} /></Suspense>
     </Canvas>
-
-    <div aria-label={`Module version ${MODULE_RELEASE_VERSION}`} style={{ position: 'absolute', top: 16, right: 332, zIndex: 20, padding: '7px 10px', borderRadius: 8, background: 'rgba(8,18,31,.82)', border: '1px solid rgba(160,205,235,.25)', color: '#eaf6ff', backdropFilter: 'blur(8px)', fontSize: 11, fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>
-      Module 01 v{MODULE_RELEASE_VERSION}
-    </div>
 
     <div style={{ position: 'absolute', left: 16, top: 16, zIndex: 20, padding: '9px 12px', borderRadius: 10, background: 'rgba(8,18,31,.82)', border: '1px solid rgba(160,205,235,.25)', color: '#eaf6ff', backdropFilter: 'blur(8px)', fontSize: 12, maxWidth: 260 }}>
       <strong>Orbital thermal balance</strong><br />

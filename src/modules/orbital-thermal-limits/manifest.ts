@@ -1,16 +1,17 @@
 import type { Manifest } from '../../core/types';
 import { equations } from './equations';
-import { MODULE_RELEASE_VERSION } from './version';
+import { MODULE_RELEASE_VERSION, MODULE_CONTRACT_VERSION } from './version';
 import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 
 export const manifest: Manifest = {
   id: 'orbital-thermal-limits',
   releaseVersion: MODULE_RELEASE_VERSION,
+  contractVersion: MODULE_CONTRACT_VERSION,
   title: 'Orbital Compute Thermal Rejection Limits',
   summary: 'Interactive first-order thermal balance for a spacecraft radiator in Earth orbit, including solar, albedo, Earth IR, coolant transport, and orbital geometry.',
   tags: ['space', 'thermal-physics', 'orbital-compute', 'ai-infrastructure'],
-  articleUrl: 'https://thesiliconcarbide.substack.com',
   relatedArticles: [],
+  interfaces: ['solar-power-budget'],
   parameters: [
     { id: 'radiatorArea', name: 'Radiator Surface Area', unit: 'm²', min: 0.5, max: 20, step: 0.5, defaultValue: 2, description: 'Total two-sided radiator area used by the thermal model.' },
     { id: 'emissivity', name: 'IR Emissivity', unit: 'ε', min: 0.5, max: 0.99, step: 0.01, defaultValue: 0.9, description: 'Long-wave infrared emissivity.' },

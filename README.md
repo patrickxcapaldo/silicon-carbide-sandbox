@@ -35,6 +35,7 @@ Whether the subject is orbital compute thermal limits, radar range equations or 
 | Module ID | Title | Domains | Status |
 | :--- | :--- | :--- | :--- |
 | `orbital-thermal-limits` | **Orbital Compute Thermal Rejection Limits** | Thermodynamics, radiative heat transfer, orbital mechanics, photovoltaics | 🟢 Live |
+| `solar-power-budget` | **Solar Array Electrical Power Budget** | Photovoltaics, orbital mechanics, power systems, space environment | 🟢 Live |
 
 ---
 
@@ -186,7 +187,7 @@ Contributions of new deterministic physics modules are welcome.
 
 ## Repository status notes
 
-The module contract is described above as living at `src/core/contract.ts`, which is where it belongs, since every module needs the same one. In the current tree it was authored inside `modules/orbital-thermal-limits/sandbox/contract.ts`, as that module was the first to need it. Moving it to `src/core/` and updating the import in `sandbox/module.ts` is a pending task, and should happen before a second module is written so that the two do not end up with divergent copies.
+The module contract is located at `src/core/contract.ts`, and core orbital mechanics algorithms are located at `src/core/orbitalMechanics.ts`. All modules import from these shared cores, maintaining consistent typing, dimension checks, and Kepler propagation across the sandbox ecosystem.
 
 ---
 
