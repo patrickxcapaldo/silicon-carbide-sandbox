@@ -35,6 +35,8 @@ export type ThermalDerived = {
   absorbedEarthIrW: number;
   externalHeatW: number;
   transportCapacityW: number;
+  netRadiatorCapacityW: number;
+  powerCeilingW: number;
   netCapacityW: number;
   computeWattsRequested: number;
   computeDeficitW: number;

@@ -6,6 +6,45 @@
   color: var(--text);
 }
 
+.challenge-explorer-limits {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0.75rem auto 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--bg-surface);
+}
+
+.challenge-explorer-limits h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.88rem;
+  color: var(--text-h);
+}
+
+.challenge-explorer-limits .challenge-bars {
+  gap: 0.45rem;
+}
+
+.challenge-explorer-limits .challenge-bar-row {
+  grid-template-columns: minmax(90px, 112px) minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.challenge-explorer-limits .challenge-bar-label {
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.challenge-explorer-limits .challenge-bar-track {
+  height: 14px;
+}
+
+.challenge-explorer-limits .challenge-binding-label {
+  display: none;
+}
+
 .challenge-toolbar,
 .challenge-progress,
 .challenge-actions,
@@ -153,6 +192,38 @@
 
 .challenge-answer-buttons .challenge-button:disabled {
   cursor: default;
+}
+
+.challenge-formulas {
+  margin: 1rem 0;
+  padding: 0.9rem;
+  border: 1px solid rgba(160, 205, 235, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.challenge-formulas h3 {
+  margin-top: 0;
+}
+
+.challenge-formulas > section {
+  margin-top: 0.75rem;
+}
+
+.challenge-formulas p {
+  margin: 0.4rem 0;
+  color: #c3d3df;
+  font-size: 0.85rem;
+}
+
+.challenge-math-line {
+  margin-top: 0.4rem;
+  padding: 0.65rem;
+  overflow-x: auto;
+  border-radius: 8px;
+  color: #f5faff;
+  background: #14283b;
+  text-align: center;
 }
 
 .challenge-answer-buttons .is-correct {

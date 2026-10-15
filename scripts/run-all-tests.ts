@@ -1,7 +1,6 @@
-import { execFileSync } from 'node:child_process';
-
 const suites = [
   'src/modules/orbital-thermal-limits/model.test.ts',
+  'src/modules/orbital-thermal-limits/challenge/challenge.test.ts',
   'src/modules/solar-power-budget/model.test.ts',
 ];
 

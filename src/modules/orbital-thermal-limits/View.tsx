@@ -7,6 +7,7 @@ import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 import { createRunRecord } from './runRecord';
 import { manifest } from './manifest';
 import { ModulePageFrame } from '../../core/ModulePageFrame';
+import { ModeToggle } from '../../core/challenge/ModeToggle';
 
 interface ViewProps { inputs: Record<string, number>; onChange: (id: string, value: number) => void; results: unknown; }
 
@@ -40,17 +41,13 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
   };
   return (
     <ModulePageFrame manifest={manifest}>
-      <div className="challenge-mode-toggle" role="group" aria-label="Module mode">
-        <button type="button" aria-pressed={mode === 'explore'} onClick={() => setMode('explore')}>Explore</button>
-        <button type="button" aria-pressed={mode === 'challenge'} onClick={() => setMode('challenge')}>Challenge</button>
-      </div>
-      {mode === 'challenge' ? (
-        <ChallengeGame />
-      ) : (
-        <>
-          <div style={{ maxWidth: 780 }}>
-            <Explainer />
-          </div>
+      <Explainer />
+      <ModeToggle mode={mode} onChange={setMode} />
+      <div id="module-tool">
+        <div hidden={mode !== 'challenge'}>
+          <ChallengeGame />
+        </div>
+        {mode === 'explore' && (
           <ThermalVisualizer
             initialState={initialState}
             onStateChange={(state) => {
@@ -58,8 +55,8 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
             }}
             onExport={handleExport}
           />
-        </>
-      )}
+        )}
+      </div>
     </ModulePageFrame>
   );
 };
