@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ThermalVisualizer } from './visualizer/ThermalVisualizer';
 import { Explainer } from './visualizer/Explainer';
+import { ChallengeGame } from './challenge/ChallengeGame';
 import type { ThermalState } from './visualizer/types';
 import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 import { createRunRecord } from './runRecord';
@@ -10,6 +11,7 @@ import { ModulePageFrame } from '../../core/ModulePageFrame';
 interface ViewProps { inputs: Record<string, number>; onChange: (id: string, value: number) => void; results: unknown; }
 
 const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
+  const [mode, setMode] = useState<'explore' | 'challenge'>('explore');
   const initialState = useMemo<Partial<ThermalState>>(() => ({
     satelliteTempC: inputs.operatingTempC ?? 45, operatingTempC: inputs.operatingTempC ?? 70, radiatorArea: inputs.radiatorArea ?? 2,
     emissivity: inputs.emissivity ?? 0.9, solarAbsorptivity: inputs.solarAbsorptivity ?? 0.12, sinkTempK: inputs.sinkTempK ?? 180,
@@ -38,16 +40,26 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
   };
   return (
     <ModulePageFrame manifest={manifest}>
-        <div style={{ maxWidth: 780 }}>
-          <Explainer />
+      <div className="challenge-mode-toggle" role="group" aria-label="Module mode">
+        <button type="button" aria-pressed={mode === 'explore'} onClick={() => setMode('explore')}>Explore</button>
+        <button type="button" aria-pressed={mode === 'challenge'} onClick={() => setMode('challenge')}>Challenge</button>
       </div>
-      <ThermalVisualizer
-        initialState={initialState}
-        onStateChange={(state) => {
-          Object.entries(state).forEach(([id, value]) => onChange(id, value as number));
-        }}
-        onExport={handleExport}
-      />
+      {mode === 'challenge' ? (
+        <ChallengeGame />
+      ) : (
+        <>
+          <div style={{ maxWidth: 780 }}>
+            <Explainer />
+          </div>
+          <ThermalVisualizer
+            initialState={initialState}
+            onStateChange={(state) => {
+              Object.entries(state).forEach(([id, value]) => onChange(id, value as number));
+            }}
+            onExport={handleExport}
+          />
+        </>
+      )}
     </ModulePageFrame>
   );
 };

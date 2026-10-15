@@ -95,6 +95,10 @@ The power budget accounts for the orbit's eclipse duty cycle using a cylindrical
 
 Treat the results as a way to compare assumptions and identify the binding constraint, not as a substitute for detailed mission analysis.
 
+## Challenge Mode
+
+**What Breaks First?** is a client-side challenge with ten fixed spacecraft configurations. Levels define their input configurations and reveal copy; the answer and capacity ceilings are derived from `orbitalThermalLimits.run()` at runtime. The game stores no player data and uses no persistence, network service, backend, or leaderboard.
+
 ## Development Checks
 
 From the repository root:
