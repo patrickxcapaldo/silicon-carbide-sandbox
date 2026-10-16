@@ -188,14 +188,14 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
       <Suspense fallback={null}><ThermalScene state={state} derived={derived} viewMode={viewMode} cameraFocus={cameraFocus} /></Suspense>
     </Canvas>
 
-    <div style={{ position: 'absolute', left: 16, top: 16, zIndex: 20, padding: '9px 12px', borderRadius: 10, background: 'rgba(8,18,31,.82)', border: '1px solid rgba(160,205,235,.25)', color: '#eaf6ff', backdropFilter: 'blur(8px)', fontSize: 12, maxWidth: 260 }}>
-      <strong>Orbital thermal balance</strong><br />
-      <span style={{ opacity: .72 }}>
+    <details open className="thermal-overlay thermal-intro">
+      <summary>Orbital thermal balance</summary>
+      <div>
         {viewMode === 'orbit'
           ? 'Earth and the orbit are drawn to scale, and the spacecraft is shown as a small marker so that it does not pass through the surface. Switch to Close-up to inspect it.'
           : 'Close-up view showing the spacecraft at full detail. Earth is a schematic backdrop and is not positioned to scale.'}
-      </span>
-    </div>
+      </div>
+    </details>
 
     <ControlPanel
       state={state}
@@ -217,7 +217,9 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
       secondsPerOrbitAtSpeed={secondsPerOrbitAtSpeed}
     />
 
-    <section aria-label="thermal telemetry" style={{ position: 'absolute', left: 16, right: 332, bottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(105px,1fr))', gap: 8, padding: 10, background: 'rgba(5,12,22,.88)', border: '1px solid rgba(255,255,255,.14)', borderRadius: 12, color: '#fff', backdropFilter: 'blur(10px)', zIndex: 20 }}>
+    <details open className="thermal-overlay thermal-telemetry" aria-label="Thermal telemetry">
+      <summary>Thermal telemetry</summary>
+      <div className="thermal-telemetry-grid">
       <div><small>Requested compute <InfoTip text={TELEMETRY_INFO.requestedCompute} placement="above" /></small><br /><strong>{metric(derived.computeWattsRequested)}</strong></div>
       <div><small>Compute heat limit <InfoTip text={TELEMETRY_INFO.heatLimit} placement="above" /></small><br /><strong>{metric(derived.netCapacityW)}</strong></div>
       <div><small>{derived.computeDeficitW > 0 ? 'Thermal deficit' : 'Thermal headroom'} <InfoTip text={TELEMETRY_INFO.thermalMargin} placement="above" /></small><br /><strong style={{ color: derived.computeDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.computeDeficitW))}</strong></div>
@@ -226,11 +228,12 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
       <div><small>{derived.powerDeficitW > 0 ? 'Power deficit' : 'Power headroom'} <InfoTip text={TELEMETRY_INFO.powerMargin} placement="above" /></small><br /><strong style={{ color: derived.powerDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.powerDeficitW))}</strong></div>
       <div><small>Coolant capacity <InfoTip text={TELEMETRY_INFO.coolantCapacity} placement="above" /></small><br /><strong>{metric(derived.transportCapacityW)}</strong></div>
       <div><small>Status</small><br /><StatusBadge status={derived.status} /></div>
+      </div>
+    </details>
     </section>
-    </section>
-    <section className="challenge-explorer-limits" aria-label="Compute ceilings">
-      <h3>Compute ceilings</h3>
-      <p>White marker: requested compute. The labelled green bar is the lowest ceiling.</p>
+    <details open className="challenge-explorer-limits thermal-ceilings" aria-label="Compute ceilings">
+      <summary>Compute ceilings</summary>
+      <p>White marker: requested compute. The green bar is the lowest ceiling.</p>
       <CeilingBars
         evaluation={{
           answerId: derived.netRadiatorCapacityW <= derived.transportCapacityW && derived.netRadiatorCapacityW <= derived.powerCeilingW
@@ -247,6 +250,6 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
         }}
         requestedLoad={derived.computeWattsRequested}
       />
-    </section>
+    </details>
   </>;
 }

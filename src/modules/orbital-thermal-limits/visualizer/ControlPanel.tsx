@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { ThermalState } from './types';
 import type { CameraFocus, ViewMode } from './ThermalScene';
@@ -102,17 +102,19 @@ export function ControlPanel({
 }: Props) {
   const orbitProgress = ((state.orbitPhaseDeg % 360) + 360) % 360 / 360;
   const panelRef = useRef<HTMLDivElement>(null);
+  const [collapsed, setCollapsed] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 680px)').matches);
 
   return (
-    <div ref={panelRef} style={{
-      position: 'absolute', top: 16, right: 16, bottom: 16, width: 300, zIndex: 40, overflowY: 'auto',
+    <div ref={panelRef} className={`thermal-control-panel${collapsed ? ' is-collapsed' : ''}`} style={{
+      position: 'absolute', top: 16, right: 16, bottom: collapsed ? 'auto' : 16, width: 300, zIndex: 40, overflowY: 'auto',
       background: '#0b1726', border: '1px solid rgba(160,205,235,.25)', borderRadius: 12, padding: '12px 14px',
       color: '#eaf6ff', fontSize: 12, boxShadow: '0 14px 34px rgba(0,0,0,.4)',
     }}>
       <PanelBoundsProvider value={panelRef}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
         <div style={{ fontWeight: 700, fontSize: 13.5 }}>Controls</div>
-        {onExport && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {onExport && !collapsed && (
           <button
             type="button"
             onClick={onExport}
@@ -125,8 +127,20 @@ export function ControlPanel({
             Export
           </button>
         )}
+        <button
+          type="button"
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? 'Maximize controls' : 'Minimize controls'}
+          onClick={() => setCollapsed((value) => !value)}
+          style={{
+            minWidth: 32, minHeight: 32, border: '1px solid rgba(160,205,235,.3)', borderRadius: 6,
+            color: '#eaf6ff', background: 'rgba(255,255,255,.06)', font: 'inherit', cursor: 'pointer',
+          }}
+        >{collapsed ? '+' : '\u2212'}</button>
+        </div>
       </div>
 
+      {!collapsed && <div>
       {/* Scenario presets */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -262,6 +276,7 @@ export function ControlPanel({
           <ParamSlider key={key} meta={PARAM_META[key]} value={state[key]} onChange={(v) => onChange(key, v)} />
         ))}
       </Section>
+      </div>}
       </PanelBoundsProvider>
     </div>
   );

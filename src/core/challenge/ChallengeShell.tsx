@@ -317,7 +317,9 @@ export function ChallengeShell<Inputs extends Record<string, number>>({
         <div className="challenge-answer-buttons" role="group" aria-label="Choose the first limit">
           {definition.options.map((option) => (
             <button
-              className="challenge-button"
+              className={`challenge-button${selectedAnswer === option.id
+                ? resultCorrect ? ' is-correct' : ' is-incorrect'
+                : selectedAnswer !== null && option.id === evaluation.answerId ? ' is-correct' : ''}`}
               type="button"
               key={option.id}
               disabled={selectedAnswer !== null}
