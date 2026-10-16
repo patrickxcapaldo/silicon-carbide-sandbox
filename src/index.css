@@ -5,10 +5,17 @@
   --heading: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
 
+  /* Brand palette */
+  --ink: #121316;
+  --black: #000000;
+  --slate: #475569;
+  --mist: #94A3B8;
+  --orchid: #B97FED;
+
   /* Palette — Light */
-  --text: #4b5563;
-  --text-h: #111827;
-  --text-muted: #9ca3af;
+  --text: var(--slate);
+  --text-h: var(--ink);
+  --text-muted: var(--mist);
   --bg: #ffffff;
   --bg-surface: #f9fafb;
   --bg-elevated: #ffffff;
@@ -16,15 +23,16 @@
   --border-subtle: #f3f4f6;
   --code-bg: #f3f4f6;
 
-  /* Accent (neutral indigo-tinted) */
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-bg: rgba(79, 70, 229, 0.08);
-  --accent-border: rgba(79, 70, 229, 0.25);
+  /* Orchid is the single interface accent. */
+  --accent: var(--orchid);
+  --accent-hover: var(--orchid);
+  --accent-bg: color-mix(in srgb, var(--orchid) 8%, transparent);
+  --accent-border: color-mix(in srgb, var(--orchid) 25%, transparent);
 
   /* Semantic */
   --success: #059669;
   --success-bg: #ecfdf5;
+  --error: #dc2626;
   --warning: #92400e;
   --warning-bg: #fffbeb;
   --warning-border: #fde68a;
@@ -51,8 +59,8 @@
 
   /* Slider */
   --slider-track: #e5e7eb;
-  --slider-fill: #4f46e5;
-  --slider-thumb: #4f46e5;
+  --slider-fill: var(--accent);
+  --slider-thumb: var(--accent);
   --slider-thumb-border: #ffffff;
 
   /* Output card */
@@ -89,13 +97,9 @@
     --border-subtle: #23253a;
     --code-bg: #1e2030;
 
-    --accent: #818cf8;
-    --accent-hover: #a5b4fc;
-    --accent-bg: rgba(129, 140, 248, 0.12);
-    --accent-border: rgba(129, 140, 248, 0.3);
-
     --success: #34d399;
     --success-bg: rgba(52, 211, 153, 0.1);
+    --error: #f87171;
     --warning: #fbbf24;
     --warning-bg: rgba(251, 191, 36, 0.1);
     --warning-border: rgba(251, 191, 36, 0.25);
@@ -117,8 +121,8 @@
     --eq-label: #cbd5e1;
 
     --slider-track: #2d2f3e;
-    --slider-fill: #818cf8;
-    --slider-thumb: #818cf8;
+    --slider-fill: var(--accent);
+    --slider-thumb: var(--accent);
     --slider-thumb-border: #181a24;
 
     --output-bg: rgba(52, 211, 153, 0.08);

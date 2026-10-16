@@ -23,8 +23,8 @@
 }
 
 .challenge-mode-toggle button[aria-pressed='true'] {
-  color: #fff;
-  background: #253c52;
+  color: var(--black);
+  background: var(--accent);
 }
 
 .challenge-mode-toggle button:focus-visible,
@@ -32,7 +32,7 @@
 .challenge-shell summary:focus-visible,
 .challenge-shell input:focus-visible,
 .challenge-shell select:focus-visible {
-  outline: 3px solid #4fb3ff;
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -47,16 +47,16 @@
 .challenge-shell-card {
   margin-top: 1rem;
   padding: clamp(1rem, 4vw, 1.5rem);
-  border: 1px solid rgba(160, 205, 235, 0.25);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  color: #eaf6ff;
-  background: #0b1726;
+  color: var(--text);
+  background: var(--bg-surface);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
 }
 
 .challenge-shell-card h2,
 .challenge-shell-card h3 {
-  color: #f5faff;
+  color: var(--text-h);
 }
 
 .challenge-shell-grid {
@@ -74,7 +74,7 @@
 .challenge-shell-settings label {
   display: grid;
   gap: 0.35rem;
-  color: #d8e8f3;
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -82,34 +82,35 @@
 .challenge-shell-settings input {
   width: 100%;
   min-height: 44px;
-  border: 1px solid rgba(160, 205, 235, 0.35);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.55rem 0.7rem;
-  color: #f5faff;
-  background: #14283b;
+  color: var(--text-h);
+  background: var(--bg-elevated);
   font: inherit;
 }
 
 .challenge-shell-settings option {
-  color: #111827;
-  background: #fff;
+  color: var(--text-h);
+  background: var(--bg-elevated);
 }
 
 .challenge-shell-button {
   min-height: 46px;
-  border: 1px solid rgba(160, 205, 235, 0.35);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.65rem 1rem;
-  color: #eaf6ff;
-  background: #14283b;
+  color: var(--text-h);
+  background: var(--bg-elevated);
   font: inherit;
   font-weight: 650;
   cursor: pointer;
 }
 
 .challenge-shell-button-primary {
-  border-color: #276a98;
-  background: #276a98;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--black);
 }
 
 .challenge-shell-row,
@@ -127,16 +128,16 @@
 }
 
 .challenge-shell-muted {
-  color: #bbcfdd;
+  color: var(--text-muted);
 }
 
 .challenge-shell-hint {
   margin-top: 0.75rem;
   padding: 0.9rem;
-  border-left: 3px solid #70b8e8;
+  border-left: 3px solid var(--accent);
   border-radius: 6px;
-  color: #eaf6ff;
-  background: #14283b;
+  color: var(--text);
+  background: var(--bg-elevated);
 }
 
 .challenge-shell-review {
@@ -147,9 +148,9 @@
 
 .challenge-shell-review-item {
   padding: 0.8rem;
-  border: 1px solid rgba(160, 205, 235, 0.18);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--bg-elevated);
 }
 
 .challenge-shell-review-item p {
@@ -157,7 +158,7 @@
 }
 
 .challenge-shell-inline-error {
-  color: #ffb8b8;
+  color: var(--error);
 }
 
 @media (min-width: 680px) {

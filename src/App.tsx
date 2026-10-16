@@ -63,7 +63,6 @@ export function App() {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.35rem',
               background: 'none',
               border: 'none',
               color: 'var(--accent)',
@@ -76,19 +75,7 @@ export function App() {
               marginLeft: '-0.5rem',
             }}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M10 12L6 8L10 4" />
-            </svg>
-            Home
+            ← Sandbox
           </button>
           <span
             style={{
