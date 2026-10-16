@@ -104,7 +104,12 @@ export function App() {
   }
 
   if (route.view === 'about') {
-    return <AboutPage onGoHome={() => navigate({ view: 'home' })} />;
+    return (
+      <AboutPage
+        onGoHome={() => navigate({ view: 'home' })}
+        onShowSandbox={() => navigate({ view: 'sandbox' })}
+      />
+    );
   }
 
   return (

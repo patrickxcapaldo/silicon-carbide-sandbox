@@ -79,7 +79,7 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
               href="https://thesiliconcarbide.substack.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="home-cta home-cta--filled"
+              className="home-cta home-cta--outlined"
             >
               Read the Stories
             </a>
