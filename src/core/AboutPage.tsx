@@ -91,7 +91,7 @@ export function AboutPage({ onGoHome, onShowSandbox }: AboutPageProps) {
               href="https://thesiliconcarbide.substack.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="home-cta home-cta--filled"
+              className="home-cta home-cta--outlined"
             >
               Read the Stories
             </a>
