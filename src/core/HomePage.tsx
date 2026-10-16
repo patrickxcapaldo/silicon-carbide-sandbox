@@ -68,9 +68,6 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
           <p style={{ fontSize: '1.1rem', color: 'var(--text)', maxWidth: '560px', margin: '0 auto 0.5rem', lineHeight: 1.6 }}>
             First-principles engineering, economics, and geopolitics where machines meet humanity.
           </p>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.75rem' }}>
-            Everything runs in the browser; nothing is collected.
-          </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <a
               href="https://thesiliconcarbide.substack.com/"
