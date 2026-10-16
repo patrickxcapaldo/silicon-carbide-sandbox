@@ -8,11 +8,11 @@ import { InfoTip } from './InfoTip';
 import { useOrbitClock } from './useOrbitClock';
 import { nadirEarthViewFactor } from './orbit';
 import { DAWN_DUSK_SSO_ORBIT } from '../sandbox/orbitalMechanics';
-import { MODULE_RELEASE_VERSION } from '../version';
 import { formatWatts } from './format';
 import { ORBIT_PRESETS, type OrbitPreset } from './orbitPresets';
 import type { ScenarioPreset } from './scenarioPresets';
 import type { ThermalDerived, ThermalState } from './types';
+import { CeilingBars } from '../challenge/CeilingBars';
 
 const INITIAL_STATE: ThermalState = {
   satelliteTempC: 45, operatingTempC: 70, radiatorArea: 2, emissivity: 0.9, solarAbsorptivity: 0.12,
@@ -155,6 +155,8 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
       absorbedEarthIrW: v.absorbedEarthIrW,
       externalHeatW: v.externalHeatW,
       transportCapacityW: v.transportCapacityW,
+      netRadiatorCapacityW: v.netRadiatorCapacityW,
+      powerCeilingW: v.generatedPowerW - result.resolvedInputs.parasiticHeatW,
       netCapacityW: v.maxComputeHeatW,
       computeWattsRequested: result.resolvedInputs.computeWattsRequested,
       computeDeficitW: v.computeDeficitW,
@@ -180,14 +182,11 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
     coolantCapacity: 'The maximum heat the coolant loop can physically move from the compute payload to the radiator, based on flow rate and allowed temperature rise. The lower of this and the heat limit above sets the actual ceiling.',
   };
 
-  return <section style={{ position: 'relative', width: '100%', maxWidth: '1200px', margin: '0 auto', height: '760px', minHeight: 600, border: '1px solid rgba(150,190,220,.28)', borderRadius: 16, overflow: 'hidden', background: '#07111e', boxShadow: '0 18px 50px rgba(0,0,0,.28)' }}>
+  return <>
+    <section style={{ position: 'relative', width: '100%', maxWidth: '1200px', margin: '0 auto', height: '760px', minHeight: 600, border: '1px solid rgba(150,190,220,.28)', borderRadius: 16, overflow: 'hidden', background: '#07111e', boxShadow: '0 18px 50px rgba(0,0,0,.28)' }}>
     <Canvas shadows dpr={[1, 2]} camera={{ position: [8.4, 6.4, 9.2], fov: 45, near: 0.05, far: 120 }} gl={{ antialias: true, powerPreference: 'high-performance' }}>
       <Suspense fallback={null}><ThermalScene state={state} derived={derived} viewMode={viewMode} cameraFocus={cameraFocus} /></Suspense>
     </Canvas>
-
-    <div aria-label={`Module version ${MODULE_RELEASE_VERSION}`} style={{ position: 'absolute', top: 16, right: 332, zIndex: 20, padding: '7px 10px', borderRadius: 8, background: 'rgba(8,18,31,.82)', border: '1px solid rgba(160,205,235,.25)', color: '#eaf6ff', backdropFilter: 'blur(8px)', fontSize: 11, fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>
-      Module 01 v{MODULE_RELEASE_VERSION}
-    </div>
 
     <div style={{ position: 'absolute', left: 16, top: 16, zIndex: 20, padding: '9px 12px', borderRadius: 10, background: 'rgba(8,18,31,.82)', border: '1px solid rgba(160,205,235,.25)', color: '#eaf6ff', backdropFilter: 'blur(8px)', fontSize: 12, maxWidth: 260 }}>
       <strong>Orbital thermal balance</strong><br />
@@ -228,5 +227,26 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
       <div><small>Coolant capacity <InfoTip text={TELEMETRY_INFO.coolantCapacity} placement="above" /></small><br /><strong>{metric(derived.transportCapacityW)}</strong></div>
       <div><small>Status</small><br /><StatusBadge status={derived.status} /></div>
     </section>
-  </section>;
+    </section>
+    <section className="challenge-explorer-limits" aria-label="Compute ceilings">
+      <h3>Compute ceilings</h3>
+      <p>White marker: requested compute. The labelled green bar is the lowest ceiling.</p>
+      <CeilingBars
+        evaluation={{
+          answerId: derived.netRadiatorCapacityW <= derived.transportCapacityW && derived.netRadiatorCapacityW <= derived.powerCeilingW
+            ? 'radiator'
+            : derived.transportCapacityW <= derived.powerCeilingW ? 'coolant' : 'power',
+          values: {
+            radiator: derived.netRadiatorCapacityW,
+            coolant: derived.transportCapacityW,
+            power: derived.powerCeilingW,
+          },
+          gapPct: 0,
+          diagnostics: [],
+          status: derived.status,
+        }}
+        requestedLoad={derived.computeWattsRequested}
+      />
+    </section>
+  </>;
 }

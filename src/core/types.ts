@@ -94,11 +94,14 @@ export interface SubstackArticle {
 export interface Manifest {
   id: string;
   releaseVersion: string;
+  /** Sandbox contract version this manifest was built against (e.g. '1.0.0'). */
+  contractVersion?: string;
   title: string;
   summary: string;
   tags: string[];
   articleUrl?: string; // Main editorial link
   relatedArticles?: SubstackArticle[]; // Tagged/sorted article series
+  interfaces?: string[]; // IDs of companion or interfaced modules
   parameters: Parameter[];
   equations: Equation[];
 }

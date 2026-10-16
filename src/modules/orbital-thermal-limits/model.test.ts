@@ -173,6 +173,8 @@ import { PARAM_META } from './visualizer/paramMeta';
 import { manifest } from './manifest';
 import { createRunRecord, verifyRunRecord } from './runRecord';
 import { createPresetResultsBundle } from './presetResults';
+import { ceilingsOf } from './challenge/ceilings';
+import { CHALLENGE_LEVELS } from './challenge/levels';
 
 type GoldenVector = {
   id: string;
@@ -411,6 +413,50 @@ assert(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(mod.descriptor.contract
     assert(item.run.resolvedInputs.computeWattsRequested === sourcePreset.state.computeWattsRequested, `Preset ${item.id} run record must use the preset inputs`);
     verifyRunRecord(item.run);
   }
+}
+
+{
+  const counts = { radiator: 0, coolant: 0, power: 0 };
+  for (const level of CHALLENGE_LEVELS) {
+    const result = mod.run(level.inputs);
+    const ceilings = ceilingsOf(result);
+    const actualAnswer = ceilings.answer;
+    counts[actualAnswer] += 1;
+
+    assert(actualAnswer === level.expectedAnswer, `${level.id} must have its declared challenge answer`);
+    assert(ceilings.gapPct >= 20, `${level.id} must separate the lowest and next ceiling by at least 20%`);
+    assert(!/\d/.test(level.lesson), `${level.id} reveal copy must not contain digits`);
+    assert(
+      !result.diagnostics.some((diagnostic) => /clamp|not declared|unknown key/i.test(diagnostic.message)),
+      `${level.id} must not trigger a clamp or unknown-key diagnostic`,
+    );
+
+    const electricalCeiling = result.values.generatedPowerW - result.resolvedInputs.parasiticHeatW;
+    assert(
+      (electricalCeiling < result.resolvedInputs.computeWattsRequested) === (result.values.powerDeficitW > 0),
+      `${level.id} electrical deficit must match the electrical ceiling`,
+    );
+    assert(
+      (Math.min(ceilings.radiator, ceilings.coolant) < result.resolvedInputs.computeWattsRequested) ===
+        (result.values.computeDeficitW > 0),
+      `${level.id} thermal deficit must match the thermal ceilings`,
+    );
+
+    if (level.id === 'thin-pipe' || level.id === 'hot-and-small' || level.id === 'starved-array') {
+      const sorted = [ceilings.radiator, ceilings.coolant, ceilings.power].sort((a, b) => a - b);
+      assert(sorted[1] >= sorted[0] * 3, `${level.id} lowest ceiling must be at least three times below the other two`);
+    }
+    if (level.id === 'photo-finish' || level.id === 'photo-finish-two') {
+      assert(ceilings.gapPct >= 20 && ceilings.gapPct <= 40, `${level.id} gap must be between 20% and 40%`);
+    }
+  }
+
+  assert(CHALLENGE_LEVELS.length === 10, 'Challenge must contain ten levels');
+  assert(
+    counts.radiator === 4 && counts.coolant === 3 && counts.power === 3,
+    'Challenge answers must be distributed as four radiator, three coolant and three power levels',
+  );
+  console.log('Challenge level assertions passed.');
 }
 
 console.log('All model, contract and golden-vector assertions completed.');

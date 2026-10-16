@@ -1,0 +1,115 @@
+.module-chapter {
+  max-width: 780px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.65;
+  font-size: 0.95rem;
+}
+
+.module-chapter h2,
+.module-chapter h3,
+.module-chapter h4 {
+  margin: 1.3rem 0 0.45rem;
+  color: var(--text-h);
+}
+
+.module-chapter h2:first-of-type {
+  margin-top: 0.75rem;
+  font-size: 1.4rem;
+}
+
+.module-chapter p {
+  margin: 0.55rem 0;
+}
+
+.chapter-skip-link {
+  display: inline-block;
+  min-height: 40px;
+  padding: 0.45rem 0;
+  font-weight: 650;
+}
+
+.chapter-working {
+  margin: 0.9rem 0;
+  border: 1px solid var(--eq-border);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  background: var(--eq-bg);
+}
+
+.chapter-working summary {
+  color: var(--text-h);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.chapter-equation {
+  margin: 0.65rem 0;
+  padding: 0.7rem 0.8rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  text-align: center;
+}
+
+.chapter-ceiling-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.chapter-ceiling-grid section {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-surface);
+}
+
+.chapter-ceiling-grid h4 {
+  margin-top: 0;
+}
+
+.chapter-example-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.chapter-example-values div {
+  min-width: 0;
+  padding: 0.65rem;
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.chapter-example-values dt {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.chapter-example-values dd {
+  margin: 0.15rem 0 0;
+  color: var(--text-h);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.chapter-flux-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.chapter-flux-table th,
+.chapter-flux-table td {
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+@media (min-width: 680px) {
+  .chapter-ceiling-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

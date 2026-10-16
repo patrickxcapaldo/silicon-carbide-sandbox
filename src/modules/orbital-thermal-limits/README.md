@@ -95,6 +95,17 @@ The power budget accounts for the orbit's eclipse duty cycle using a cylindrical
 
 Treat the results as a way to compare assumptions and identify the binding constraint, not as a substitute for detailed mission analysis.
 
+## Challenge Mode
+
+**What Breaks First?** asks which of three compute ceilings—net radiator capacity, coolant transport, or orbit-average array power—is lowest. The chapter and mode switch appear above the selected Explorer or Challenge tool.
+
+- **Classic** plays the fixed ten configurations; its difficulty is labelled Mixed.
+- **Random** creates ten seeded questions at Easy, Medium or Hard separation. Enter a seed to replay a run, or leave it blank for a newly generated seed.
+- **Hints** can be enabled or disabled. Each revealed hint costs one point, and the scorecard records how many were used.
+- **Timer** can be Off, Stopwatch or a fixed time limit for the selected Random difficulty. Time counts only while a question is open.
+
+The scorecard includes the set, difficulty, hints used, elapsed time when enabled, missed questions and their three ceilings. Copy the share string to share the score and, for Random, its seed. Answers and numerical ceilings are evaluated from `orbitalThermalLimits.run()` at runtime; level definitions contain input objects and reveal copy only. Nothing is stored or collected, and nothing leaves the device.
+
 ## Development Checks
 
 From the repository root:
@@ -105,4 +116,4 @@ npm run build
 npm run replay -- data/runs/<article-run-record>.json
 ```
 
-The model assertions and pinned golden vectors are in [`model.test.ts`](model.test.ts) and [`data/golden-vectors/orbital-thermal-limits.json`](../../../data/golden-vectors/orbital-thermal-limits.json). The kernel is implemented in [`sandbox/kernel.ts`](sandbox/kernel.ts); the visual controls and scenario definitions live in [`visualizer/ControlPanel.tsx`](visualizer/ControlPanel.tsx) and [`visualizer/scenarioPresets.ts`](visualizer/scenarioPresets.ts).
+The model assertions, Challenge level/generator checks and pinned golden vectors are in [`model.test.ts`](model.test.ts), [`challenge/challenge.test.ts`](challenge/challenge.test.ts) and [`data/golden-vectors/orbital-thermal-limits.json`](../../../data/golden-vectors/orbital-thermal-limits.json). The kernel is implemented in [`sandbox/kernel.ts`](sandbox/kernel.ts); the visual controls and scenario definitions live in [`visualizer/ControlPanel.tsx`](visualizer/ControlPanel.tsx) and [`visualizer/scenarioPresets.ts`](visualizer/scenarioPresets.ts).

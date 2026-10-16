@@ -2,11 +2,11 @@ import React, { useMemo } from 'react';
 import { ThermalVisualizer } from './visualizer/ThermalVisualizer';
 import { Explainer } from './visualizer/Explainer';
 import type { ThermalState } from './visualizer/types';
-import { orbitalThermalLimits } from './sandbox/module';
 import { createRunRecord } from './runRecord';
-import { BUILD_INFO } from '../../core/buildInfo';
 import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 import type { Result } from '../../core/types';
+import { manifest } from './manifest';
+import { ModuleBadgeRow } from '../../core/ModuleBadgeRow';
 
 interface OrbitalThermalViewProps { inputs: Record<string, number>; onChange: (id: string, value: number) => void; results: Result; }
 
@@ -37,26 +37,63 @@ export const OrbitalThermalView: React.FC<OrbitalThermalViewProps> = ({ inputs, 
     anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
   };
-  return <div style={{ width: '100%', minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
-    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1.5rem' }}>
-      <header style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{ minWidth: 0, flex: '1 1 25rem' }}>
-          <h1 style={{ margin: 0, fontSize: '1.75rem', color: 'var(--text-h)' }}>Orbital Compute Thermal Rejection Limits</h1>
-          <p style={{ margin: '0.5rem 0 0', color: 'var(--text-muted)' }}>Interactive orbital thermal balance with explicit environmental loads and orbit controls.</p>
-          <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)', fontSize: '0.78rem', fontFamily: 'var(--mono)' }}>
-            Module {orbitalThermalLimits.descriptor.releaseVersion} · Sandbox {BUILD_INFO.sandboxVersion}
-          </p>
+  return (
+    <div style={{ width: '100%', minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)' }}>
+      <div
+        style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '1.75rem 1.5rem 3rem',
+          fontFamily: 'var(--sans)',
+          color: 'var(--text)',
+        }}
+      >
+        <div style={{ maxWidth: 780, margin: '0 auto' }}>
+          <header
+            style={{
+              marginBottom: '2rem',
+              paddingBottom: '1.25rem',
+              borderBottom: '1px solid var(--border)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              flexWrap: 'wrap',
+              gap: '1rem',
+            }}
+          >
+            <div style={{ minWidth: 0, flex: '1 1 25rem' }}>
+              <h1
+                style={{
+                  fontSize: '1.75rem',
+                  fontWeight: 700,
+                  color: 'var(--text-h)',
+                  letterSpacing: '-0.025em',
+                  margin: '0 0 0.4rem',
+                  lineHeight: 1.2,
+                }}
+              >
+                Orbital Compute Thermal Rejection Limits
+              </h1>
+              <p style={{ fontSize: '0.95rem', color: 'var(--text)', lineHeight: 1.55, margin: '0 0 0.85rem' }}>
+                Thermal balance, radiator loading, coolant transport and orbital geometry.
+              </p>
+              <ModuleBadgeRow manifest={manifest} />
+            </div>
+            <button
+              type="button"
+              onClick={handleExport}
+              style={{ background: 'var(--accent)', color: '#fff', border: 0, borderRadius: '6px', padding: '0.6rem 0.85rem', font: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              Export
+            </button>
+          </header>
+          <Explainer />
         </div>
-<button
-          type="button"
-          onClick={handleExport}
-          style={{ background: 'var(--accent)', color: '#fff', border: 0, borderRadius: '6px', padding: '0.6rem 0.85rem', font: 'inherit', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
-        >
-          Export
-        </button>
-      </header>
-      <Explainer />
-      <ThermalVisualizer initialState={visualizerInputs} onStateChange={(state) => Object.entries(state).forEach(([id, value]) => onChange(id, value as number))} />
+      <ThermalVisualizer
+        initialState={visualizerInputs}
+        onStateChange={(state) => Object.entries(state).forEach(([id, value]) => onChange(id, value as number))}
+      />
     </div>
-  </div>;
+  </div>
+  );
 };

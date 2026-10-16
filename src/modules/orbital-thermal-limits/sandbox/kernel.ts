@@ -83,6 +83,8 @@ export type ThermalKernelInputs = {
   orbitInclinationDeg: number;
   orbitRaanDeg: number;
   orbitArgumentDeg: number;
+  /** Optional externally supplied orbit-averaged solar array power (W). When > 0, overrides internal model. */
+  externalGeneratedPowerW?: number;
 };
 
 export type ThermalStatus = 'SAFE' | 'MARGIN' | 'LIMIT' | 'OVERHEATING';
@@ -173,7 +175,10 @@ export function runThermalKernel(i: ThermalKernelInputs): ThermalKernelOutputs {
   // and, importantly, is still a pure function of the orbital elements: it
   // does not require tracking battery state of charge over time, only the
   // orbit's shape and orientation relative to the Sun.
-  const generatedPowerW = generatedPowerInstantaneousW * orbitSunlitFraction;
+  const internalGeneratedPowerW = generatedPowerInstantaneousW * orbitSunlitFraction;
+  const generatedPowerW = (i.externalGeneratedPowerW !== undefined && i.externalGeneratedPowerW > 0)
+    ? i.externalGeneratedPowerW
+    : internalGeneratedPowerW;
   const busElectricalLoadW = i.computeWattsRequested + i.parasiticHeatW;
   const powerDeficitW = busElectricalLoadW - generatedPowerW;
   const powerUtilisation = ratio(busElectricalLoadW, generatedPowerW);

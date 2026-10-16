@@ -139,6 +139,12 @@ export const INPUT_SPECS: PortSpec[] = [
     min: 0, max: 360, defaultValue: 0,
     description: 'Orientation of the ellipse within its own orbital plane. Only affects eclipse duration when eccentricity is greater than 0.',
   },
+  {
+    key: 'externalGeneratedPowerW', label: 'External solar generation', unit: 'W', dimension: DIM_POWER,
+    min: 0, max: 1e10, defaultValue: 0,
+    description: 'Optional externally supplied orbit-averaged solar array generation. When greater than 0, overrides the internal first-order solar generation calculation.',
+    typicalSource: 'solar-power-budget or an external photovoltaic power module.',
+  },
 ];
 
 export const DESCRIPTOR: ModuleDescriptor = {

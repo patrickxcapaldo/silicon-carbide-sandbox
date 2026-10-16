@@ -17,6 +17,7 @@ const sourceCommit = gitValue(['rev-parse', 'HEAD']) || 'unknown'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
+  base: '/',
   plugins: [react()],
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
