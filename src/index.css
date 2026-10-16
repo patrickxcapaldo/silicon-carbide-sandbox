@@ -12,6 +12,14 @@
   --mist: #94A3B8;
   --orchid: #B97FED;
 
+  /* Home page spacing */
+  --space-home-logo-heading: 0.75rem;
+  --space-home-heading-tagline: 1rem;
+  --space-home-tagline-about: 1.75rem;
+  --space-home-about-divider: 2rem;
+  --space-home-divider-actions: 2rem;
+  --space-home-actions-links: 2rem;
+
   /* Palette — Light */
   --text: var(--slate);
   --text-h: var(--ink);

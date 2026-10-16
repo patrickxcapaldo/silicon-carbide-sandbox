@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getAllModules, getModuleById } from './core/registry';
 import { ModuleShell } from './core/ModuleShell';
 import { HomePage } from './core/HomePage';
+import { AboutPage } from './core/AboutPage';
 import { BUILD_INFO } from './core/buildInfo';
 
 export function App() {
@@ -9,7 +10,11 @@ export function App() {
     const params = new URLSearchParams(window.location.search);
     return {
       moduleId: params.get('module'),
-      view: params.get('view') === 'sandbox' ? 'sandbox' as const : 'home' as const,
+      view: params.get('view') === 'sandbox'
+        ? 'sandbox' as const
+        : params.get('view') === 'about'
+          ? 'about' as const
+          : 'home' as const,
     };
   };
   const [route, setRoute] = useState(readRoute);
@@ -26,16 +31,19 @@ export function App() {
   useEffect(() => {
     document.title = currentModule
       ? currentModule.manifest.title
-      : route.view === 'sandbox'
-        ? 'Sandbox · Silicon Carbide'
-        : 'Silicon Carbide';
+        : route.view === 'sandbox'
+          ? 'Sandbox · Silicon Carbide'
+          : route.view === 'about'
+            ? 'About · Silicon Carbide'
+            : 'Silicon Carbide';
   }, [currentModule, route.view]);
 
-  const navigate = (nextRoute: { moduleId?: string; view?: 'home' | 'sandbox' }) => {
+  const navigate = (nextRoute: { moduleId?: string; view?: 'home' | 'sandbox' | 'about' }) => {
     const url = new URL(window.location.href);
     url.search = '';
     if (nextRoute.moduleId) url.searchParams.set('module', nextRoute.moduleId);
     if (nextRoute.view === 'sandbox') url.searchParams.set('view', 'sandbox');
+    if (nextRoute.view === 'about') url.searchParams.set('view', 'about');
     window.history.pushState({}, '', url.toString());
     setRoute({ moduleId: nextRoute.moduleId ?? null, view: nextRoute.view ?? 'home' });
   };
@@ -95,12 +103,17 @@ export function App() {
     );
   }
 
+  if (route.view === 'about') {
+    return <AboutPage onGoHome={() => navigate({ view: 'home' })} />;
+  }
+
   return (
     <HomePage
       modules={modules}
       view={route.view}
       onSelectModule={(id) => navigate({ moduleId: id })}
       onShowSandbox={() => navigate({ view: 'sandbox' })}
+      onShowAbout={() => navigate({ view: 'about' })}
       onGoHome={() => navigate({ view: 'home' })}
     />
   );

@@ -6,10 +6,11 @@ interface HomePageProps {
   view: 'home' | 'sandbox';
   onSelectModule: (id: string) => void;
   onShowSandbox: () => void;
+  onShowAbout: () => void;
   onGoHome: () => void;
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModule, onShowSandbox, onGoHome }) => {
+export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModule, onShowSandbox, onShowAbout, onGoHome }) => {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const isSandbox = view === 'sandbox';
 
@@ -49,63 +50,47 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
         <header
           style={{
             textAlign: 'center',
-            marginBottom: '2rem',
-            paddingBottom: '2rem',
-            borderBottom: '1px solid var(--border)',
           }}
+          className="home-front-door"
         >
           <picture>
             <source srcSet="/silicon_carbide_logo_dark.png" media="(prefers-color-scheme: dark)" />
             <img
               src="/silicon_carbide_logo_light.png"
               alt="Silicon Carbide Logo"
-              style={{ width: '80px', height: '80px', objectFit: 'contain', marginBottom: '1rem' }}
+              className="home-front-door__logo"
+              style={{ width: '80px', height: '80px', objectFit: 'contain' }}
             />
           </picture>
-          <h1 style={{ fontSize: '2.5rem', margin: '0 0 0.75rem', lineHeight: 1.1 }}>
+          <h1 className="home-front-door__title" style={{ fontSize: '2.5rem', lineHeight: 1.1 }}>
             Silicon Carbide
           </h1>
-          <p style={{ fontSize: '1.1rem', color: 'var(--text)', maxWidth: '560px', margin: '0 auto 0.5rem', lineHeight: 1.6 }}>
+          <p className="home-front-door__tagline" style={{ fontSize: '1.1rem', color: 'var(--text)', maxWidth: '560px', lineHeight: 1.6 }}>
             First-principles engineering, economics, and geopolitics where machines meet humanity.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <div className="home-front-door__about">
+            <button className="home-cta home-cta--outlined" onClick={onShowAbout}>
+              About
+            </button>
+          </div>
+          <hr className="home-front-door__divider" />
+          <div className="home-front-door__actions">
             <a
               href="https://thesiliconcarbide.substack.com/"
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minWidth: '190px',
-                background: 'var(--accent)',
-                color: '#fff',
-                padding: '0.85rem 1.25rem',
-                borderRadius: '8px',
-                fontWeight: 700,
-                fontSize: '1rem',
-                textDecoration: 'none',
-              }}
+              className="home-cta home-cta--filled"
             >
               Read the Stories
             </a>
             <button
               onClick={onShowSandbox}
-              style={{
-                minWidth: '190px',
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-h)',
-                padding: '0.85rem 1.25rem',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                font: '700 1rem var(--sans)',
-              }}
+              className="home-cta home-cta--outlined"
             >
               Open the Sandbox
             </button>
           </div>
-          <nav aria-label="External links" style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem 1.25rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
+          <nav aria-label="External links" className="home-front-door__links">
             {[
               { label: 'LinkedIn', href: 'https://www.linkedin.com/company/thesiliconcarbide' },
               { label: 'GitHub Organisation', href: 'https://github.com/thesiliconcarbide' },
