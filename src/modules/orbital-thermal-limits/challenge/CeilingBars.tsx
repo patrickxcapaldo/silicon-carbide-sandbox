@@ -22,7 +22,6 @@ export function CeilingBars({ evaluation, requestedLoad }: { evaluation: Challen
               <div className={`challenge-bar-fill${isLowest ? ' is-binding' : ''}`} style={{ width: `${width}%` }} />
               <div className="challenge-request-marker" style={{ left: `${marker}%` }} />
             </div>
-            {isLowest && <span className="challenge-binding-label">Lowest ceiling</span>}
           </div>
         );
       })}
