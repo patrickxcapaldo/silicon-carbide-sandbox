@@ -1,2 +1,121 @@
 /* App.css — Silicon Carbide Sandbox: Component utilities */
 /* Intentionally minimal — global tokens live in index.css */
+
+.home-front-door {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.home-front-door__logo {
+	margin-bottom: var(--space-home-logo-heading);
+}
+
+.home-front-door__title {
+	margin: 0;
+}
+
+.home-front-door__tagline {
+	margin: var(--space-home-heading-tagline) auto 0;
+}
+
+.home-front-door__about {
+	margin-top: var(--space-home-tagline-about);
+}
+
+.home-front-door__divider {
+	width: 100%;
+	margin: var(--space-home-about-divider) 0 var(--space-home-divider-actions);
+	border: 0;
+	border-top: 1px solid var(--border);
+}
+
+.home-front-door__actions {
+	display: flex;
+	justify-content: center;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+}
+
+.home-cta {
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	min-width: 190px;
+	padding: 0.85rem 1.25rem;
+	border: 1px solid var(--mist);
+	border-radius: 8px;
+	cursor: pointer;
+	font: 700 1rem var(--sans);
+	text-decoration: none;
+}
+
+.home-cta--filled {
+	background: var(--orchid);
+	border-color: var(--orchid);
+	color: var(--ink);
+}
+
+.home-cta--outlined {
+	background: var(--ink);
+	border-color: var(--mist);
+	color: var(--mist);
+}
+
+.home-cta--outlined:hover,
+.home-cta--outlined:focus-visible {
+	border-color: var(--orchid);
+}
+
+.home-cta:focus-visible {
+	outline: 2px solid var(--orchid);
+	outline-offset: 3px;
+}
+
+.home-front-door__links {
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem 1.25rem;
+	flex-wrap: wrap;
+	margin-top: var(--space-home-actions-links);
+}
+
+.home-front-door__links a {
+	color: var(--text-muted);
+	font-size: 0.85rem;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.about-page__back {
+	display: inline-flex;
+	align-items: center;
+	margin-bottom: 1rem;
+	color: var(--accent);
+	font: 600 0.9rem var(--sans);
+}
+
+.about-page__content {
+	max-width: 780px;
+	font-size: 0.95rem;
+	line-height: 1.55;
+}
+
+.about-page__content p + p {
+	margin-top: 1rem;
+}
+
+.about-page__disclaimer {
+	margin-top: 1.5rem !important;
+}
+
+@media (max-width: 520px) {
+	.home-front-door__actions,
+	.home-front-door__about {
+		width: 100%;
+	}
+
+	.home-cta {
+		width: 100%;
+	}
+}
