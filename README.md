@@ -1,6 +1,6 @@
 # Silicon Carbide Sandbox (`SiC Sandbox`)
 
-![Silicon Carbide Sandbox](/public/silicon_carbide_sandbox_image.png)
+![Silicon Carbide Sandbox](public/silicon_carbide_sandbox_image.png)
 
 > **A first-principles physics and engineering workbench built alongside the [Silicon Carbide](https://thesiliconcarbide.substack.com) publication.**
 
@@ -50,7 +50,7 @@ Whether the subject is orbital compute thermal limits, radar range equations or 
 
 ```bash
 # Clone the repository
-git clone https://github.com/patrickxcapaldo/silicon-carbide-sandbox.git
+git clone https://github.com/thesiliconcarbide/silicon-carbide-sandbox.git
 
 # Navigate to the project directory
 cd silicon-carbide-sandbox

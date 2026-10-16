@@ -2,6 +2,11 @@
   "name": "silicon-carbide-sandbox",
   "private": true,
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thesiliconcarbide/silicon-carbide-sandbox.git"
+  },
+  "homepage": "https://thesiliconcarbide.com",
   "type": "module",
   "scripts": {
     "dev": "vite",
