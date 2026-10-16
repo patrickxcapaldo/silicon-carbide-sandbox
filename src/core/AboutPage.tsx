@@ -1,5 +1,6 @@
 interface AboutPageProps {
   onGoHome: () => void;
+  onShowSandbox: () => void;
 }
 
 const ABOUT_PAGE_CONTENT = (
@@ -34,7 +35,7 @@ const ABOUT_PAGE_CONTENT = (
   </>
 );
 
-export function AboutPage({ onGoHome }: AboutPageProps) {
+export function AboutPage({ onGoHome, onShowSandbox }: AboutPageProps) {
   return (
     <div
       style={{
@@ -83,7 +84,22 @@ export function AboutPage({ onGoHome }: AboutPageProps) {
             About
           </h1>
         </header>
-        <main className="about-page__content">{ABOUT_PAGE_CONTENT}</main>
+        <main className="about-page__content">
+          {ABOUT_PAGE_CONTENT}
+          <div className="about-page__actions">
+            <a
+              href="https://thesiliconcarbide.substack.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="home-cta home-cta--filled"
+            >
+              Read the Stories
+            </a>
+            <button className="home-cta home-cta--outlined" onClick={onShowSandbox}>
+              Open the Sandbox
+            </button>
+          </div>
+        </main>
       </div>
     </div>
   );
