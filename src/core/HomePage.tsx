@@ -81,13 +81,13 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
               rel="noopener noreferrer"
               className="home-cta home-cta--outlined"
             >
-              Read the Stories
+              Stories
             </a>
             <button
               onClick={onShowSandbox}
               className="home-cta home-cta--outlined"
             >
-              Open the Sandbox
+              Sandbox
             </button>
           </div>
           <nav aria-label="External links" className="home-front-door__links">
