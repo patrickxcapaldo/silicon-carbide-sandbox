@@ -95,6 +95,7 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
               { label: 'LinkedIn', href: 'https://www.linkedin.com/company/thesiliconcarbide' },
               { label: 'GitHub Organisation', href: 'https://github.com/thesiliconcarbide' },
               { label: 'GitHub Sandbox', href: 'https://github.com/thesiliconcarbide/silicon-carbide-sandbox' },
+              { label: 'Personal GitHub', href: 'https://github.com/patrickxcapaldo' },
               { label: 'Personal Website', href: 'https://patrickxcapaldo.github.io/' },
             ].map(({ label, href }) => (
               <a key={label} href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textDecoration: 'underline', textUnderlineOffset: '3px' }}>
