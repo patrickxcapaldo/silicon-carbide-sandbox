@@ -93,10 +93,10 @@ export function AboutPage({ onGoHome, onShowSandbox }: AboutPageProps) {
               rel="noopener noreferrer"
               className="home-cta home-cta--outlined"
             >
-              Read the Stories
+              Stories
             </a>
             <button className="home-cta home-cta--outlined" onClick={onShowSandbox}>
-              Open the Sandbox
+              Sandbox
             </button>
           </div>
         </main>
