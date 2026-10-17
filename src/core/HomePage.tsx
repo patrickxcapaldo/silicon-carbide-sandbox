@@ -92,9 +92,10 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
           </div>
           <nav aria-label="External links" className="home-front-door__links">
             {[
-              { label: 'LinkedIn', href: 'https://www.linkedin.com/company/thesiliconcarbide' },
-              { label: 'GitHub Organisation', href: 'https://github.com/thesiliconcarbide' },
-              { label: 'GitHub Sandbox', href: 'https://github.com/thesiliconcarbide/silicon-carbide-sandbox' },
+              { label: 'SiC LinkedIn', href: 'https://www.linkedin.com/company/thesiliconcarbide' },
+              { label: 'SiC GitHub', href: 'https://github.com/thesiliconcarbide' },
+              { label: 'SiC Sandbox GitHub', href: 'https://github.com/thesiliconcarbide/silicon-carbide-sandbox' },
+              { label: 'Personal LinkedIn', href: 'https://linkedin.com/in/patrickxcapaldo' },
               { label: 'Personal GitHub', href: 'https://github.com/patrickxcapaldo' },
               { label: 'Personal Website', href: 'https://patrickxcapaldo.github.io/' },
             ].map(({ label, href }) => (
