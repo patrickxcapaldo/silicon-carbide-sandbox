@@ -1,8 +1,8 @@
-# Silicon Carbide Sandbox (`SiC Sandbox`)
+# Silicon Carbide Imperative Sandbox (`SCI Sandbox`)
 
-![Silicon Carbide Sandbox](public/silicon_carbide_sandbox_image.png)
+![Silicon Carbide Imperative Sandbox](public/silicon_carbide_sandbox_image.png)
 
-> **A first-principles physics and engineering workbench built alongside the [Silicon Carbide](https://thesiliconcarbide.substack.com) publication.**
+> **A first-principles physics and engineering workbench built alongside the [Silicon Carbide Imperative](https://thesiliconcarbide.substack.com) publication.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Stack: Vite + React + TS](https://img.shields.io/badge/Stack-Vite_%7C_React_%7C_TS-blue)](https://vitejs.dev/)
@@ -11,11 +11,11 @@
 
 ## Overview
 
-**SiC Sandbox** is an open-source library of deterministic, first-principles physics and engineering calculators.
+**SCI Sandbox** is an open-source library of deterministic, first-principles physics and engineering calculators.
 
-Modern technology analysis often gets bogged down in corporate press releases, short-term quarterly guidance and volatile industry cycles. SiC Sandbox takes a different approach by modelling invariant physical and economic constraints.
+Modern technology analysis often gets bogged down in corporate press releases, short-term quarterly guidance and volatile industry cycles. SCI Sandbox takes a different approach by modelling invariant physical and economic constraints.
 
-Whether the subject is orbital compute thermal limits, radar range equations or semiconductor wafer yields, physics and thermodynamics do not go stale. This repository serves as the empirical spine for technical teardowns published on the [Silicon Carbide Substack](https://thesiliconcarbide.substack.com).
+Whether the subject is orbital compute thermal limits, radar range equations or semiconductor wafer yields, physics and thermodynamics do not go stale. This repository serves as the empirical spine for technical teardowns published on the [Silicon Carbide Imperative Substack](https://thesiliconcarbide.substack.com).
 
 ---
 

@@ -293,7 +293,7 @@ function hints(
 export const solarPowerChallenge: ChallengeDefinition<Record<string, number>> = {
   id: 'solar-power-budget',
   title: 'What Drains The Array?',
-  versionInfo: `Silicon Carbide Sandbox v${BUILD_INFO.sandboxVersion} · solar-power-budget v${MODULE_RELEASE_VERSION}`,
+  versionInfo: `Silicon Carbide Imperative Sandbox v${BUILD_INFO.sandboxVersion} · solar-power-budget v${MODULE_RELEASE_VERSION}`,
   options: answerOptions,
   classicLevels,
   generate(rng, difficulty, context) {

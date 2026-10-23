@@ -7,7 +7,7 @@
 - id: CLM-0001
   status: published
   claim_text: "A 100 MW orbital data centre needs radiators the size of four football fields."
-  claim_source: "SiC dossier v2, §4 (internal draft example, illustrative, not attributed to a third party)"
+  claim_source: "SCI dossier v2, §4 (internal draft example, illustrative, not attributed to a third party)"
   claim_archived_url: null
   framing_committed: 2026-09-20
   expectation: "Underspecified; radiator temperature is not stated, so no single verdict is possible without a conditional."

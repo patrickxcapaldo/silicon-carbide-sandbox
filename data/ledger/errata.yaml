@@ -7,7 +7,7 @@
   date: 2026-09-20
   title: "Founding example corrected: 'four football fields' was stated without a radiator temperature"
   affects:
-    - "SiC dossier v2, §4 (internal draft; not previously published externally)"
+    - "SCI dossier v2, §4 (internal draft; not previously published externally)"
   description: >
     The v2 dossier used "a 100 MW orbital data centre needs radiators the size
     of four football fields" as an illustrative founding example without

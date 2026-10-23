@@ -130,7 +130,7 @@ for (const questionSet of ['classic', 'random'] as const) {
           settings,
           records: makeRecords(),
           timeSeconds: 440,
-          versionInfo: 'Silicon Carbide Sandbox v0.1.0 · orbital-thermal-limits v0.1.0',
+          versionInfo: 'Silicon Carbide Imperative Sandbox v0.1.0 · orbital-thermal-limits v0.1.0',
         });
         assert(share.includes('What Breaks First? 10/10'), 'Share string should begin with title and score');
         assert(share.includes(questionSet === 'classic' ? 'Mixed' : difficulty[0].toUpperCase() + difficulty.slice(1)), 'Share should identify the question set difficulty');

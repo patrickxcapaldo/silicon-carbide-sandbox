@@ -9,13 +9,13 @@ const ABOUT_PAGE_CONTENT = (
       Silicon (<em>Si</em>), the foundation of every digital machine, and carbon (<em>C</em>), the foundation of every biological entity, abstractly represent the divide between digital intelligence and biological intelligence.
     </p>
     <p>
-      Their compound, silicon carbide (<em>SiC</em>), fraught with difficulty in its creation, exists to handle the most adverse of physical environments defined by extreme temperatures, pressures, and voltages where either of their pure constituents fail.
+      Their compound, silicon carbide (<em>SCI</em>), fraught with difficulty in its creation, exists to handle the most adverse of physical environments defined by extreme temperatures, pressures, and voltages where either of their pure constituents fail.
     </p>
     <p>
       Navigating these high-stress interfaces between the digital and human domains is where I believe the most interesting developments of the next few decades will manifest for ordinary people, organisations, and entire nations.
     </p>
     <p>
-      <em>Silicon Carbide</em> is an independent, multifaceted publication investigating what happens when digital intelligence (<em>Si</em>) meets biological intelligence (<em>C</em>); when software meets real-world friction; when machines meet humans.
+      <em>Silicon Carbide Imperative</em> is an independent, multifaceted publication investigating what happens when digital intelligence (<em>Si</em>) meets biological intelligence (<em>C</em>); when software meets real-world friction; when machines meet humans.
     </p>
     <p>
       The various facets are driven by my personal curiosity across AI, space, defence, semiconductors, macroeconomics, sovereign supply chains, geopolitics, and critical infrastructure.

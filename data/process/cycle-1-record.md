@@ -7,7 +7,7 @@ Supporting data for Study 01 and the two Sparks. This is data, not narrative, an
 ```yaml
 - id: CLM-0001
   claim: "A 100 MW orbital data centre needs radiators the size of four football fields."
-  source: "early Silicon Carbide draft (own claim, illustrative)"
+  source: "early Silicon Carbide Imperative draft (own claim, illustrative)"
   archive_url: TODO
   pre_registered: RETROSPECTIVE   # expectation recorded [LEDGER_COMMIT]; numbers were already known. Not a scored prediction.
   expectation: "Can't tell: radiator temperature not stated."

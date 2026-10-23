@@ -75,7 +75,7 @@ Before publishing an article:
 
 1. Export the run from a clean, released build. Confirm `sourceDirty` is `false`; a dirty-tree record cannot be reproduced from its commit alone.
 2. Commit the record under `data/runs/`, using a descriptive name such as `orbital-thermal-limits-2026-10-03-spacecraft-case.json`.
-3. Cite the Sandbox tag and module release alongside a GitHub permalink to the run record. For example: `Silicon Carbide Sandbox v0.1.0, module orbital-thermal-limits v0.1.0, run record <permalink>`.
+3. Cite the Sandbox tag and module release alongside a GitHub permalink to the run record. For example: `Silicon Carbide Imperative Sandbox v0.1.0, module orbital-thermal-limits v0.1.0, run record <permalink>`.
 
 To reproduce a committed record, check out the Sandbox tag and source commit it names, install the locked dependencies, and run:
 
