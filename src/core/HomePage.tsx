@@ -76,7 +76,7 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
           <hr className="home-front-door__divider" />
           <div className="home-front-door__actions">
             <a
-              href="https://thesiliconcarbide.substack.com/"
+              href="https://scimperative.substack.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="home-cta home-cta--outlined"
@@ -92,9 +92,9 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
           </div>
           <nav aria-label="External links" className="home-front-door__links">
             {[
-              { label: 'SCI LinkedIn', href: 'https://www.linkedin.com/company/thesiliconcarbide' },
-              { label: 'SCI GitHub', href: 'https://github.com/thesiliconcarbide' },
-              { label: 'SCI Sandbox GitHub', href: 'https://github.com/thesiliconcarbide/silicon-carbide-sandbox' },
+              { label: 'SCI LinkedIn', href: 'https://www.linkedin.com/company/scimperative' },
+              { label: 'SCI GitHub', href: 'https://github.com/scimperative' },
+              { label: 'SCI Sandbox GitHub', href: 'https://github.com/scimperative/sandbox' },
               { label: 'Personal LinkedIn', href: 'https://linkedin.com/in/patrickxcapaldo' },
               { label: 'Personal GitHub', href: 'https://github.com/patrickxcapaldo' },
               { label: 'Personal Website', href: 'https://patrickxcapaldo.github.io/' },

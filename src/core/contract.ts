@@ -1,5 +1,5 @@
 /**
- * silicon-carbide-sandbox module contract.
+ * sandbox module contract.
  *
  * This file is the connective tissue of the ecosystem. Every module, whatever
  * domain it covers, exposes the same shape so that modules can be inspected,
