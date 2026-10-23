@@ -6,22 +6,33 @@ interface AboutPageProps {
 const ABOUT_PAGE_CONTENT = (
   <>
     <p>
-      Silicon (<em>Si</em>), the foundation of every digital machine, and carbon (<em>C</em>), the foundation of every biological entity, abstractly represent the divide between digital intelligence and biological intelligence.
+      Silicon (<em>Si</em>), the foundation of every digital machine, and carbon (<em>C</em>), the foundation of every biological being, abstractly represent the divide between digital intelligence and biological intelligence.
     </p>
     <p>
-      Their compound, silicon carbide (<em>SCI</em>), fraught with difficulty in its creation, exists to handle the most adverse of physical environments defined by extreme temperatures, pressures, and voltages where either of their pure constituents fail.
+      Their compound, silicon carbide, fraught with difficulty in its creation, exists to handle the most adverse of physical environments that are defined by extreme temperatures, pressures, and voltages where either constituent alone can fail.
     </p>
     <p>
-      Navigating these high-stress interfaces between the digital and human domains is where I believe the most interesting developments of the next few decades will manifest for ordinary people, organisations, and entire nations.
+      I believe the most imperative challenges of the coming decades will emerge at similarly demanding interfaces, that is, where digital systems meet the physical world, where machines meet humans, and where technological capabilities reshape ordinary lives, organisations, and nations.
     </p>
     <p>
-      <em>Silicon Carbide Imperative</em> is an independent, multifaceted publication investigating what happens when digital intelligence (<em>Si</em>) meets biological intelligence (<em>C</em>); when software meets real-world friction; when machines meet humans.
+      <em>Silicon Carbide Imperative</em> is an independent publication exploring these crucial interfaces from first principles. It investigates what happens when digital intelligence meets biological intelligence, when software encounters real-world friction, and when machines meet humans.
     </p>
     <p>
-      The various facets are driven by my personal curiosity across AI, space, defence, semiconductors, macroeconomics, sovereign supply chains, geopolitics, and critical infrastructure.
+      The various facets are driven by my curiosity across fields such as artificial intelligence (AI), space, defence, semiconductors, macroeconomics, sovereign supply chains, geopolitics, and critical infrastructure.
     </p>
     <p>
-      My perspective is shaped by a career in the aeronautical, space, and defence industries as an AI engineer, published researcher in explainable AI, and builder of autonomous systems across spacecraft, aircraft, missile defence, and radar platforms in Australia and Europe.
+      My perspective is shaped by a career across the aeronautical, space, and
+      defence industries as an AI engineer, published researcher in explainable
+      AI, and builder of autonomous systems across spacecraft, aircraft, missile
+      defence, and radar platforms in Australia and Europe (see my experience{' '}
+      <a href="https://patrickxcapaldo.github.io/" target="_blank" rel="noopener noreferrer">
+        here
+      </a>{' '}
+      and{' '}
+      <a href="https://www.linkedin.com/in/patrickxcapaldo/?isSelfProfile=true" target="_blank" rel="noopener noreferrer">
+        here
+      </a>
+      ).
     </p>
     <p>
       The motivation behind the publication is to understand these systems from first principles and reason upwards to appreciate where we stand today and where we may be going as a civilisation tomorrow.
