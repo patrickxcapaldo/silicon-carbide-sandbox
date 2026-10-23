@@ -32,10 +32,10 @@ export function App() {
     document.title = currentModule
       ? currentModule.manifest.title
         : route.view === 'sandbox'
-          ? 'Sandbox · Silicon Carbide'
+          ? 'Sandbox · Silicon Carbide Imperative'
           : route.view === 'about'
-            ? 'About · Silicon Carbide'
-            : 'Silicon Carbide';
+            ? 'About · Silicon Carbide Imperative'
+            : 'Silicon Carbide Imperative';
   }, [currentModule, route.view]);
 
   const navigate = (nextRoute: { moduleId?: string; view?: 'home' | 'sandbox' | 'about' }) => {
@@ -93,7 +93,7 @@ export function App() {
               letterSpacing: '0.02em',
             }}
           >
-            SiC Sandbox v{BUILD_INFO.sandboxVersion}
+            SCI Sandbox v{BUILD_INFO.sandboxVersion}
           </span>
         </nav>
         <div style={{ flex: 1 }}>

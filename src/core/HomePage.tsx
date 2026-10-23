@@ -57,13 +57,13 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
             <source srcSet="/silicon_carbide_logo_dark.png" media="(prefers-color-scheme: dark)" />
             <img
               src="/silicon_carbide_logo_light.png"
-              alt="Silicon Carbide Logo"
+              alt="Silicon Carbide Imperative Logo"
               className="home-front-door__logo"
               style={{ width: '80px', height: '80px', objectFit: 'contain' }}
             />
           </picture>
           <h1 className="home-front-door__title" style={{ fontSize: '2.5rem', lineHeight: 1.1 }}>
-            Silicon Carbide
+            Silicon Carbide Imperative
           </h1>
           <p className="home-front-door__tagline" style={{ fontSize: '1.1rem', color: 'var(--text)', maxWidth: '560px', lineHeight: 1.6 }}>
             First-principles engineering, economics, and geopolitics where machines meet humanity.
@@ -92,9 +92,9 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
           </div>
           <nav aria-label="External links" className="home-front-door__links">
             {[
-              { label: 'SiC LinkedIn', href: 'https://www.linkedin.com/company/thesiliconcarbide' },
-              { label: 'SiC GitHub', href: 'https://github.com/thesiliconcarbide' },
-              { label: 'SiC Sandbox GitHub', href: 'https://github.com/thesiliconcarbide/silicon-carbide-sandbox' },
+              { label: 'SCI LinkedIn', href: 'https://www.linkedin.com/company/thesiliconcarbide' },
+              { label: 'SCI GitHub', href: 'https://github.com/thesiliconcarbide' },
+              { label: 'SCI Sandbox GitHub', href: 'https://github.com/thesiliconcarbide/silicon-carbide-sandbox' },
               { label: 'Personal LinkedIn', href: 'https://linkedin.com/in/patrickxcapaldo' },
               { label: 'Personal GitHub', href: 'https://github.com/patrickxcapaldo' },
               { label: 'Personal Website', href: 'https://patrickxcapaldo.github.io/' },

@@ -278,7 +278,7 @@ function hints(
 export const orbitalThermalChallenge: ChallengeDefinition<Record<string, number>> = {
   id: 'orbital-thermal-limits',
   title: 'What Breaks First?',
-  versionInfo: `Silicon Carbide Sandbox v${BUILD_INFO.sandboxVersion} · orbital-thermal-limits v${MODULE_RELEASE_VERSION}`,
+  versionInfo: `Silicon Carbide Imperative Sandbox v${BUILD_INFO.sandboxVersion} · orbital-thermal-limits v${MODULE_RELEASE_VERSION}`,
   options: answerOptions,
   classicLevels,
   generate(rng, difficulty, context) {

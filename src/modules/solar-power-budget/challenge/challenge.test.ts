@@ -82,7 +82,7 @@ for (const questionSet of ['classic', 'random'] as const) {
           settings,
           records: makeRecords(),
           timeSeconds: 320,
-          versionInfo: 'Silicon Carbide Sandbox v0.1.0 · solar-power-budget v0.1.0',
+          versionInfo: 'Silicon Carbide Imperative Sandbox v0.1.0 · solar-power-budget v0.1.0',
         });
         assert(share.includes('What Drains The Array? 10/10'), 'Share string must begin with title and score');
         assert(share.includes('🟩'.repeat(10)), 'Share string must include 10 green boxes');
