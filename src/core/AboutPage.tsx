@@ -88,7 +88,7 @@ export function AboutPage({ onGoHome, onShowSandbox }: AboutPageProps) {
           {ABOUT_PAGE_CONTENT}
           <div className="about-page__actions">
             <a
-              href="https://thesiliconcarbide.substack.com/"
+              href="https://scimperative.substack.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="home-cta home-cta--outlined"

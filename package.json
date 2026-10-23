@@ -1,10 +1,10 @@
 {
-  "name": "silicon-carbide-sandbox",
+  "name": "silicon-carbide-imperative-sandbox",
   "private": true,
   "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/thesiliconcarbide/silicon-carbide-sandbox.git"
+    "url": "https://github.com/scimperative/sandbox.git"
   },
   "homepage": "https://scimperative.com",
   "type": "module",

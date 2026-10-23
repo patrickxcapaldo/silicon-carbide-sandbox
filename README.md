@@ -2,7 +2,7 @@
 
 ![Silicon Carbide Imperative Sandbox](public/silicon_carbide_sandbox_image.png)
 
-> **A first-principles physics and engineering workbench built alongside the [Silicon Carbide Imperative](https://thesiliconcarbide.substack.com) publication.**
+> **A first-principles physics and engineering workbench built alongside the [Silicon Carbide Imperative](https://scimperative.substack.com) publication.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Stack: Vite + React + TS](https://img.shields.io/badge/Stack-Vite_%7C_React_%7C_TS-blue)](https://vitejs.dev/)
@@ -15,7 +15,7 @@
 
 Modern technology analysis often gets bogged down in corporate press releases, short-term quarterly guidance and volatile industry cycles. SCI Sandbox takes a different approach by modelling invariant physical and economic constraints.
 
-Whether the subject is orbital compute thermal limits, radar range equations or semiconductor wafer yields, physics and thermodynamics do not go stale. This repository serves as the empirical spine for technical teardowns published on the [Silicon Carbide Imperative Substack](https://thesiliconcarbide.substack.com).
+Whether the subject is orbital compute thermal limits, radar range equations or semiconductor wafer yields, physics and thermodynamics do not go stale. This repository serves as the empirical spine for technical teardowns published on the [Silicon Carbide Imperative Substack](https://scimperative.substack.com).
 
 ---
 
@@ -50,10 +50,10 @@ Whether the subject is orbital compute thermal limits, radar range equations or 
 
 ```bash
 # Clone the repository
-git clone https://github.com/thesiliconcarbide/silicon-carbide-sandbox.git
+git clone https://github.com/scimperative/sandbox.git
 
 # Navigate to the project directory
-cd silicon-carbide-sandbox
+cd sandbox
 
 # Install dependencies
 npm install
