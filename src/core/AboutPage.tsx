@@ -15,7 +15,7 @@ const ABOUT_PAGE_CONTENT = (
       I believe the most imperative challenges of the coming decades will emerge at similarly demanding interfaces, that is, where digital systems meet the physical world, where machines meet humans, and where technological capabilities reshape ordinary lives, organisations, and nations.
     </p>
     <p>
-      <em>Silicon Carbide Imperative</em> is an independent publication exploring these crucial interfaces from first principles. It investigates what happens when digital intelligence meets biological intelligence, when software encounters real-world friction, and when machines meet humans.
+      <em>Silicon Carbide Imperative</em> (SCI) is an independent publication exploring these crucial interfaces from first principles. It investigates what happens when digital intelligence meets biological intelligence, when software encounters real-world friction, and when machines meet humans.
     </p>
     <p>
       The various facets are driven by my curiosity across fields such as artificial intelligence (AI), space, defence, semiconductors, macroeconomics, sovereign supply chains, geopolitics, and critical infrastructure.
