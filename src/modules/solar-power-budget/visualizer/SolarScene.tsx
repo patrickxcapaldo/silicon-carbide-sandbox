@@ -179,16 +179,16 @@ export function SolarScene({ state, derived: _derived, viewMode, cameraFocus }: 
   return (
     <>
       <color attach="background" args={['#050c16']} />
-      <Stars radius={100} depth={50} count={2200} factor={4} saturation={0.2} fade speed={0.5} />
+      <Stars radius={100} depth={50} count={2200} factor={3.5} saturation={0.2} fade speed={0.3} />
 
-      <ambientLight intensity={0.4} />
-      <hemisphereLight args={['#c9e5ff', '#0a1424', 0.8]} />
+      <ambientLight intensity={0.5} />
+      <hemisphereLight args={['#c9e5ff', '#0a1424', 0.9]} />
 
       {/* Main Sun Source from [0, 0, 1] */}
       <directionalLight
         position={SUN_DIRECTION.clone().multiplyScalar(18).toArray()}
-        intensity={3.2}
-        color="#fffbeb"
+        intensity={3.0}
+        color="#fff1cf"
         castShadow
       />
 
@@ -196,21 +196,33 @@ export function SolarScene({ state, derived: _derived, viewMode, cameraFocus }: 
         <>
           {/* Earth Body */}
           <mesh receiveShadow>
-            <sphereGeometry args={[EARTH_RADIUS_SCENE, 64, 48]} />
-            <meshStandardMaterial color="#1e40af" roughness={0.85} metalness={0.05} emissive="#0f2b5c" emissiveIntensity={0.2} />
+            <sphereGeometry args={[EARTH_RADIUS_SCENE, 96, 64]} />
+            <meshStandardMaterial
+              color="#1a4f80"
+              roughness={0.94}
+              metalness={0.01}
+              emissive="#0c2644"
+              emissiveIntensity={0.25}
+            />
           </mesh>
 
           {/* Atmosphere Glow */}
-          <mesh scale={[1.018, 1.018, 1.018]}>
-            <sphereGeometry args={[EARTH_RADIUS_SCENE, 48, 36]} />
-            <meshBasicMaterial color="#38bdf8" transparent opacity={0.12} side={THREE.BackSide} blending={THREE.AdditiveBlending} />
+          <mesh scale={[1.014, 1.014, 1.014]}>
+            <sphereGeometry args={[EARTH_RADIUS_SCENE, 64, 48]} />
+            <meshBasicMaterial
+              color="#61bcff"
+              transparent
+              opacity={0.07}
+              side={THREE.BackSide}
+              blending={THREE.AdditiveBlending}
+            />
           </mesh>
 
           {/* Earth Shadow Cylinder in -Z Direction */}
           <ShadowCylinder />
 
           {/* Orbital Track */}
-          <Line points={orbit} color={isSunlit ? '#38bdf8' : '#f43f5e'} lineWidth={1.8} transparent opacity={0.8} />
+          <Line points={orbit} color={isSunlit ? '#7ecfff' : '#f43f5e'} lineWidth={1.4} transparent opacity={0.65} />
 
           {/* Sun Vector Indicator from Space */}
           <Line
@@ -218,8 +230,10 @@ export function SolarScene({ state, derived: _derived, viewMode, cameraFocus }: 
               SUN_DIRECTION.clone().multiplyScalar(8),
               SUN_DIRECTION.clone().multiplyScalar(4.5),
             ]}
-            color="#fef08a"
-            lineWidth={2.5}
+            color="#ffb84f"
+            lineWidth={2.0}
+            transparent
+            opacity={0.8}
           />
         </>
       )}
@@ -236,11 +250,12 @@ export function SolarScene({ state, derived: _derived, viewMode, cameraFocus }: 
       </group>
 
       <OrbitControls
+        key={`${viewMode}-${cameraFocus}`}
         target={cameraTarget}
         minDistance={minDist}
         maxDistance={maxDist}
         enableDamping
-        dampingFactor={0.08}
+        dampingFactor={0.07}
       />
     </>
   );

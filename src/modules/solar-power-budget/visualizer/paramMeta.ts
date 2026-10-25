@@ -14,7 +14,7 @@ export type ParamMeta = {
 export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
   // Photovoltaic Array
   solarArrayAreaM2: {
-    label: 'Solar array area',
+    label: 'Solar Array Area',
     unit: 'm²',
     min: 0.1,
     max: 100,
@@ -24,7 +24,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Total active photovoltaic cell aperture area across deployed array wings or body panels.',
   },
   baseCellEfficiency: {
-    label: 'Cell efficiency (STC)',
+    label: 'Cell Efficiency (STC)',
     unit: 'η',
     min: 0.05,
     max: 0.50,
@@ -32,7 +32,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Bolometric cell efficiency at Standard Test Conditions (28 °C, AM0 1361 W/m²). Modern multi-junction space cells ~30-32%.',
   },
   cellOperatingTempC: {
-    label: 'Cell operating temp',
+    label: 'Cell Operating Temp',
     unit: '°C',
     min: -40,
     max: 150,
@@ -40,7 +40,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Equilibrium temperature of the solar array under direct solar illumination. Cell efficiency drops linearly above STC 28 °C.',
   },
   tempCoefficientPwr: {
-    label: 'Temp coefficient',
+    label: 'Temp Coefficient',
     unit: '1/K',
     min: -0.005,
     max: 0,
@@ -48,7 +48,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Fractional change in power output per Kelvin increase above STC 28 °C (typically -0.20% to -0.30%/K for multi-junction GaAs).',
   },
   missionDurationYears: {
-    label: 'Mission lifetime',
+    label: 'Mission Lifetime',
     unit: 'yr',
     min: 0,
     max: 20,
@@ -56,7 +56,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Elapsed mission lifetime over which space radiation fluence degrades solar cell junctions.',
   },
   annualDegradationRate: {
-    label: 'Annual degradation',
+    label: 'Annual Degradation',
     unit: '1/yr',
     min: 0,
     max: 0.05,
@@ -64,7 +64,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Compound annual performance degradation rate due to radiation fluence and coverglass darkening.',
   },
   pointingEfficiency: {
-    label: 'Pointing factor',
+    label: 'Pointing Factor',
     unit: '0-1',
     min: 0.5,
     max: 1.0,
@@ -72,7 +72,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Cosine tracking factor cos(θ) accounting for solar array gimbal drive alignment error or sun off-pointing.',
   },
   bosEfficiency: {
-    label: 'Balance of system',
+    label: 'Balance of System',
     unit: '0-1',
     min: 0.5,
     max: 1.0,
@@ -80,7 +80,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Combined efficiency of cell packing, coverglass transmissivity, diode drops, harness I²R losses, and PCDU power electronics.',
   },
   solarFluxWm2: {
-    label: 'Solar irradiance',
+    label: 'Solar Irradiance',
     unit: 'W/m²',
     min: 1250,
     max: 1450,
@@ -90,7 +90,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
 
   // Orbit
   orbitAltitudeKm: {
-    label: 'Perigee altitude',
+    label: 'Perigee Altitude',
     unit: 'km',
     min: 160,
     max: 40000,
@@ -122,7 +122,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Right ascension of ascending node, orienting orbital plane relative to the fixed Sun vector.',
   },
   orbitArgumentDeg: {
-    label: 'Argument of perigee',
+    label: 'Argument of Perigee',
     unit: '°',
     min: 0,
     max: 360,
@@ -130,7 +130,7 @@ export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
     description: 'Orientation of the orbital ellipse within its plane.',
   },
   orbitPhaseDeg: {
-    label: 'Orbital phase',
+    label: 'Orbital Phase',
     unit: '°',
     min: 0,
     max: 360,

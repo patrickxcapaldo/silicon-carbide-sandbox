@@ -21,6 +21,33 @@ Do not recreate the outer frame or module header in a custom view. Put only modu
 
 The `_template` directory is excluded from the module registry. Use its manifest, model, and equation files as starting points. Copy `_template/View.tsx` only when choosing a custom view; standard modules should omit it and use `ModuleShell`. Replace the example manifest values before registering a new module.
 
+## Explore-mode visualizer pattern
+
+When a module has a full 3D or interactive Explore view (rather than the simple `ModuleShell` parameter grid), follow this structure — see `orbital-thermal-limits/visualizer/` as the reference implementation:
+
+`
+src/modules/<id>/visualizer/
+  paramMeta.ts          – PARAM_META record: label (Title Case), unit, min, max, step, description
+  types.ts              – SomeState type (all physics inputs)
+  ControlPanel.tsx      – Right-side collapsible controls panel (chevron toggle, Section/PresetButton/SegButton helpers)
+  SomeVisualizer.tsx    – Top-level: state, clock, derived physics, returns <> fragment (canvas section + below-canvas details)
+  SomeScene.tsx         – React Three Fiber scene (Earth, orbit track, lights, Stars, OrbitControls)
+  useOrbitClock.ts      – Orbit animation clock hook
+  InfoTip.tsx           – Inline tooltip (i) with PanelBoundsProvider
+  ParamSlider.tsx       – Labelled slider with InfoTip, optional disabledHint
+  scenarioPresets.ts    – SCENARIO_PRESETS with id, label, description, patch
+  orbitPresets.ts       – ORBIT_PRESETS with id, label, altitudeKm, eccentricity, inclinationDeg, raanDeg, …
+  Explainer.css         – Module-specific overlay/telemetry CSS (.{id}-overlay, .{id}-intro, .{id}-telemetry, .{id}-losses patterns)
+`
+
+Key conventions:
+- `SomeVisualizer` returns a `<>` fragment: first child is the `<section>` containing the Canvas + overlays; second child is a sibling `<details open>` for any below-canvas breakdown bars.
+- `ControlPanel` always renders the title "Controls" and uses the triangle-right/triangle-down chevron collapse button.
+- All button heights: `height: 32, minHeight: 32, boxSizing: 'border-box'`.
+- Panel colours: background `#0b1726`, text `#eaf6ff`, accent `#4fb3ff`.
+- Slider labels in `paramMeta.ts` must use Title Case.
+- For visual and colour standards see [Module Style & UX Reference Standard](module-style-guide.md).
+
 ## Challenge mode
 
 Use the shared client-side challenge shell when a module can define a finite question set and evaluate answers deterministically. The framework lives in `src/core/challenge/`: `ChallengeShell` owns setup, the round loop, hints, timing, scoring and sharing; `ModeToggle` selects between the module's normal tool and its challenge; `rng.ts` supplies short, replayable seeds; and `generator.ts` performs bounded random-level selection.

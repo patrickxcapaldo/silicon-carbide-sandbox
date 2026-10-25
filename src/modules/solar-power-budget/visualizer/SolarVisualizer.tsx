@@ -1,11 +1,12 @@
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { solarPowerBudget } from '../sandbox/module';
 import { computeLosses } from '../challenge/losses';
 import type { SolarKernelInputs } from '../sandbox/kernel';
 import { SolarScene, type CameraFocus, type ViewMode } from './SolarScene';
 import { SolarControlPanel } from './SolarControlPanel';
 import { SolarPowerLossBars } from './SolarPowerLossBars';
+import { InfoTip } from './InfoTip';
 import { useOrbitClock } from './useOrbitClock';
 import { formatWatts, formatPercent } from './format';
 import { ORBIT_PRESETS, type OrbitPreset } from './orbitPresets';
@@ -59,19 +60,34 @@ export function SolarVisualizer({ initialState = INITIAL_STATE, onStateChange, o
     [onStateChange],
   );
 
+  const lastSyncRef = useRef(0);
   const handlePhaseChange = useCallback(
     (nextPhaseDeg: number) => {
-      setStateWithCallback((s) => ({ ...s, orbitPhaseDeg: nextPhaseDeg }));
+      setState((current) => {
+        const next = { ...current, orbitPhaseDeg: nextPhaseDeg };
+        const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        if (now - lastSyncRef.current > 350) {
+          lastSyncRef.current = now;
+          onStateChange?.(next);
+        }
+        return next;
+      });
     },
-    [setStateWithCallback],
+    [onStateChange],
   );
 
-  const { playing, setPlaying, speed, setSpeed, periodSeconds } = useOrbitClock(
+  const { playing, setPlaying, speed, setSpeed, periodSeconds, secondsPerOrbitAtSpeed } = useOrbitClock(
     state.orbitAltitudeKm,
     state.orbitEccentricity,
     state.orbitPhaseDeg,
     handlePhaseChange,
   );
+
+  const wasPlayingRef = useRef(playing);
+  useEffect(() => {
+    if (wasPlayingRef.current && !playing) onStateChange?.(state);
+    wasPlayingRef.current = playing;
+  }, [playing, state, onStateChange]);
 
   const handleFieldChange = useCallback(
     <K extends keyof SolarState>(field: K, value: SolarState[K]) => {
@@ -91,15 +107,17 @@ export function SolarVisualizer({ initialState = INITIAL_STATE, onStateChange, o
 
   const handleApplyScenario = useCallback(
     (preset: ScenarioPreset) => {
+      setPlaying(false);
       setSelectedScenarioId(preset.id);
       setSelectedOrbitPresetId(null);
       setStateWithCallback((s) => ({ ...s, ...preset.patch }));
     },
-    [setStateWithCallback],
+    [setPlaying, setStateWithCallback],
   );
 
   const handleApplyOrbitPreset = useCallback(
     (preset: OrbitPreset) => {
+      setPlaying(false);
       setSelectedOrbitPresetId(preset.id);
       setSelectedScenarioId(null);
       setStateWithCallback((s) => ({
@@ -112,14 +130,15 @@ export function SolarVisualizer({ initialState = INITIAL_STATE, onStateChange, o
         orbitPhaseDeg: preset.phaseDeg,
       }));
     },
-    [setStateWithCallback],
+    [setPlaying, setStateWithCallback],
   );
 
   const handleReset = useCallback(() => {
+    setPlaying(false);
     setSelectedScenarioId(null);
     setSelectedOrbitPresetId('leo-dawn-dusk-sso');
-    setStateWithCallback({ ...INITIAL_STATE });
-  }, [setStateWithCallback]);
+    setStateWithCallback({ ...INITIAL_STATE, ...initialState });
+  }, [setPlaying, setStateWithCallback, initialState]);
 
   // Pure physics evaluation
   const derived: SolarDerived = useMemo(() => {
@@ -152,132 +171,144 @@ export function SolarVisualizer({ initialState = INITIAL_STATE, onStateChange, o
   };
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '75vh',
-        minHeight: 520,
-        maxHeight: 780,
-        borderRadius: 14,
-        overflow: 'hidden',
-        border: '1px solid var(--border)',
-        background: '#040b16',
-      }}
-    >
-      <Canvas
-        camera={{ position: [0, -13, 14], fov: 42 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: false }}
+    <>
+      <section
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          height: '760px',
+          minHeight: 600,
+          border: '1px solid rgba(150,190,220,.28)',
+          borderRadius: 16,
+          overflow: 'hidden',
+          background: '#07111e',
+          boxShadow: '0 18px 50px rgba(0,0,0,.28)',
+        }}
       >
-        <Suspense fallback={null}>
-          <SolarScene state={state} derived={derived} viewMode={viewMode} cameraFocus={cameraFocus} />
-        </Suspense>
-      </Canvas>
+        <Canvas
+          shadows
+          dpr={[1, 2]}
+          camera={{ position: [8.4, 6.4, 9.2], fov: 45, near: 0.05, far: 120 }}
+          gl={{ antialias: true, powerPreference: 'high-performance' }}
+        >
+          <Suspense fallback={null}>
+            <SolarScene state={state} derived={derived} viewMode={viewMode} cameraFocus={cameraFocus} />
+          </Suspense>
+        </Canvas>
 
-      {/* Top Left: View Switcher & Intro */}
-      <details open className="solar-overlay solar-intro">
-        <summary style={{ fontSize: 13, color: '#9fd2ef' }}>Solar Array Budget</summary>
-        <div>
-          <div style={{ display: 'flex', gap: 6, margin: '6px 0' }}>
-            <button
-              type="button"
-              onClick={() => handleViewModeChange('orbit')}
-              style={{
-                flex: 1,
-                padding: '4px 6px',
-                borderRadius: 6,
-                fontSize: 10.5,
-                fontWeight: viewMode === 'orbit' ? 700 : 500,
-                background: viewMode === 'orbit' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255,255,255,0.06)',
-                border: viewMode === 'orbit' ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
-                color: viewMode === 'orbit' ? '#fff' : '#94a3b8',
-                cursor: 'pointer',
-              }}
-            >
-              Orbit Scale
-            </button>
-            <button
-              type="button"
-              onClick={() => handleViewModeChange('closeup')}
-              style={{
-                flex: 1,
-                padding: '4px 6px',
-                borderRadius: 6,
-                fontSize: 10.5,
-                fontWeight: viewMode === 'closeup' ? 700 : 500,
-                background: viewMode === 'closeup' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255,255,255,0.06)',
-                border: viewMode === 'closeup' ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
-                color: viewMode === 'closeup' ? '#fff' : '#94a3b8',
-                cursor: 'pointer',
-              }}
-            >
-              Close-up Wing
-            </button>
+        {/* Top Left: Intro */}
+        <details open className="solar-overlay solar-intro">
+          <summary>Solar Array Power Budget</summary>
+          <div>
+            {viewMode === 'orbit'
+              ? 'Earth and orbit are drawn to scale, with eclipse shadow geometry shown. Switch to Close-up to inspect the solar array wing.'
+              : 'Close-up view showing the solar array wing with cell thermal color rendering. Earth is not positioned to scale.'}
           </div>
-          <div style={{ fontSize: 10.5, color: '#94a3b8', lineHeight: 1.4 }}>
-            {viewMode === 'orbit' ? 'Earth and orbit to scale. Yellow beam shows fixed Sun vector.' : 'Detailed solar array model with cell thermal color rendering.'}
+        </details>
+
+        {/* Top Right Sidebar: Control Panel */}
+        <SolarControlPanel
+          state={state}
+          onChange={handleFieldChange}
+          onApplyScenario={handleApplyScenario}
+          onApplyOrbitPreset={handleApplyOrbitPreset}
+          onReset={handleReset}
+          selectedScenarioId={selectedScenarioId}
+          selectedOrbitPresetId={selectedOrbitPresetId}
+          viewMode={viewMode}
+          setViewMode={handleViewModeChange}
+          cameraFocus={cameraFocus}
+          setCameraFocus={setCameraFocus}
+          playing={playing}
+          setPlaying={setPlaying}
+          speed={speed}
+          setSpeed={setSpeed}
+          periodSeconds={periodSeconds}
+          secondsPerOrbitAtSpeed={secondsPerOrbitAtSpeed}
+          onExport={onExport}
+        />
+
+        {/* Bottom Overlay: Telemetry */}
+        <details open className="solar-overlay solar-telemetry" aria-label="Solar telemetry">
+          <summary>Solar Telemetry</summary>
+          <div className="solar-telemetry-grid">
+            <div>
+              <small>
+                Orbit Average{' '}
+                <InfoTip
+                  text="Average electrical power generated across the full orbit, accounting for daylight, eclipse shadow, temperature, radiation, and system losses."
+                  placement="above"
+                />
+              </small>
+              <br />
+              <strong>{formatWatts(derived.orbitAveragePowerW)}</strong>
+            </div>
+            <div>
+              <small>
+                Sunlit Generation{' '}
+                <InfoTip
+                  text="Instantaneous power generated while the satellite is in direct sunlight."
+                  placement="above"
+                />
+              </small>
+              <br />
+              <strong>{formatWatts(derived.instantaneousSunlitPowerW)}</strong>
+            </div>
+            <div>
+              <small>
+                Sunlit Duty Cycle{' '}
+                <InfoTip
+                  text="Fraction and duration of the orbit spent in direct sunlight versus Earth's shadow."
+                  placement="above"
+                />
+              </small>
+              <br />
+              <strong>
+                {formatPercent(derived.orbitSunlitFraction)} ({derived.orbitEclipseDurationMin.toFixed(1)}m)
+              </strong>
+            </div>
+            <div>
+              <small>
+                Net Efficiency{' '}
+                <InfoTip
+                  text="System-level end-to-end efficiency derated from baseline cell efficiency."
+                  placement="above"
+                />
+              </small>
+              <br />
+              <strong>{formatPercent(derived.effectiveSystemEfficiency)}</strong>
+            </div>
+            <div>
+              <small>
+                Energy / Orbit{' '}
+                <InfoTip text="Total electrical energy generated per completed orbit." placement="above" />
+              </small>
+              <br />
+              <strong>{Math.round(derived.orbitEnergyGeneratedWh)} W·h</strong>
+            </div>
+            <div>
+              <small>
+                Beginning of Life{' '}
+                <InfoTip
+                  text="Initial un-derated array generation before radiation and temperature losses."
+                  placement="above"
+                />
+              </small>
+              <br />
+              <strong>{formatWatts(derived.beginningOfLifePowerW)}</strong>
+            </div>
           </div>
-        </div>
-      </details>
+        </details>
+      </section>
 
-      {/* Top Right Sidebar: Control Panel */}
-      <SolarControlPanel
-        state={state}
-        onChange={handleFieldChange}
-        onApplyScenario={handleApplyScenario}
-        onApplyOrbitPreset={handleApplyOrbitPreset}
-        onReset={handleReset}
-        selectedScenarioId={selectedScenarioId}
-        selectedOrbitPresetId={selectedOrbitPresetId}
-        playing={playing}
-        onTogglePlay={() => setPlaying((v) => !v)}
-        speed={speed}
-        onChangeSpeed={setSpeed}
-        periodSeconds={periodSeconds}
-        onExport={onExport}
-      />
-
-      {/* Bottom Overlay: Telemetry & Loss Bars */}
-      <details open className="solar-overlay solar-telemetry" aria-label="Power budget & telemetry">
-        <summary style={{ fontSize: 12, color: '#9fd2ef', marginBottom: 4 }}>Power Budget Breakdown</summary>
-        <div>
+      {/* Loss Bars Breakdown below the canvas */}
+      <details open className="challenge-explorer-limits solar-losses" aria-label="Power budget breakdown">
+        <summary>Power Budget Breakdown</summary>
+        <p>Stacked losses derating beginning-of-life array output down to orbit-averaged power.</p>
         <SolarPowerLossBars derived={derived} />
-
-        <div className="solar-telemetry-grid">
-          <div>
-            <div style={{ color: '#94a3b8', fontSize: 10 }}>Orbit Average</div>
-            <div style={{ color: '#38bdf8', fontSize: 14, fontWeight: 700 }}>
-              {formatWatts(derived.orbitAveragePowerW)}
-            </div>
-          </div>
-          <div>
-            <div style={{ color: '#94a3b8', fontSize: 10 }}>Sunlit Generation</div>
-            <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              {formatWatts(derived.instantaneousSunlitPowerW)}
-            </div>
-          </div>
-          <div>
-            <div style={{ color: '#94a3b8', fontSize: 10 }}>Sunlit Duty Cycle</div>
-            <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              {formatPercent(derived.orbitSunlitFraction)} ({derived.orbitEclipseDurationMin.toFixed(1)}m)
-            </div>
-          </div>
-          <div>
-            <div style={{ color: '#94a3b8', fontSize: 10 }}>Net Efficiency</div>
-            <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              {formatPercent(derived.effectiveSystemEfficiency)}
-            </div>
-          </div>
-          <div>
-            <div style={{ color: '#94a3b8', fontSize: 10 }}>Energy / Orbit</div>
-            <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>
-              {Math.round(derived.orbitEnergyGeneratedWh)} W·h
-            </div>
-          </div>
-        </div>
-        </div>
       </details>
-    </div>
+    </>
   );
 }
