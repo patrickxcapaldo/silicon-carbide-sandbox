@@ -7,7 +7,8 @@ import { DAWN_DUSK_SSO_ORBIT } from '../../core/orbitalMechanics';
 import { createRunRecord } from './runRecord';
 import { manifest } from './manifest';
 import { ModulePageFrame } from '../../core/ModulePageFrame';
-import { ModeToggle } from '../../core/challenge/ModeToggle';
+import { ModeToggle, type ModuleMode } from '../../core/challenge/ModeToggle';
+import { PlayGame } from './play/PlayGame';
 
 interface ViewProps {
   inputs: Record<string, number>;
@@ -16,7 +17,7 @@ interface ViewProps {
 }
 
 const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
-  const [mode, setMode] = useState<'explore' | 'challenge'>('explore');
+  const [mode, setMode] = useState<ModuleMode>('explore');
 
   const initialState = useMemo<Partial<SolarState>>(
     () => ({
@@ -59,6 +60,9 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
       <div id="module-tool">
         <div hidden={mode !== 'challenge'}>
           <ChallengeGame />
+        </div>
+        <div hidden={mode !== 'play'}>
+          <PlayGame />
         </div>
         {mode === 'explore' && (
           <SolarVisualizer

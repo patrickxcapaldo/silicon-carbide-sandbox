@@ -106,6 +106,17 @@ Treat the results as a way to compare assumptions and identify the binding const
 
 The scorecard includes the set, difficulty, hints used, elapsed time when enabled, missed questions and their three ceilings. Copy the share string to share the score and, for Random, its seed. Answers and numerical ceilings are evaluated from `orbitalThermalLimits.run()` at runtime; level definitions contain input objects and reveal copy only. Nothing is stored or collected, and nothing leaves the device.
 
+## Play Mode
+
+**Guess the limit. Physics keeps score.** Play is ten quick rounds of Higher or lower. Each round takes one of the ten Challenge configurations as a baseline and offers two changes to it (for example more radiator area, a hotter radiator, more coolant flow, a bigger array, or a different orbit). Tap the change that leaves the satellite able to sustain more compute. Sustainable compute is the lowest of the radiator, coolant and electrical ceilings, the same three used in Challenge.
+
+- Easy, Medium and Hard set how far apart the two results are (at least 2×, 1.3× to 2×, and 1.1× to 1.3×).
+- Enter a seed to replay a run, or leave it blank for a new one. The same seed and difficulty always give the same ten rounds.
+- Every reveal shows the baseline and both results on a log-scale bar, the ratio between them, and a short reason. The reason is built from the model's values, plus one fixed sentence stating the law behind the winning change.
+- A round is redrawn if any input would be clamped, so every number shown comes from an unmodified run of `orbitalThermalLimits.run()`.
+
+Play changes no calculated results. Nothing is stored or collected, and nothing leaves the device.
+
 ## Development Checks
 
 From the repository root:
@@ -116,4 +127,4 @@ npm run build
 npm run replay -- data/runs/<article-run-record>.json
 ```
 
-The model assertions, Challenge level/generator checks and pinned golden vectors are in [`model.test.ts`](model.test.ts), [`challenge/challenge.test.ts`](challenge/challenge.test.ts) and [`data/golden-vectors/orbital-thermal-limits.json`](../../../data/golden-vectors/orbital-thermal-limits.json). The kernel is implemented in [`sandbox/kernel.ts`](sandbox/kernel.ts); the visual controls and scenario definitions live in [`visualizer/ControlPanel.tsx`](visualizer/ControlPanel.tsx) and [`visualizer/scenarioPresets.ts`](visualizer/scenarioPresets.ts).
+The model assertions, Challenge level/generator checks, Play checks and pinned golden vectors are in [`model.test.ts`](model.test.ts), [`challenge/challenge.test.ts`](challenge/challenge.test.ts), [`play/play.test.ts`](play/play.test.ts) and [`data/golden-vectors/orbital-thermal-limits.json`](../../../data/golden-vectors/orbital-thermal-limits.json). The kernel is implemented in [`sandbox/kernel.ts`](sandbox/kernel.ts); the visual controls and scenario definitions live in [`visualizer/ControlPanel.tsx`](visualizer/ControlPanel.tsx) and [`visualizer/scenarioPresets.ts`](visualizer/scenarioPresets.ts).

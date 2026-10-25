@@ -1,12 +1,19 @@
 import './challenge.css';
 
-export type ModuleMode = 'explore' | 'challenge';
+export type ModuleMode = 'explore' | 'challenge' | 'play';
+
+const MODES: { id: ModuleMode; label: string }[] = [
+  { id: 'explore', label: 'Explore' },
+  { id: 'challenge', label: 'Challenge' },
+  { id: 'play', label: 'Play' },
+];
 
 export function ModeToggle({ mode, onChange }: { mode: ModuleMode; onChange: (mode: ModuleMode) => void }) {
   return (
     <div className="challenge-mode-toggle" role="group" aria-label="Module mode">
-      <button type="button" aria-pressed={mode === 'explore'} onClick={() => onChange('explore')}>Explore</button>
-      <button type="button" aria-pressed={mode === 'challenge'} onClick={() => onChange('challenge')}>Challenge</button>
+      {MODES.map(({ id, label }) => (
+        <button type="button" key={id} aria-pressed={mode === id} onClick={() => onChange(id)}>{label}</button>
+      ))}
     </div>
   );
 }

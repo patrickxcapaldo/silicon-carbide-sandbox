@@ -1,0 +1,73 @@
+.play-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .play-options { grid-template-columns: minmax(0, 1fr); }
+}
+
+.play-option {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 88px;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-h);
+  background: var(--bg-elevated);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.play-option:disabled { cursor: default; }
+.play-option-tag { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+.play-option-change { font-weight: 650; }
+.play-option-mark { font-size: 0.85rem; font-weight: 650; }
+.play-option.is-correct { border-color: var(--success); box-shadow: inset 0 0 0 1px var(--success); }
+.play-option.is-incorrect { border-color: var(--error); box-shadow: inset 0 0 0 1px var(--error); }
+
+.play-baseline {
+  margin: 0.5rem 0;
+  color: var(--text);
+}
+
+.play-baseline-spec dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem 1rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+}
+
+.play-baseline-spec dl > div { display: contents; }
+.play-baseline-spec dd { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+.play-reveal { margin-top: 1rem; display: grid; gap: 0.6rem; }
+.play-verdict { margin: 0; font-weight: 700; }
+
+.play-bars { display: grid; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+
+.play-bar-row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) 6.5rem;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.play-bar-track {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--border-subtle);
+  overflow: hidden;
+}
+
+.play-bar-fill { height: 100%; border-radius: 6px; background: var(--text-muted); }
+.play-bar-row.is-higher .play-bar-fill { background: var(--accent); }
+.play-bar-value { text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.play-bar-axis { margin: 0; font-size: 0.75rem; color: var(--text-muted); }
+.play-reason { margin: 0; }
