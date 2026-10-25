@@ -15,7 +15,7 @@ export function SolarPowerLossBars({ derived }: Props) {
 
   return (
     <div style={{ padding: '0.6rem 0.8rem', background: 'rgba(5, 12, 22, 0.75)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9fd2ef', marginBottom: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#eaf6ff', marginBottom: 6 }}>
         <span style={{ fontWeight: 600 }}>Power Budget Breakdown</span>
         <span>BOL: {formatWatts(derived.beginningOfLifePowerW)}</span>
       </div>

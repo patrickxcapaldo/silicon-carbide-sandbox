@@ -16,6 +16,7 @@ type Props = {
   onApplyOrbitPreset: (preset: OrbitPreset) => void;
   onApplyScenario: (scenario: ScenarioPreset) => void;
   onExport?: () => void;
+  onReset?: () => void;
   /** Id of the scenario preset that produced the current state exactly, or null if none does (including after any manual edit). */
   selectedScenarioId: string | null;
   /** Id of the orbit preset whose fields the current state still matches exactly, or null if none does. */
@@ -95,7 +96,7 @@ function Section({ title, defaultOpen, children }: { title: string; defaultOpen?
 }
 
 export function ControlPanel({
-  state, onChange, onApplyOrbitPreset, onApplyScenario, onExport,
+  state, onChange, onApplyOrbitPreset, onApplyScenario, onExport, onReset,
   selectedScenarioId, selectedOrbitPresetId,
   viewMode, setViewMode, cameraFocus, setCameraFocus,
   playing, setPlaying, speed, setSpeed, periodSeconds, secondsPerOrbitAtSpeed,
@@ -119,12 +120,38 @@ export function ControlPanel({
             type="button"
             onClick={onExport}
             style={{
-              background: 'var(--accent)', color: '#fff', border: 0, borderRadius: 6,
-              padding: '0.45rem 0.7rem', font: 'inherit', fontSize: 10.5, fontWeight: 700,
-              cursor: 'pointer', whiteSpace: 'nowrap',
+              height: 32, minHeight: 32, boxSizing: 'border-box', background: 'var(--accent)', color: '#fff', border: 0, borderRadius: 6,
+              padding: '0 12px', font: 'inherit', fontSize: 11, fontWeight: 700,
+              cursor: 'pointer', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
             Export
+          </button>
+        )}
+        {onReset && !collapsed && (
+          <button
+            type="button"
+            onClick={onReset}
+            style={{
+              height: 32,
+              minHeight: 32,
+              boxSizing: 'border-box',
+              background: 'rgba(255,255,255,.06)',
+              border: '1px solid rgba(160,205,235,.3)',
+              borderRadius: 6,
+              color: '#eaf6ff',
+              font: 'inherit',
+              fontSize: 11,
+              fontWeight: 500,
+              padding: '0 12px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            Reset
           </button>
         )}
         <button
@@ -133,18 +160,18 @@ export function ControlPanel({
           aria-label={collapsed ? 'Maximize controls' : 'Minimize controls'}
           onClick={() => setCollapsed((value) => !value)}
           style={{
-            minWidth: 32, minHeight: 32, border: '1px solid rgba(160,205,235,.3)', borderRadius: 6,
-            color: '#eaf6ff', background: 'rgba(255,255,255,.06)', font: 'inherit', cursor: 'pointer',
+            width: 32, height: 32, minWidth: 32, minHeight: 32, boxSizing: 'border-box', border: '1px solid rgba(160,205,235,.3)', borderRadius: 6,
+            color: '#eaf6ff', background: 'rgba(255,255,255,.06)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, cursor: 'pointer',
           }}
-        >{collapsed ? '+' : '\u2212'}</button>
+        >{collapsed ? '\u25B6' : '\u25BC'}</button>
         </div>
       </div>
 
       {!collapsed && <div>
-      {/* Scenario presets */}
+      {/* Scenario Presets */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
-          Scenario presets
+          Scenario Presets
           <InfoTip text="Each one sets every parameter at once to a complete, verified configuration that illustrates a specific outcome. The explainer above the simulation describes each of them in more detail." />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -159,7 +186,7 @@ export function ControlPanel({
         </div>
       </div>
 
-      {/* Camera */}
+      {/* View */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
           View
@@ -169,7 +196,7 @@ export function ControlPanel({
           <SegButton active={viewMode === 'orbit'} onClick={() => setViewMode('orbit')}>Orbit</SegButton>
           <SegButton active={viewMode === 'closeup'} onClick={() => setViewMode('closeup')}>Close-up</SegButton>
         </div>
-        <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4 }}>Camera focus</div>
+        <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4 }}>Camera Focus</div>
         <div style={{ display: 'flex', gap: 6 }}>
           {viewMode === 'orbit' && (
             <SegButton active={cameraFocus === 'earth'} onClick={() => setCameraFocus('earth')}>Earth</SegButton>
@@ -190,7 +217,7 @@ export function ControlPanel({
             }}
           >{playing ? '\u23F8' : '\u25B6'}</button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, color: '#9fb7c9' }}>Orbital period</div>
+            <div style={{ fontSize: 11, color: '#9fb7c9' }}>Orbital Period</div>
             <div style={{ fontWeight: 600 }}>{formatDuration(periodSeconds)}</div>
           </div>
         </div>
@@ -207,8 +234,8 @@ export function ControlPanel({
         </div>
       </div>
 
-      {/* AI compute */}
-      <Section title="AI compute load" defaultOpen>
+      {/* AI Compute Load */}
+      <Section title="AI Compute Load" defaultOpen>
         <ParamSlider meta={PARAM_META.computeWattsRequested} value={state.computeWattsRequested} onChange={(v) => onChange('computeWattsRequested', v)} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 2 }}>
           {COMPUTE_REFERENCES.map((ref) => (
@@ -222,10 +249,10 @@ export function ControlPanel({
         </div>
       </Section>
 
-      {/* Orbit params */}
+      {/* Orbit Params */}
       <Section title="Orbit">
         <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4 }}>Orbit presets</div>
+          <div style={{ fontSize: 11, color: '#9fb7c9', marginBottom: 4 }}>Orbit Presets</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {ORBIT_PRESETS.map((preset) => (
               <div key={preset.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -249,22 +276,22 @@ export function ControlPanel({
         ))}
       </Section>
 
-      {/* Solar array / power */}
-      <Section title="Solar array / power">
+      {/* Solar Array / Power */}
+      <Section title="Solar Array / Power">
         {SOLAR_KEYS.map((key) => (
           <ParamSlider key={key} meta={PARAM_META[key]} value={state[key]} onChange={(v) => onChange(key, v)} />
         ))}
       </Section>
 
-      {/* Radiator / loop */}
-      <Section title="Radiator / coolant loop">
+      {/* Radiator / Coolant Loop */}
+      <Section title="Radiator / Coolant Loop">
         {RADIATOR_KEYS.map((key) => (
           <ParamSlider key={key} meta={PARAM_META[key]} value={state[key]} onChange={(v) => onChange(key, v)} />
         ))}
       </Section>
 
-      {/* Solar environment */}
-      <Section title="Solar environment">
+      {/* Solar Environment */}
+      <Section title="Solar Environment">
         {ENV_KEYS.map((key) => (
           <ParamSlider key={key} meta={PARAM_META[key]} value={state[key]} onChange={(v) => onChange(key, v)} />
         ))}

@@ -1,8 +1,11 @@
 const suites = [
+  'src/core/play/play.test.ts',
   'src/modules/orbital-thermal-limits/model.test.ts',
   'src/modules/orbital-thermal-limits/challenge/challenge.test.ts',
+  'src/modules/orbital-thermal-limits/play/play.test.ts',
   'src/modules/solar-power-budget/model.test.ts',
   'src/modules/solar-power-budget/challenge/challenge.test.ts',
+  'src/modules/solar-power-budget/play/play.test.ts',
 ];
 
 console.log('Running test suites across all modules...\n');

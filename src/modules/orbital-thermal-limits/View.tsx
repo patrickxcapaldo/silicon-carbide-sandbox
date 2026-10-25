@@ -7,12 +7,13 @@ import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 import { createRunRecord } from './runRecord';
 import { manifest } from './manifest';
 import { ModulePageFrame } from '../../core/ModulePageFrame';
-import { ModeToggle } from '../../core/challenge/ModeToggle';
+import { ModeToggle, type ModuleMode } from '../../core/challenge/ModeToggle';
+import { PlayGame } from './play/PlayGame';
 
 interface ViewProps { inputs: Record<string, number>; onChange: (id: string, value: number) => void; results: unknown; }
 
 const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
-  const [mode, setMode] = useState<'explore' | 'challenge'>('explore');
+  const [mode, setMode] = useState<ModuleMode>('explore');
   const initialState = useMemo<Partial<ThermalState>>(() => ({
     satelliteTempC: inputs.operatingTempC ?? 45, operatingTempC: inputs.operatingTempC ?? 70, radiatorArea: inputs.radiatorArea ?? 2,
     emissivity: inputs.emissivity ?? 0.9, solarAbsorptivity: inputs.solarAbsorptivity ?? 0.12, sinkTempK: inputs.sinkTempK ?? 180,
@@ -46,6 +47,9 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
       <div id="module-tool">
         <div hidden={mode !== 'challenge'}>
           <ChallengeGame />
+        </div>
+        <div hidden={mode !== 'play'}>
+          <PlayGame />
         </div>
         {mode === 'explore' && (
           <ThermalVisualizer

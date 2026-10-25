@@ -141,6 +141,14 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
     setStateWithCallback(() => ({ ...scenario.state }));
   }, [setPlaying, setStateWithCallback]);
 
+  const handleReset = useCallback(() => {
+    setPlaying(false);
+    setSelectedScenarioId(null);
+    const dawnDusk = ORBIT_PRESETS.find((preset) => preset.id === 'leo-dawn-dusk-sso');
+    setSelectedOrbitPresetId(dawnDusk ? dawnDusk.id : null);
+    setStateWithCallback({ ...INITIAL_STATE, ...initialState });
+  }, [setPlaying, setStateWithCallback, initialState]);
+
   const derived = useMemo<ThermalDerived>(() => {
     // Single source of truth: the same kernel the headless module and the
     // host adapter use, at full precision. Nothing here recomputes physics,
@@ -189,7 +197,7 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
     </Canvas>
 
     <details open className="thermal-overlay thermal-intro">
-      <summary>Orbital thermal balance</summary>
+      <summary>Orbital Thermal Balance</summary>
       <div>
         {viewMode === 'orbit'
           ? 'Earth and the orbit are drawn to scale, and the spacecraft is shown as a small marker so that it does not pass through the surface. Switch to Close-up to inspect it.'
@@ -203,6 +211,7 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
       onApplyOrbitPreset={applyOrbitPreset}
       onApplyScenario={applyScenario}
       onExport={onExport}
+      onReset={handleReset}
       selectedScenarioId={selectedScenarioId}
       selectedOrbitPresetId={selectedOrbitPresetId}
       viewMode={viewMode}
@@ -218,21 +227,21 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
     />
 
     <details open className="thermal-overlay thermal-telemetry" aria-label="Thermal telemetry">
-      <summary>Thermal telemetry</summary>
+      <summary>Thermal Telemetry</summary>
       <div className="thermal-telemetry-grid">
-      <div><small>Requested compute <InfoTip text={TELEMETRY_INFO.requestedCompute} placement="above" /></small><br /><strong>{metric(derived.computeWattsRequested)}</strong></div>
-      <div><small>Compute heat limit <InfoTip text={TELEMETRY_INFO.heatLimit} placement="above" /></small><br /><strong>{metric(derived.netCapacityW)}</strong></div>
-      <div><small>{derived.computeDeficitW > 0 ? 'Thermal deficit' : 'Thermal headroom'} <InfoTip text={TELEMETRY_INFO.thermalMargin} placement="above" /></small><br /><strong style={{ color: derived.computeDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.computeDeficitW))}</strong></div>
-      <div><small>Solar array power <InfoTip text={TELEMETRY_INFO.arrayPower} placement="above" /></small><br /><strong>{metric(derived.generatedPowerW)}</strong></div>
-      <div><small>Orbit sunlit fraction <InfoTip text={TELEMETRY_INFO.sunlitFraction} placement="above" /></small><br /><strong>{(derived.orbitSunlitFraction * 100).toFixed(0)}%</strong></div>
-      <div><small>{derived.powerDeficitW > 0 ? 'Power deficit' : 'Power headroom'} <InfoTip text={TELEMETRY_INFO.powerMargin} placement="above" /></small><br /><strong style={{ color: derived.powerDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.powerDeficitW))}</strong></div>
-      <div><small>Coolant capacity <InfoTip text={TELEMETRY_INFO.coolantCapacity} placement="above" /></small><br /><strong>{metric(derived.transportCapacityW)}</strong></div>
+      <div><small>Requested Compute <InfoTip text={TELEMETRY_INFO.requestedCompute} placement="above" /></small><br /><strong>{metric(derived.computeWattsRequested)}</strong></div>
+      <div><small>Compute Heat Limit <InfoTip text={TELEMETRY_INFO.heatLimit} placement="above" /></small><br /><strong>{metric(derived.netCapacityW)}</strong></div>
+      <div><small>{derived.computeDeficitW > 0 ? 'Thermal Deficit' : 'Thermal Headroom'} <InfoTip text={TELEMETRY_INFO.thermalMargin} placement="above" /></small><br /><strong style={{ color: derived.computeDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.computeDeficitW))}</strong></div>
+      <div><small>Solar Array Power <InfoTip text={TELEMETRY_INFO.arrayPower} placement="above" /></small><br /><strong>{metric(derived.generatedPowerW)}</strong></div>
+      <div><small>Orbit Sunlit Fraction <InfoTip text={TELEMETRY_INFO.sunlitFraction} placement="above" /></small><br /><strong>{(derived.orbitSunlitFraction * 100).toFixed(0)}%</strong></div>
+      <div><small>{derived.powerDeficitW > 0 ? 'Power Deficit' : 'Power Headroom'} <InfoTip text={TELEMETRY_INFO.powerMargin} placement="above" /></small><br /><strong style={{ color: derived.powerDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.powerDeficitW))}</strong></div>
+      <div><small>Coolant Capacity <InfoTip text={TELEMETRY_INFO.coolantCapacity} placement="above" /></small><br /><strong>{metric(derived.transportCapacityW)}</strong></div>
       <div><small>Status</small><br /><StatusBadge status={derived.status} /></div>
       </div>
     </details>
     </section>
     <details open className="challenge-explorer-limits thermal-ceilings" aria-label="Compute ceilings">
-      <summary>Compute ceilings</summary>
+      <summary>Compute Ceilings</summary>
       <p>White marker: requested compute. The green bar is the lowest ceiling.</p>
       <CeilingBars
         evaluation={{

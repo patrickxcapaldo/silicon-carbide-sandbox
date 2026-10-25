@@ -60,9 +60,22 @@ console.log(`Power Deficit: ${thermal.values.powerDeficitW.toFixed(1)} W`);
 
 ---
 
+## Play Mode
+
+**Guess the limit. Physics keeps score.** Play is ten quick rounds of Higher or lower. Each round takes one of the ten Challenge configurations as a baseline and offers two changes to it (for example a bigger array, better cells, cooler cells, slower degradation, a shorter mission, or a different orbit). Tap the change that delivers more orbit-average electrical power.
+
+- Easy, Medium and Hard set how far apart the two results are (at least 2×, 1.3× to 2×, and 1.1× to 1.3×).
+- Enter a seed to replay a run, or leave it blank for a new one. The same seed and difficulty always give the same ten rounds.
+- Every reveal shows the baseline and both results on a log-scale bar, the ratio between them, and a short reason: the two results from the model, plus one fixed sentence stating the law behind the winning change.
+- A round is redrawn if any input would be clamped, so every number shown comes from an unmodified run of `solarPowerBudget.run()`.
+
+Play changes no calculated results. Nothing is stored or collected, and nothing leaves the device.
+
 ## Testing & Reproducibility
 
 Run model assertions and golden vectors:
 ```bash
 npm test
 ```
+
+Play rounds are checked in [`play/play.test.ts`](play/play.test.ts): every displayed value and ratio is recomputed from the kernel, and each difficulty band is enforced.

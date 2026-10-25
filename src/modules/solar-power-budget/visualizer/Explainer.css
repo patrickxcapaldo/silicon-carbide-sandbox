@@ -15,7 +15,8 @@
   font-size: 12px;
 }
 
-.solar-overlay summary {
+.solar-overlay summary,
+.solar-losses summary {
   cursor: pointer;
   font-weight: 700;
 }
@@ -23,7 +24,7 @@
 .solar-intro {
   top: 16px;
   left: 16px;
-  max-width: 280px;
+  max-width: 260px;
   padding: 9px 12px;
   border-radius: 10px;
 }
@@ -46,9 +47,18 @@
 
 .solar-telemetry-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
   gap: 8px;
   margin-top: 8px;
+}
+
+.solar-losses {
+  display: block;
+}
+
+.solar-losses > summary {
+  margin-bottom: 8px;
+  color: var(--text-h);
 }
 
 @media (max-width: 680px) {
@@ -68,7 +78,7 @@
   .solar-intro {
     top: 58px;
     left: 10px;
-    max-width: min(280px, calc(100% - 20px));
+    max-width: min(260px, calc(100% - 20px));
   }
 
   .solar-telemetry {
