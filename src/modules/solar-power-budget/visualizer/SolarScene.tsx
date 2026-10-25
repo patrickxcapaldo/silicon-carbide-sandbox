@@ -16,10 +16,17 @@ type Props = {
 };
 
 function ShadowCylinder() {
-  // Cylindrical shadow projecting from Earth along -Z direction
+  // Cylindrical shadow projecting from Earth along anti-Sun direction (-SUN_DIRECTION)
   const length = 18;
+  const antiSun = useMemo(() => SUN_DIRECTION.clone().negate().normalize(), []);
+  const quaternion = useMemo(
+    () => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), antiSun),
+    [antiSun]
+  );
+  const position = useMemo(() => antiSun.clone().multiplyScalar(length / 2).toArray(), [antiSun]);
+
   return (
-    <mesh position={[0, 0, -length / 2]} rotation={[Math.PI / 2, 0, 0]}>
+    <mesh position={position} quaternion={quaternion}>
       <cylinderGeometry args={[EARTH_RADIUS_SCENE, EARTH_RADIUS_SCENE, length, 48, 1, true]} />
       <meshBasicMaterial
         color="#030814"
@@ -208,8 +215,8 @@ export function SolarScene({ state, derived: _derived, viewMode, cameraFocus }: 
           {/* Sun Vector Indicator from Space */}
           <Line
             points={[
-              new THREE.Vector3(0, 0, 8),
-              new THREE.Vector3(0, 0, 5),
+              SUN_DIRECTION.clone().multiplyScalar(8),
+              SUN_DIRECTION.clone().multiplyScalar(4.5),
             ]}
             color="#fef08a"
             lineWidth={2.5}

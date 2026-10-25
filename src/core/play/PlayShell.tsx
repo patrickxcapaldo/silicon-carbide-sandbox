@@ -123,7 +123,7 @@ export function PlayShell({ definition }: { definition: PlayDefinition }) {
     return (
       <main className="challenge-shell" aria-labelledby="play-setup-title">
         <section className="challenge-shell-card">
-          <h2 id="play-setup-title">{definition.title}: Play</h2>
+          <h2 id="play-setup-title">Higher or Lower</h2>
           <p><strong>Guess the limit. Physics keeps score.</strong></p>
           <p>{definition.intro}</p>
           <p>{PLAY_ROUND_COUNT} quick rounds. Each ends with the real numbers and a one-line reason.</p>
@@ -201,7 +201,7 @@ export function PlayShell({ definition }: { definition: PlayDefinition }) {
   return (
     <main className="challenge-shell">
       <div className="challenge-shell-row">
-        <h2>{definition.title}: Play</h2>
+        <h2>Higher or Lower</h2>
         <span>Round {index + 1} / {rounds.length} · Score {score}</span>
       </div>
       <p>{difficulty[0].toUpperCase() + difficulty.slice(1)} · seed {seed}</p>

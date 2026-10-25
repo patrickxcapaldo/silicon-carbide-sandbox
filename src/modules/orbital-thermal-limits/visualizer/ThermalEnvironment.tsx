@@ -41,17 +41,17 @@ export function ThermalEnvironment({ solarLoadWm2, earthIrTempK, earthViewFactor
   const earthMid = earthStart.clone().lerp(earthEnd, earthVectorScale);
   const albedoStart = earthDir.clone().multiplyScalar(EARTH_RADIUS_SCENE + 0.06);
   const albedoEnd = albedoStart.clone().lerp(satPos, Math.min(0.72, 0.22 + earthViewFactor * 0.5));
-  const earthColor = useMemo(() => new THREE.Color('#2870aa').lerp(new THREE.Color('#4f8fc0'), earthHeat * 0.5), [earthHeat]);
+  const earthColor = useMemo(() => new THREE.Color('#1a4f80').lerp(new THREE.Color('#2d6d9e'), earthHeat * 0.5), [earthHeat]);
 
   return <group>
-    <color attach="background" args={['#07111e']} />
-    <ambientLight intensity={1.0} />
-    <hemisphereLight args={['#c9e5ff', '#16243a', 1.2]} />
+    <color attach="background" args={['#050c16']} />
+    <ambientLight intensity={0.5} />
+    <hemisphereLight args={['#c9e5ff', '#0a1424', 0.9]} />
     <directionalLight position={sunDir.clone().multiplyScalar(-12).toArray()} intensity={2.6 + solar * 3.0} color="#fff1cf" castShadow />
 
     <mesh receiveShadow>
       <sphereGeometry args={[EARTH_RADIUS_SCENE, 96, 64]} />
-      <meshStandardMaterial color={earthColor} roughness={0.94} metalness={0.01} emissive="#174a79" emissiveIntensity={0.18 + earthHeat * 0.2} />
+      <meshStandardMaterial color={earthColor} roughness={0.94} metalness={0.01} emissive="#0c2644" emissiveIntensity={0.2 + earthHeat * 0.2} />
     </mesh>
     <mesh scale={[1.014, 1.014, 1.014]}>
       <sphereGeometry args={[EARTH_RADIUS_SCENE, 64, 48]} />

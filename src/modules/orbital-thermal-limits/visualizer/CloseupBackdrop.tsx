@@ -34,7 +34,7 @@ export function CloseupBackdrop({ solarLoadWm2, earthViewFactor }: Props) {
         <meshBasicMaterial color="#61bcff" transparent opacity={0.06} side={THREE.BackSide} blending={THREE.AdditiveBlending} />
       </mesh>
 
-      <Stars radius={90} depth={50} count={1400} factor={1.6} saturation={0.15} fade speed={0.12} />
+      <Stars radius={100} depth={50} count={2200} factor={3.5} saturation={0.2} fade speed={0.3} />
 
       <Html position={[0, -1.35, 0]} center distanceFactor={7} style={{ pointerEvents: 'none' }}>
         <div style={{ color: '#9fd2ef', fontSize: 11, opacity: 0.75, whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(0,0,0,.8)' }}>

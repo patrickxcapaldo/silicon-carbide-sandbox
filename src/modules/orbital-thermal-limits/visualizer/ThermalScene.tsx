@@ -70,7 +70,7 @@ export function ThermalScene({ state, derived, viewMode, cameraFocus }: Props) {
           orbitArgumentDeg={state.orbitArgumentDeg}
           orbitPhaseDeg={state.orbitPhaseDeg}
         />
-        <Stars radius={90} depth={50} count={1800} factor={1.6} saturation={0.15} fade speed={0.12} />
+        <Stars radius={100} depth={50} count={2200} factor={3.5} saturation={0.2} fade speed={0.3} />
         <Line points={orbit} color="#7ecfff" transparent opacity={0.55} lineWidth={1.3} />
       </>
     ) : (

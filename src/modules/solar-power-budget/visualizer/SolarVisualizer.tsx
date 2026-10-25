@@ -175,69 +175,51 @@ export function SolarVisualizer({ initialState = INITIAL_STATE, onStateChange, o
         </Suspense>
       </Canvas>
 
-      {/* Top Left: Controls & Export */}
-      <div className="solar-overlay solar-intro">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <strong style={{ fontSize: 13, color: '#9fd2ef' }}>Solar Array Budget</strong>
-          {onExport && (
+      {/* Top Left: View Switcher & Intro */}
+      <details open className="solar-overlay solar-intro">
+        <summary style={{ fontSize: 13, color: '#9fd2ef' }}>Solar Array Budget</summary>
+        <div>
+          <div style={{ display: 'flex', gap: 6, margin: '6px 0' }}>
             <button
               type="button"
-              onClick={onExport}
+              onClick={() => handleViewModeChange('orbit')}
               style={{
-                background: 'var(--accent)',
-                color: '#040d1a',
-                border: 0,
-                borderRadius: 4,
-                padding: '3px 7px',
+                flex: 1,
+                padding: '4px 6px',
+                borderRadius: 6,
                 fontSize: 10.5,
-                fontWeight: 700,
+                fontWeight: viewMode === 'orbit' ? 700 : 500,
+                background: viewMode === 'orbit' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255,255,255,0.06)',
+                border: viewMode === 'orbit' ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
+                color: viewMode === 'orbit' ? '#fff' : '#94a3b8',
                 cursor: 'pointer',
               }}
             >
-              Export JSON
+              Orbit Scale
             </button>
-          )}
+            <button
+              type="button"
+              onClick={() => handleViewModeChange('closeup')}
+              style={{
+                flex: 1,
+                padding: '4px 6px',
+                borderRadius: 6,
+                fontSize: 10.5,
+                fontWeight: viewMode === 'closeup' ? 700 : 500,
+                background: viewMode === 'closeup' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255,255,255,0.06)',
+                border: viewMode === 'closeup' ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
+                color: viewMode === 'closeup' ? '#fff' : '#94a3b8',
+                cursor: 'pointer',
+              }}
+            >
+              Close-up Wing
+            </button>
+          </div>
+          <div style={{ fontSize: 10.5, color: '#94a3b8', lineHeight: 1.4 }}>
+            {viewMode === 'orbit' ? 'Earth and orbit to scale. Yellow beam shows fixed Sun vector.' : 'Detailed solar array model with cell thermal color rendering.'}
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: 6, margin: '6px 0' }}>
-          <button
-            type="button"
-            onClick={() => handleViewModeChange('orbit')}
-            style={{
-              flex: 1,
-              padding: '4px 6px',
-              borderRadius: 6,
-              fontSize: 10.5,
-              fontWeight: viewMode === 'orbit' ? 700 : 500,
-              background: viewMode === 'orbit' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255,255,255,0.06)',
-              border: viewMode === 'orbit' ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
-              color: viewMode === 'orbit' ? '#fff' : '#94a3b8',
-              cursor: 'pointer',
-            }}
-          >
-            Orbit Scale
-          </button>
-          <button
-            type="button"
-            onClick={() => handleViewModeChange('closeup')}
-            style={{
-              flex: 1,
-              padding: '4px 6px',
-              borderRadius: 6,
-              fontSize: 10.5,
-              fontWeight: viewMode === 'closeup' ? 700 : 500,
-              background: viewMode === 'closeup' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255,255,255,0.06)',
-              border: viewMode === 'closeup' ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
-              color: viewMode === 'closeup' ? '#fff' : '#94a3b8',
-              cursor: 'pointer',
-            }}
-          >
-            Close-up Wing
-          </button>
-        </div>
-        <div style={{ fontSize: 10.5, color: '#94a3b8', lineHeight: 1.4 }}>
-          {viewMode === 'orbit' ? 'Earth and orbit to scale. Yellow beam shows fixed Sun vector.' : 'Detailed solar array model with cell thermal color rendering.'}
-        </div>
-      </div>
+      </details>
 
       {/* Top Right Sidebar: Control Panel */}
       <SolarControlPanel
@@ -253,10 +235,13 @@ export function SolarVisualizer({ initialState = INITIAL_STATE, onStateChange, o
         speed={speed}
         onChangeSpeed={setSpeed}
         periodSeconds={periodSeconds}
+        onExport={onExport}
       />
 
       {/* Bottom Overlay: Telemetry & Loss Bars */}
-      <div className="solar-overlay solar-telemetry">
+      <details open className="solar-overlay solar-telemetry" aria-label="Power budget & telemetry">
+        <summary style={{ fontSize: 12, color: '#9fd2ef', marginBottom: 4 }}>Power Budget Breakdown</summary>
+        <div>
         <SolarPowerLossBars derived={derived} />
 
         <div className="solar-telemetry-grid">
@@ -291,7 +276,8 @@ export function SolarVisualizer({ initialState = INITIAL_STATE, onStateChange, o
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </details>
     </div>
   );
 }

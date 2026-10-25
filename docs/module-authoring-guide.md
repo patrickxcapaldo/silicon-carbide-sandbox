@@ -15,7 +15,7 @@ Add a custom view when the module needs a specialized interface, such as an inte
 - The summary remains capped at 780px for readable line lengths.
 - Keep body content within the frame. Constrain prose-heavy sections to about 780px and center them; visualizations may use the available frame width.
 
-Do not recreate the outer frame or module header in a custom view. Put only module-specific content inside `ModulePageFrame` so its spacing and alignment remain consistent.
+Do not recreate the outer frame or module header in a custom view. Put only module-specific content inside `ModulePageFrame` so its spacing and alignment remain consistent. For visual styling, controls positioning, collapsing affordances, and scene standards, see the [Module Style & UX Reference Standard](module-style-guide.md).
 
 ## Starter files
 
@@ -35,3 +35,17 @@ A module provides one `ChallengeDefinition<Inputs>`:
 - Fixed time limits for each random difficulty.
 
 Keep module-specific level archetypes, formulas, cards, reveal copy and domain rendering in the module directory. Keep generic run mechanics in `src/core/challenge/`. Add a small shared `ModeToggle` immediately between the module's explanatory content and its selected tool, and keep the challenge component mounted while switching modes if a run must survive mode changes. A Challenge requires a pure, deterministic kernel `evaluate()`; without one, seeded replay and answer verification are not reliable.
+
+## Play mode ("Higher or lower")
+
+Use the shared client-side play shell when learners can build intuition by guessing which of two single-parameter perturbations produces a higher resulting metric. The framework lives in `src/core/play/`: `PlayShell` manages setup, the 10-round comparison loop, interactive options, log-scale reveal bars, reason generation, scoring and share strings; `generator.ts` seeds deterministic 10-round runs matching difficulty ratio bands; `levers.ts` builds perturbations; and `reason.ts` constructs explanations.
+
+A module provides one `PlayDefinition<Inputs>`:
+
+- `id`, `title`, `versionInfo`, `metricLabel`, `format(value)`, and `intro`.
+- `scenarios`: baseline input states (reusing the module's existing Challenge levels).
+- `levers`: an array of parameter perturbations that can be applied to baselines, with human-readable change summaries and physical lesson copy.
+- `metric(inputs)`: evaluates inputs against the module kernel and returns the primary numeric comparison metric.
+- `order(val)`: sorting function (defaults to higher-is-better).
+
+Keep module levers, metric mapping, and baselines in `src/modules/<module-id>/play/definition.ts`. Mount `PlayGame` alongside `ChallengeGame` in `View.tsx` controlled by `ModeToggle`. All Play runs require a deterministic kernel `metric()` evaluation.

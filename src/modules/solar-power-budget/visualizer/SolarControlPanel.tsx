@@ -20,6 +20,7 @@ type Props = {
   speed: SpeedMultiplier;
   onChangeSpeed: (s: SpeedMultiplier) => void;
   periodSeconds: number;
+  onExport?: () => void;
 };
 
 export function SolarControlPanel({
@@ -35,6 +36,7 @@ export function SolarControlPanel({
   speed,
   onChangeSpeed,
   periodSeconds,
+  onExport,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -62,10 +64,28 @@ export function SolarControlPanel({
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#9fd2ef', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            Parameters & Orbits
-          </h3>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ fontWeight: 700, fontSize: 13.5, color: '#eaf6ff' }}>Controls</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {onExport && !collapsed && (
+              <button
+                type="button"
+                onClick={onExport}
+                style={{
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  border: 0,
+                  borderRadius: 6,
+                  padding: '0.45rem 0.7rem',
+                  font: 'inherit',
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Export
+              </button>
+            )}
             <button
               type="button"
               onClick={onReset}
@@ -75,7 +95,7 @@ export function SolarControlPanel({
                 borderRadius: 4,
                 color: '#9fd2ef',
                 fontSize: 10.5,
-                padding: '2px 6px',
+                padding: '4px 8px',
                 cursor: 'pointer',
               }}
             >
@@ -83,18 +103,21 @@ export function SolarControlPanel({
             </button>
             <button
               type="button"
+              aria-expanded={!collapsed}
+              aria-label={collapsed ? 'Maximize controls' : 'Minimize controls'}
               onClick={() => setCollapsed((v) => !v)}
               style={{
-                background: 'transparent',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: 4,
-                color: '#9fd2ef',
-                fontSize: 10.5,
-                padding: '2px 6px',
+                minWidth: 32,
+                minHeight: 32,
+                border: '1px solid rgba(160,205,235,.3)',
+                borderRadius: 6,
+                color: '#eaf6ff',
+                background: 'rgba(255,255,255,.06)',
+                font: 'inherit',
                 cursor: 'pointer',
               }}
             >
-              {collapsed ? 'Expand' : 'Collapse'}
+              {collapsed ? '+' : '\u2212'}
             </button>
           </div>
         </div>
@@ -103,7 +126,7 @@ export function SolarControlPanel({
           <>
             {/* Mission Scenario Presets */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#9fd2ef', marginBottom: 6 }}>Mission Presets</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#9fd2ef', marginBottom: 6 }}>Mission Presets</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 5 }}>
                 {SCENARIO_PRESETS.map((p) => {
                   const isActive = selectedScenarioId === p.id;
@@ -137,7 +160,7 @@ export function SolarControlPanel({
 
             {/* Orbit Presets */}
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#9fd2ef', marginBottom: 6 }}>Orbit Presets</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#9fd2ef', marginBottom: 6 }}>Orbit Presets</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 5 }}>
                 {ORBIT_PRESETS.map((p) => {
                   const isActive = selectedOrbitPresetId === p.id;
