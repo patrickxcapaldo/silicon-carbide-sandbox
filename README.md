@@ -69,14 +69,18 @@ Open `http://localhost:5173` in your browser to interact with the local sandbox.
 ## Project Architecture
 
 ```
+scripts/
+├── generate-meta.js       # Auto-generates SEO meta tags from modules on build
+├── run-all-tests.ts       # Runs model tests across the ecosystem
+└── replay-run.ts          # Verifies and replays exported run JSON records
 src/
-├── core/                    # Engine interfaces, registry and generic UI shell
-│   ├── contract.ts          # Ecosystem module contract: dimensioned ports,
-│   │                        #   input resolver, diagnostics, connection checks
-│   ├── types.ts             # Host-facing module and parameter types
-│   ├── registry.ts          # Dynamic module auto-loader (Vite glob)
-│   ├── ModuleShell.tsx      # Generic parameter controls and output panel
-│   └── EquationPanel.tsx    # KaTeX LaTeX formula renderer
+├── core/                  # Engine interfaces, registry and generic UI shell
+│   ├── contract.ts        # Ecosystem module contract: dimensioned ports,
+│   │                      #   input resolver, diagnostics, connection checks
+│   ├── types.ts           # Host-facing module and parameter types
+│   ├── registry.ts        # Dynamic module auto-loader (Vite glob)
+│   ├── ModuleShell.tsx    # Generic parameter controls and output panel
+│   └── EquationPanel.tsx  # KaTeX LaTeX formula renderer
 └── modules/
     ├── orbital-thermal-limits/
     │   ├── sandbox/

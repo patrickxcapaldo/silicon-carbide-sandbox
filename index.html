@@ -6,8 +6,51 @@
     <link rel="icon" type="image/png" href="/silicon_carbide_logo_light.png" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/png" href="/silicon_carbide_logo_dark.png" media="(prefers-color-scheme: dark)" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="First-principles engineering, economics, and geopolitics where machines meet humanity." />
-    <title>Silicon Carbide Imperative</title>
+    
+    <!-- Meta tags with IDs for dynamic updates -->
+    <meta id="meta-desc" name="description" content="First-principles engineering, economics, and geopolitics where machines meet humanity." />
+    <title id="meta-title">Silicon Carbide Imperative</title>
+
+    <!-- Open Graph Fallbacks -->
+    <meta property="og:title" id="og-title" content="Silicon Carbide Imperative" />
+    <meta property="og:description" id="og-desc" content="First-principles engineering, economics, and geopolitics where machines meet humanity." />
+
+    <!-- AUTO-GENERATED-META-START -->
+    <script>
+      (function() {
+        const params = new URLSearchParams(window.location.search);
+        const view = params.get('view');
+        const module = params.get('module');
+
+        let title = "Silicon Carbide Imperative";
+        let desc = "First-principles engineering, economics, and geopolitics where machines meet humanity.";
+
+        if (view === 'sandbox') {
+          title = "Sandbox | Silicon Carbide Imperative";
+          desc = "Interactive calculators for testing fundamental engineering and physics constraints.";
+        } else
+        if (view === 'about') {
+          title = "About | Silicon Carbide Imperative";
+          desc = "Learn about Silicon Carbide Imperative, an independent publication exploring high-friction technical interfaces from first principles.";
+        } else if (module === 'orbital-thermal-limits') {
+          title = "Orbital Thermal Limits | Silicon Carbide Imperative Sandbox";
+          desc = "Interactive model testing satellite thermal constraints, radiators, coolants, and power limits.";
+        } else if (module === 'solar-power-budget') {
+          title = "Solar Power Budget | Silicon Carbide Imperative Sandbox";
+          desc = "Interactive model evaluating orbit-averaged power output, solar flux, and eclipse constraints.";
+        } else {
+          // Fallback to default
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+          document.getElementById("meta-title").innerText = title;
+          document.getElementById("meta-desc").setAttribute("content", desc);
+          document.getElementById("og-title").setAttribute("content", title);
+          document.getElementById("og-desc").setAttribute("content", desc);
+        });
+      })();
+</script>
+    <!-- AUTO-GENERATED-META-END -->
   </head>
   <body>
     <div id="root"></div>

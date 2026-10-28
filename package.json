@@ -10,7 +10,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/generate-meta.js && tsc -b && vite build && node -e \"fs.copyFileSync('dist/index.html', 'dist/404.html')\"",
     "test": "tsx scripts/run-all-tests.ts",
     "test:thermal": "tsx src/modules/orbital-thermal-limits/model.test.ts",
     "test:solar": "tsx src/modules/solar-power-budget/model.test.ts",
