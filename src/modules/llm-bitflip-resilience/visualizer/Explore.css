@@ -27,6 +27,7 @@
 .bfr-ctl-group h4 { margin: 0; font-size: 12px; color: #9fb7c9; font-weight: 600; }
 .bfr-ctl { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
 .bfr-ctl-head { display: flex; justify-content: space-between; gap: 8px; }
+.bfr-ctl-tag { font-style: normal; font-size: 10px; color: #7f9bb0; margin-left: 6px; }
 .bfr-ctl-val { font-family: var(--mono); color: #4fb3ff; }
 .bfr-ctl input[type=range], .bfr-slider-row input { width: 100%; accent-color: #4fb3ff; }
 .bfr-ctl-desc { font-size: 11px; color: #7f9bb0; line-height: 1.35; }

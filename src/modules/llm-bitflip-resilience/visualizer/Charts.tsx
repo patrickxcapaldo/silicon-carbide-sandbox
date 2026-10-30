@@ -13,7 +13,7 @@ import {
 } from './series';
 import { MODELS, type ModelId } from '../data/radiai-measured';
 import { collapseResidualsAgainstModelB, collapseRmse, outcomeSplit, type OutcomeBatchChoice } from '../sandbox/kernel';
-import { fmtNumber, fmtPct } from './format';
+import { fmtNumber, fmtPct, fmtPow10 } from './format';
 
 /* Palette variables are resolved on screen by .bfr-chart and replaced by exportChart.ts on download. */
 const C = {
@@ -61,10 +61,13 @@ function Marker({ x, y, shape, hollow, color, size = 4.5 }: { x: number; y: numb
 export const SurvivalChart = forwardRef<SVGSVGElement, {
   params: number; alpha: number; assumeClean: boolean; axis: AxisMode; injectedFlips: number; sizeLabel: string;
 }>(function SurvivalChart({ params, alpha, assumeClean, axis, injectedFlips, sizeLabel }, ref) {
-  const H = 440;
+  /* Layout: title and subtitle, a legend band, then the plot, then ticks, axis title and footnote, each on its own line. */
+  const top = 114;
+  const pb = 420;
+  const H = pb + 66;
   const xMax = axis === 'flips' ? 120 : 30;
   const x = lin(0, xMax, M.l, W - M.r);
-  const y = lin(0, 1, H - M.b, M.t);
+  const y = lin(0, 1, pb, top);
   const curve = collapsedCurve(params, alpha, assumeClean, axis, xMax);
   const [w0, w1] = measuredWindowFlips(params, alpha);
   const xa = Math.min(xMax, flipsToAxis(w0, params, axis));
@@ -73,10 +76,13 @@ export const SurvivalChart = forwardRef<SVGSVGElement, {
   const marks = crossingMarkers(axis);
   const xTicks = axis === 'flips' ? [0, 20, 40, 60, 80, 100, 120] : [0, 5, 10, 15, 20, 25, 30];
   const n50x = n50OnAxis(params, alpha, axis);
-  const injS = collapsedCurve(params, alpha, assumeClean, axis, xMax, 1);
-  void injS;
+  const n50Off = n50x > xMax;
+  const n50Px = x(Math.min(n50x, xMax));
+  const n50Right = n50Px > W - M.r - 170;
   const injX = flipsToAxis(injectedFlips, params, axis);
   const injPoint = curve.reduce((best, p) => (Math.abs(p.x - injX) < Math.abs(best.x - injX) ? p : best), curve[0]);
+  const leftWide = x(xa) - x(0) >= 84;
+  const rightWide = x(xMax) - x(xb) >= 84;
 
   // Solid where the chosen curve sits inside the mapped measured window, dashed elsewhere.
   const runs: { measured: boolean; pts: [number, number][] }[] = [];
@@ -93,12 +99,21 @@ export const SurvivalChart = forwardRef<SVGSVGElement, {
 
   return (
     <Frame svgRef={ref} height={H} title="Survival versus dose" subtitle={`${sizeLabel} · curve collapse · α = ${alpha.toFixed(2)} · survival = accuracy > 0`} label="Survival fraction against injected bit flips for two measured models and a collapsed curve for the chosen size">
+      {/* Legend band, kept clear of the plot so the curve can never be hidden behind it */}
+      <rect x={M.l - 8} y={46} width={W - M.l - M.r + 16} height={58} rx={6} style={{ fill: C.bg, stroke: C.grid }} />
+      <g transform={`translate(${M.l + 4} 60)`}>
+        <Marker x={4} y={-2} shape="circle" hollow={false} color={C.a} /><text x={16} y={2} style={txt({ fontSize: 11 })}>{MODELS.A.shortName}, original</text>
+        <Marker x={4} y={14} shape="circle" hollow color={C.a} /><text x={16} y={18} style={txt({ fontSize: 11 })}>{MODELS.A.shortName}, replication</text>
+        <line x1={-2} x2={10} y1={30} y2={30} style={{ stroke: C.accent, strokeWidth: 2.4 }} /><text x={16} y={34} style={txt({ fontSize: 11 })}>Chosen size (assumed)</text>
+        <Marker x={304} y={-2} shape="square" hollow={false} color={C.b} /><text x={316} y={2} style={txt({ fontSize: 11 })}>{MODELS.B.shortName}, original</text>
+        <Marker x={304} y={14} shape="square" hollow color={C.b} /><text x={316} y={18} style={txt({ fontSize: 11 })}>{MODELS.B.shortName}, replication</text>
+      </g>
       {/* Unmeasured regions */}
-      <rect x={x(0)} y={M.t} width={Math.max(0, x(xa) - x(0))} height={H - M.b - M.t} style={{ fill: C.shade }} />
-      <rect x={x(xb)} y={M.t} width={Math.max(0, x(xMax) - x(xb))} height={H - M.b - M.t} style={{ fill: C.shade }} />
-      <text x={x(xa) / 2 + x(0) / 2} y={M.t + 14} textAnchor="middle" style={mono()}>{assumeClean ? 'interpolated,' : 'not measured'}</text>
-      {assumeClean && <text x={x(xa) / 2 + x(0) / 2} y={M.t + 26} textAnchor="middle" style={mono()}>not measured</text>}
-      <text x={(x(xb) + x(xMax)) / 2} y={M.t + 14} textAnchor="middle" style={mono()}>not measured</text>
+      <rect x={x(0)} y={top} width={Math.max(0, x(xa) - x(0))} height={pb - top} style={{ fill: C.shade }} />
+      <rect x={x(xb)} y={top} width={Math.max(0, x(xMax) - x(xb))} height={pb - top} style={{ fill: C.shade }} />
+      {leftWide && <text x={(x(xa) + x(0)) / 2} y={top + 14} textAnchor="middle" style={mono()}>{assumeClean ? 'interpolated,' : 'not measured'}</text>}
+      {leftWide && assumeClean && <text x={(x(xa) + x(0)) / 2} y={top + 26} textAnchor="middle" style={mono()}>not measured</text>}
+      {rightWide && <text x={(x(xb) + x(xMax)) / 2} y={top + 14} textAnchor="middle" style={mono()}>not measured</text>}
       {/* Grid and axes */}
       {[0, 0.25, 0.5, 0.75, 1].map((t) => (
         <g key={t}>
@@ -108,19 +123,19 @@ export const SurvivalChart = forwardRef<SVGSVGElement, {
       ))}
       {xTicks.map((t) => (
         <g key={t}>
-          <line x1={x(t)} x2={x(t)} y1={H - M.b} y2={H - M.b + 5} style={{ stroke: C.mute }} />
-          <text x={x(t)} y={H - M.b + 18} textAnchor="middle" style={mono()}>{t}</text>
+          <line x1={x(t)} x2={x(t)} y1={pb} y2={pb + 5} style={{ stroke: C.mute }} />
+          <text x={x(t)} y={pb + 18} textAnchor="middle" style={mono()}>{t}</text>
         </g>
       ))}
-      <text x={(M.l + W - M.r) / 2} y={H - 14} textAnchor="middle" style={txt()}>{axis === 'flips' ? 'Injected bit flips (flips)' : 'Dose (flips per billion parameters)'}</text>
-      <text transform={`translate(18 ${(M.t + H - M.b) / 2}) rotate(-90)`} textAnchor="middle" style={txt()}>Survival (fraction of trials)</text>
+      <text x={(M.l + W - M.r) / 2} y={pb + 40} textAnchor="middle" style={txt()}>{axis === 'flips' ? 'Injected bit flips (flips)' : 'Dose (flips per billion parameters)'}</text>
+      <text transform={`translate(18 ${(top + pb) / 2}) rotate(-90)`} textAnchor="middle" style={txt()}>Survival (fraction of trials)</text>
       {/* Chosen curve */}
       {runs.map((r, i) => (
         <path key={i} d={path(r.pts)} fill="none" style={{ stroke: C.accent, strokeWidth: 2.4, strokeDasharray: r.measured ? undefined : '5 4', opacity: r.measured ? 1 : 0.75 }} />
       ))}
-      {/* 50 % tolerance */}
-      <line x1={x(Math.min(n50x, xMax))} x2={x(Math.min(n50x, xMax))} y1={M.t} y2={H - M.b} style={{ stroke: C.accent, strokeDasharray: '2 3', strokeWidth: 1.2 }} />
-      <text x={x(Math.min(n50x, xMax)) + 5} y={H - M.b - 8} style={mono({ fill: C.accent })}>N50 = {fmtNumber(axis === 'flips' ? n50x : n50x, 3)} {axis === 'flips' ? 'flips' : 'FPB'}</text>
+      {/* 50 % tolerance. When it lies beyond the axis the line is pinned to the edge and the label says so. */}
+      <line x1={n50Px} x2={n50Px} y1={top} y2={pb} style={{ stroke: C.accent, strokeDasharray: '2 3', strokeWidth: 1.2 }} />
+      <text x={n50Right ? n50Px - 5 : n50Px + 5} y={pb - 8} textAnchor={n50Right ? 'end' : 'start'} style={mono({ fill: C.accent })}>N50 = {fmtNumber(n50x, 3)} {axis === 'flips' ? 'flips' : 'FPB'}{n50Off ? ' (beyond axis)' : ''}</text>
       {/* Measured points */}
       {series.map((s) => s.points.map((p) => (
         <Marker key={`${s.model}${s.batch}${p.flips}`} x={x(p.x)} y={y(p.y)} shape={s.model === 'A' ? 'circle' : 'square'} hollow={s.batch === 'replication'} color={s.model === 'A' ? C.a : C.b} />
@@ -131,16 +146,7 @@ export const SurvivalChart = forwardRef<SVGSVGElement, {
       ))}
       {/* Injected dose */}
       <circle cx={x(Math.min(injX, xMax))} cy={y(injPoint.y)} r={6} style={{ fill: 'none', stroke: C.text, strokeWidth: 1.6 }} />
-      {/* Legend */}
-      <g transform={`translate(${W - M.r - 262} ${M.t + 38})`}>
-        <rect x={-8} y={-14} width={270} height={86} rx={6} style={{ fill: C.bg, stroke: C.grid, opacity: 0.94 }} />
-        <Marker x={4} y={-2} shape="circle" hollow={false} color={C.a} /><text x={16} y={2} style={txt({ fontSize: 11 })}>{MODELS.A.shortName}, original</text>
-        <Marker x={4} y={14} shape="circle" hollow color={C.a} /><text x={16} y={18} style={txt({ fontSize: 11 })}>{MODELS.A.shortName}, replication</text>
-        <Marker x={4} y={30} shape="square" hollow={false} color={C.b} /><text x={16} y={34} style={txt({ fontSize: 11 })}>{MODELS.B.shortName}, original</text>
-        <Marker x={4} y={46} shape="square" hollow color={C.b} /><text x={16} y={50} style={txt({ fontSize: 11 })}>{MODELS.B.shortName}, replication</text>
-        <line x1={-2} x2={10} y1={62} y2={62} style={{ stroke: C.accent, strokeWidth: 2.4 }} /><text x={16} y={66} style={txt({ fontSize: 11 })}>Chosen size (assumed)</text>
-      </g>
-      <text x={M.l} y={H - 34} style={mono()}>Diamonds mark the four empirical 50 % crossings. Ring marks the injected dose.</text>
+      <text x={M.l} y={pb + 60} style={mono()}>Diamonds mark the four empirical 50 % crossings. Ring marks the injected dose.</text>
     </Frame>
   );
 });
@@ -203,8 +209,8 @@ export const ToleranceChart = forwardRef<SVGSVGElement, {
     <Frame svgRef={ref} height={H} title="Tolerance and exposure both grow with size" subtitle={`α = ${alpha.toFixed(2)} · ${bytesPerParam} B per parameter · ${fmtNumber(rate, 3)} flips/GB/month${ecc >= 0.5 ? ' · SECDED (analytic)' : ''}`} label="Tolerance in flips and memory footprint against parameter count, with the ratio of time to tolerance">
       {shade(top.t, top.b)}
       {shade(bot.t, bot.b)}
-      <text x={(x(b0) + x(mB)) / 2} y={top.t + 12} textAnchor="middle" style={mono()}>extrapolation</text>
-      <text x={(x(mA) + x(b1)) / 2} y={top.t + 12} textAnchor="middle" style={mono()}>extrapolation</text>
+      <text x={x(mB) - 8} y={top.t + 12} textAnchor="end" style={mono()}>extrapolation</text>
+      <text x={x(mA) + 8} y={top.t + 12} style={mono()}>extrapolation</text>
       {/* Top panel: dual axis */}
       {[0, 0.25, 0.5, 0.75, 1].map((t) => (
         <g key={t}>
@@ -218,9 +224,12 @@ export const ToleranceChart = forwardRef<SVGSVGElement, {
       <path d={path(data.map((d) => [x(d.billions), yN(d.n50Alpha1)]))} fill="none" style={{ stroke: C.ref, strokeWidth: 1.6, strokeDasharray: '6 4' }} />
       <path d={path(data.map((d) => [x(d.billions), yN(d.n50)]))} fill="none" style={{ stroke: C.accent, strokeWidth: 2.6 }} />
       <path d={path(data.map((d) => [x(d.billions), yG(d.footprintGb)]))} fill="none" style={{ stroke: C.a, strokeWidth: 2.2 }} />
-      <text x={x(b1) - 6} y={yN(data[data.length - 1].n50Alpha1) - 6} textAnchor="end" style={mono({ fill: C.ref })}>N50, α = 1</text>
-      <text x={x(b1) - 6} y={yN(data[data.length - 1].n50) - 6} textAnchor="end" style={mono({ fill: C.accent })}>N50, α = {alpha.toFixed(2)}</text>
-      <text x={x(b1) - 6} y={yG(data[data.length - 1].footprintGb) - 6} textAnchor="end" style={mono({ fill: C.a })}>footprint</text>
+      {/* In-panel legend. Direct end-of-line labels collided: the alpha = 1 tolerance line and the footprint line are both proportional to size, so each sits exactly on the other once its axis is scaled to its own maximum. */}
+      <g transform={`translate(${x(mA) + 12} ${top.t + 34})`}>
+        <line x1={0} x2={22} y1={0} y2={0} style={{ stroke: C.accent, strokeWidth: 2.6 }} /><text x={28} y={4} style={txt({ fontSize: 11 })}>N50, α = {alpha.toFixed(2)} (left axis)</text>
+        <line x1={0} x2={22} y1={16} y2={16} style={{ stroke: C.a, strokeWidth: 2.2 }} /><text x={28} y={20} style={txt({ fontSize: 11 })}>Weight store size (right axis)</text>
+        <line x1={0} x2={22} y1={32} y2={32} style={{ stroke: C.ref, strokeWidth: 1.6, strokeDasharray: '6 4' }} /><text x={28} y={36} style={txt({ fontSize: 11 })}>N50, α = 1 (lies on the size line)</text>
+      </g>
       {/* Bottom panel: time ratio */}
       {[0.1, 0.25, 0.5, 1, 2].map((t) => (
         <g key={t}>
@@ -231,8 +240,9 @@ export const ToleranceChart = forwardRef<SVGSVGElement, {
       <text transform={`translate(16 ${(bot.t + bot.b) / 2}) rotate(-90)`} textAnchor="middle" style={txt()}>Time to tolerance, relative to 3.09 B model</text>
       <path d={path(data.map((d) => [x(d.billions), yR(Math.min(rMax, Math.max(rMin, d.ratioAlpha1)))]))} fill="none" style={{ stroke: C.ref, strokeWidth: 1.8, strokeDasharray: '6 4' }} />
       <path d={path(data.map((d) => [x(d.billions), yR(Math.min(rMax, Math.max(rMin, d.ratio)))]))} fill="none" style={{ stroke: C.accent, strokeWidth: 2.6 }} />
-      <text x={x(b1) - 6} y={yR(1) - 6} textAnchor="end" style={mono({ fill: C.ref })}>α = 1: ratio 1.000 at every size</text>
-      <text x={M.l + 6} y={bot.t + 14} style={txt({ fontSize: 12, fontWeight: 700 })}>{MODELS.A.shortName} vs {MODELS.B.shortName} at α = {alpha.toFixed(2)}: {fmtNumber(ratioLargeVsSmall, 3)}× the time</text>
+      {/* Right of the 3.09 B crossing the curve is below the α = 1 line when α < 1 and above it when α > 1, so the label takes the other side. */}
+      <text x={x(b1) - 6} y={alpha < 1 ? yR(1) - 6 : yR(1) + 15} textAnchor="end" style={mono({ fill: C.ref })}>α = 1: ratio 1.000 at every size</text>
+      <text x={M.l} y={bot.t - 8} style={txt({ fontSize: 12, fontWeight: 700 })}>{MODELS.A.shortName} vs {MODELS.B.shortName} at α = {alpha.toFixed(2)}: {fmtNumber(ratioLargeVsSmall, 3)}× the time</text>
       {/* Shared x axis and model markers */}
       {bTicks.map((t) => (
         <g key={t}>
@@ -259,47 +269,52 @@ export const ToleranceChart = forwardRef<SVGSVGElement, {
 /* ------------------------------------------------------------------ */
 
 export const AccumulationChart = forwardRef<SVGSVGElement, { inputs: Record<string, number> }>(function AccumulationChart({ inputs }, ref) {
-  const H = 420;
+  /* Legend band above the plot: the survival curves start at 100 % on the left, exactly where an in-plot legend used to sit. */
+  const top = 110;
+  const H = 472;
+  const pb = H - 56;
   const data = accumulationSeries(inputs);
   const x = lg(0.01, 3650, M.l, W - M.r);
-  const y = lin(0, 1, H - M.b, M.t);
+  const y = lin(0, 1, pb, top);
   const lamMin = 1e-4;
   const lamMax = 1e8;
-  const yL = lg(lamMin, lamMax, H - M.b, M.t);
+  const yL = lg(lamMin, lamMax, pb, top);
   const tickDays = [0.01, 0.1, 1, 10, 100, 1000];
+  const lamTicks: [number, number][] = [[1e-3, -3], [1e-1, -1], [1e1, 1], [1e3, 3], [1e5, 5], [1e7, 7]];
   const cur = inputs.scrubIntervalDays;
   const firstBeyond = data.find((d) => d.beyondMeasured);
   return (
     <Frame svgRef={ref} height={H} title="Accumulation over a scrub interval" subtitle={`${fmtNumber(inputs.upsetRateFlipsPerGbMonth, 3)} flips/GB/month (user-set) · ${fmtNumber(inputs.modelParamsBillions, 3)} B parameters`} label="Expected survival and expected raw flips against scrub interval, with and without SECDED">
-      {firstBeyond && <rect x={x(firstBeyond.days)} y={M.t} width={x(3650) - x(firstBeyond.days)} height={H - M.b - M.t} style={{ fill: C.shade }} />}
-      {firstBeyond && <text x={(x(firstBeyond.days) + x(3650)) / 2} y={M.t + 14} textAnchor="middle" style={mono()}>beyond measured dose</text>}
+      <rect x={M.l - 8} y={46} width={W - M.l - M.r + 16} height={58} rx={6} style={{ fill: C.bg, stroke: C.grid }} />
+      <g transform={`translate(${M.l + 4} 60)`}>
+        <line x1={0} x2={22} y1={0} y2={0} style={{ stroke: C.accent, strokeWidth: 2.6 }} /><text x={28} y={4} style={txt({ fontSize: 11 })}>No ECC (measured fault model)</text>
+        <line x1={0} x2={22} y1={16} y2={16} style={{ stroke: C.ref, strokeWidth: 2.2, strokeDasharray: '7 4' }} /><text x={28} y={20} style={txt({ fontSize: 11 })}>SECDED (analytic extension, not measured)</text>
+        <line x1={0} x2={22} y1={32} y2={32} style={{ stroke: C.a, strokeWidth: 1.8, strokeDasharray: '2 3' }} /><text x={28} y={36} style={txt({ fontSize: 11 })}>Expected raw flips (right axis)</text>
+      </g>
+      {firstBeyond && <rect x={x(firstBeyond.days)} y={top} width={x(3650) - x(firstBeyond.days)} height={pb - top} style={{ fill: C.shade }} />}
+      {firstBeyond && x(3650) - x(firstBeyond.days) >= 130 && <text x={(x(firstBeyond.days) + x(3650)) / 2} y={top + 14} textAnchor="middle" style={mono()}>beyond measured dose</text>}
       {[0, 0.25, 0.5, 0.75, 1].map((t) => (
         <g key={t}>
           <line x1={M.l} x2={W - M.r} y1={y(t)} y2={y(t)} style={{ stroke: C.grid, strokeWidth: 0.8 }} />
           <text x={M.l - 8} y={y(t) + 4} textAnchor="end" style={mono()}>{Math.round(t * 100)} %</text>
         </g>
       ))}
-      {[1e-3, 1e-1, 1e1, 1e3, 1e5, 1e7].map((t) => (
-        <text key={t} x={W - M.r + 8} y={yL(t) + 4} style={mono({ fill: C.a })}>{fmtNumber(t, 1)}</text>
+      {lamTicks.map(([t, e]) => (
+        <text key={e} x={W - M.r + 8} y={yL(t) + 4} style={mono({ fill: C.a })}>{fmtPow10(e)}</text>
       ))}
       {tickDays.map((t) => (
         <g key={t}>
-          <line x1={x(t)} x2={x(t)} y1={H - M.b} y2={H - M.b + 5} style={{ stroke: C.mute }} />
-          <text x={x(t)} y={H - M.b + 18} textAnchor="middle" style={mono()}>{t}</text>
+          <line x1={x(t)} x2={x(t)} y1={pb} y2={pb + 5} style={{ stroke: C.mute }} />
+          <text x={x(t)} y={pb + 18} textAnchor="middle" style={mono()}>{t}</text>
         </g>
       ))}
       <text x={(M.l + W - M.r) / 2} y={H - 14} textAnchor="middle" style={txt()}>Scrub or reload interval (days, log scale)</text>
-      <text transform={`translate(18 ${(M.t + H - M.b) / 2}) rotate(-90)`} textAnchor="middle" style={txt()}>Expected survival</text>
-      <text transform={`translate(${W - 12} ${(M.t + H - M.b) / 2}) rotate(90)`} textAnchor="middle" style={txt({ fill: C.a })}>Expected raw flips per interval</text>
+      <text transform={`translate(18 ${(top + pb) / 2}) rotate(-90)`} textAnchor="middle" style={txt()}>Expected survival</text>
+      <text transform={`translate(${W - 8} ${(top + pb) / 2}) rotate(90)`} textAnchor="middle" style={txt({ fill: C.a })}>Expected raw flips per interval</text>
       <path d={path(data.map((d) => [x(d.days), yL(Math.min(lamMax, Math.max(lamMin, d.lambda)))]))} fill="none" style={{ stroke: C.a, strokeWidth: 1.8, strokeDasharray: '2 3' }} />
       <path d={path(data.map((d) => [x(d.days), y(d.surv)]))} fill="none" style={{ stroke: C.accent, strokeWidth: 2.6 }} />
       <path d={path(data.map((d) => [x(d.days), y(d.survEcc)]))} fill="none" style={{ stroke: C.ref, strokeWidth: 2.2, strokeDasharray: '7 4' }} />
-      <line x1={x(Math.min(3650, Math.max(0.01, cur)))} x2={x(Math.min(3650, Math.max(0.01, cur)))} y1={M.t} y2={H - M.b} style={{ stroke: C.text, strokeWidth: 1, strokeDasharray: '1 4' }} />
-      <g transform={`translate(${M.l + 12} ${M.t + 14})`}>
-        <line x1={0} x2={22} y1={0} y2={0} style={{ stroke: C.accent, strokeWidth: 2.6 }} /><text x={28} y={4} style={txt({ fontSize: 11 })}>No ECC (measured fault model)</text>
-        <line x1={0} x2={22} y1={16} y2={16} style={{ stroke: C.ref, strokeWidth: 2.2, strokeDasharray: '7 4' }} /><text x={28} y={20} style={txt({ fontSize: 11 })}>SECDED (analytic extension, not measured)</text>
-        <line x1={0} x2={22} y1={32} y2={32} style={{ stroke: C.a, strokeWidth: 1.8, strokeDasharray: '2 3' }} /><text x={28} y={36} style={txt({ fontSize: 11 })}>Expected raw flips (right axis)</text>
-      </g>
+      <line x1={x(Math.min(3650, Math.max(0.01, cur)))} x2={x(Math.min(3650, Math.max(0.01, cur)))} y1={top} y2={pb} style={{ stroke: C.text, strokeWidth: 1, strokeDasharray: '1 4' }} />
     </Frame>
   );
 });
@@ -309,13 +324,14 @@ export const AccumulationChart = forwardRef<SVGSVGElement, { inputs: Record<stri
 /* ------------------------------------------------------------------ */
 
 export const OutcomeChart = forwardRef<SVGSVGElement, { model: ModelId; batch: OutcomeBatchChoice; highlightFlips: number }>(function OutcomeChart({ model, batch, highlightFlips }, ref) {
-  const H = 440;
+  const H = 470;
   const data = outcomeSplit(model, batch);
   const x0 = M.l;
   const x1 = W - M.r;
   const slot = (x1 - x0) / data.length;
   const bw = Math.min(64, slot * 0.62);
-  const y = lin(0, 1, H - M.b - 22, M.t + 8);
+  const barTop = M.t + 26; // legend row sits between the subtitle and the bars
+  const y = lin(0, 1, H - M.b - 22, barTop);
   const layers = [
     { key: 'intact', label: 'Intact (within 10 points of clean)', fill: C.a },
     { key: 'impaired', label: 'Impaired', fill: C.b },
@@ -335,7 +351,7 @@ export const OutcomeChart = forwardRef<SVGSVGElement, { model: ModelId; batch: O
         let acc = 0;
         return (
           <g key={d.flips}>
-            {d.flips === highlightFlips && <rect x={cx - slot / 2 + 2} y={M.t} width={slot - 4} height={H - M.b - M.t} style={{ fill: C.shade }} />}
+            {d.flips === highlightFlips && <rect x={cx - slot / 2 + 2} y={barTop - 4} width={slot - 4} height={H - M.b - barTop + 4} style={{ fill: C.shade }} />}
             {layers.map((l) => {
               const frac = d[l.key] / d.n;
               const top = y(acc + frac);
@@ -349,9 +365,9 @@ export const OutcomeChart = forwardRef<SVGSVGElement, { model: ModelId; batch: O
         );
       })}
       <text x={M.l - 54} y={H - M.b - 6} style={mono()}>flips</text>
-      <text x={M.l - 54} y={H - M.b + 10} style={mono({ fill: C.accent })}>SC share of survivors</text>
+      <text x={M.l} y={H - M.b + 28} style={mono({ fill: C.accent })}>Purple figures: Semantic Collapse share of the trials that survived</text>
       <text x={(x0 + x1) / 2} y={H - 14} textAnchor="middle" style={txt()}>Injected bit flips (measured doses only)</text>
-      <g transform={`translate(${M.l} ${M.t - 2})`}>
+      <g transform={`translate(${M.l} ${M.t + 6})`}>
         {layers.map((l, i) => (
           <g key={l.key} transform={`translate(${i * 172} 0)`}>
             <rect width={10} height={10} y={-2} style={{ fill: l.fill }} /><text x={14} y={7} style={mono({ fontSize: 9.5 })}>{l.label.split(' (')[0]}</text>

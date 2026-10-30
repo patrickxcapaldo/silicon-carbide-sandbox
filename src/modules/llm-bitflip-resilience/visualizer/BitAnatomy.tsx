@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { bit14Case, bitClass, fp16Decode, fp16Encode, fp16Fields, flipBit, flipEffect, P_BIT_CLASS } from '../sandbox/kernel';
+import { bit14Case, bitClass, fp16Decode, fp16Encode, fp16Fields, flipEffect, P_BIT_CLASS, type FlipEffect } from '../sandbox/kernel';
 import { bitString, fmtFactor, fmtNumber, fmtPct, hex16 } from './format';
 
 const CLASS_LABEL = { sign: 'Sign', exponent: 'Exponent', mantissa: 'Mantissa' } as const;
@@ -8,11 +8,12 @@ const CLASS_LABEL = { sign: 'Sign', exponent: 'Exponent', mantissa: 'Mantissa' }
 export function BitAnatomy({ weightMagnitude, injectedFlips, pBit14, pExponent }: { weightMagnitude: number; injectedFlips: number; pBit14: number; pExponent: number }) {
   const base = fp16Encode(weightMagnitude);
   const [bits, setBits] = useState(base);
-  const [last, setLast] = useState<number | null>(null);
+  const [last, setLast] = useState<FlipEffect | null>(null);
   const before = fp16Decode(base);
   const now = fp16Decode(bits);
   const f = fp16Fields(bits);
-  const single = last !== null ? flipEffect(base, last) : null;
+  /** Flip bit k of the pattern as it stands now, and remember what that one click did. */
+  const flip = (from: number, k: number) => { const effect = flipEffect(from, k); setBits(effect.bitsAfter); setLast(effect); };
   const cells = Array.from({ length: 16 }, (_, i) => 15 - i);
 
   return (
@@ -24,7 +25,7 @@ export function BitAnatomy({ weightMagnitude, injectedFlips, pBit14, pExponent }
           const changed = ((bits ^ base) >> k) & 1;
           return (
             <button key={k} type="button" className={`bfr-bit bfr-${bitClass(k)}${on ? ' on' : ''}${changed ? ' changed' : ''}`} aria-pressed={on} aria-label={`Bit ${k}, ${bitClass(k)}, value ${on ? 1 : 0}`}
-              onClick={() => { setBits(flipBit(bits, k)); setLast(k); }}>
+              onClick={() => flip(bits, k)}>
               <span className="bfr-bit-val">{on ? 1 : 0}</span>
               <span className="bfr-bit-idx">{k}</span>
             </button>
@@ -36,12 +37,12 @@ export function BitAnatomy({ weightMagnitude, injectedFlips, pBit14, pExponent }
         <div><span>Pattern</span><strong>{hex16(bits)}</strong><em>{bitString(bits)}</em></div>
         <div><span>Original weight</span><strong>{fmtNumber(before, 4)}</strong><em>chosen magnitude, nearest FP16</em></div>
         <div><span>Decoded weight now</span><strong>{Number.isFinite(now) ? fmtNumber(now, 4) : Number.isNaN(now) ? 'NaN bit pattern' : (now > 0 ? '+Inf bit pattern' : '−Inf bit pattern')}</strong><em>sign {f.sign}, exponent {f.exponent}, mantissa {f.mantissa}</em></div>
-        <div><span>Change against original</span><strong>{bits === base ? '× 1' : fmtFactor(now / before)}</strong><em>{last !== null && single ? `last click: bit ${last}, ${CLASS_LABEL[single.bitClass]}${single.log2Swing !== undefined ? `, 2^${single.log2Swing > 0 ? '+' : ''}${single.log2Swing}` : ''}` : 'click a bit'}</em></div>
+        <div><span>Change against original</span><strong>{bits === base ? '× 1' : fmtFactor(now / before)}</strong><em>{last !== null ? `last click: bit ${last.bit}, ${CLASS_LABEL[last.bitClass]}${last.log2Swing !== undefined ? `, 2^${last.log2Swing > 0 ? '+' : ''}${last.log2Swing}` : ''}` : 'click a bit'}</em></div>
       </div>
       <div className="bfr-quick">
-        <button type="button" onClick={() => { setBits(flipBit(base, 14)); setLast(14); }}>Flip bit 14</button>
-        <button type="button" onClick={() => { setBits(flipBit(base, 9)); setLast(9); }}>Flip bit 9</button>
-        <button type="button" onClick={() => { setBits(flipBit(base, 15)); setLast(15); }}>Flip sign</button>
+        <button type="button" onClick={() => flip(base, 14)}>Flip bit 14</button>
+        <button type="button" onClick={() => flip(base, 9)}>Flip bit 9</button>
+        <button type="button" onClick={() => flip(base, 15)}>Flip sign</button>
         <button type="button" onClick={() => { setBits(base); setLast(null); }}>Reset</button>
       </div>
       <div className="bfr-readouts">

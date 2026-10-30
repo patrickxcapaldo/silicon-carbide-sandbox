@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { llmBitflipResilience, INPUT_SPECS } from '../sandbox/module';
 import { nearestMeasuredDose, nearestMeasuredModel, scSurvivorShareLowHigh, t50Days, scShareOfTrialsInBatch, type OutcomeBatchChoice } from '../sandbox/kernel';
 import { MODELS, type ModelId } from '../data/radiai-measured';
@@ -40,7 +40,23 @@ export function BitflipVisualizer({ inputs, onChange, onExport }: { inputs: Reco
     const base = { bytesPerParam: result.resolvedInputs.bytesPerParam, upsetRateFlipsPerGbMonth: result.resolvedInputs.upsetRateFlipsPerGbMonth, toleranceExponent: alpha, eccEnabled: result.resolvedInputs.eccEnabled, mbuFraction: result.resolvedInputs.mbuFraction };
     return t50Days(MODELS.A.params, base) / t50Days(MODELS.B.params, base);
   }, [result.resolvedInputs, alpha]);
-  const reset = () => INPUT_SPECS.forEach((s) => onChange(s.key, s.defaultValue));
+  /* Reset restores only the inputs that differ from their defaults, one per tick, always through the latest onChange.
+     Firing every onChange synchronously is unsafe: a parent that writes setInputs({ ...inputs, [id]: v }) would apply each call to the same
+     stale snapshot, so only the last one would survive and the rest of the reset would be lost. */
+  const latestOnChange = useRef(onChange);
+  const resetTimer = useRef<number | undefined>(undefined);
+  useEffect(() => { latestOnChange.current = onChange; });
+  useEffect(() => () => window.clearTimeout(resetTimer.current), []);
+  const reset = () => {
+    window.clearTimeout(resetTimer.current);
+    const pending = INPUT_SPECS.filter((s) => result.resolvedInputs[s.key] !== s.defaultValue);
+    const step = (i: number) => {
+      if (i >= pending.length) return;
+      latestOnChange.current(pending[i].key, pending[i].defaultValue);
+      resetTimer.current = window.setTimeout(() => step(i + 1), 30);
+    };
+    step(0);
+  };
   const shownOutcomeModel: ModelId = outcomeModel === 'follow' ? nearestMeasuredModel(params) : outcomeModel;
   const outcomeShare = scSurvivorShareLowHigh(shownOutcomeModel, outcomeBatch);
   const exportable = view === 'survival' || view === 'tolerance' || view === 'accumulation' || (view === 'outcomes' && showOutcomes);
@@ -104,7 +120,7 @@ export function BitflipVisualizer({ inputs, onChange, onExport }: { inputs: Reco
             </div>
           )}
         </div>
-        <ControlPanel inputs={result.resolvedInputs} onChange={onChange} onReset={reset} onExport={onExport} />
+        <ControlPanel inputs={result.resolvedInputs} view={view} onChange={onChange} onReset={reset} onExport={onExport} />
       </section>
       <details open className="challenge-explorer-limits bfr-readout">
         <summary>Results</summary>

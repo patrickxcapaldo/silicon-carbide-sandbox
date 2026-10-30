@@ -119,7 +119,7 @@ export function accumulationSeries(inputs: Record<string, number>, steps = 80): 
   return out;
 }
 
-/* ---------- log slider mapping ---------- */
+/* ---------- slider mapping ---------- */
 
 export function logToPos(value: number, min: number, max: number): number {
   return (Math.log10(value) - Math.log10(min)) / (Math.log10(max) - Math.log10(min));
@@ -128,6 +128,71 @@ export function logToPos(value: number, min: number, max: number): number {
 export function posToLog(pos: number, min: number, max: number): number {
   return 10 ** (Math.log10(min) + pos * (Math.log10(max) - Math.log10(min)));
 }
+
+export type SliderScale = 'linear' | 'log' | 'sqrt';
+
+/**
+ * Track mapping per control. Anything that spans several orders of magnitude is
+ * log (weightMagnitude spans 6e-5 to 65 504, so on a linear track its first
+ * usable position was 164). injectedFlips spans 0 to 1000 but the measured
+ * window is 20 to 80, so a square-root track gives that window useful width.
+ */
+export const SLIDER_SCALE: Record<string, SliderScale> = {
+  modelParamsBillions: 'log',
+  upsetRateFlipsPerGbMonth: 'log',
+  scrubIntervalDays: 'log',
+  weightMagnitude: 'log',
+  injectedFlips: 'sqrt',
+};
+
+/** Step for linear tracks, and the rounding grid for the sqrt track. Values chosen so presets (2 bytes, alpha 0.32, alpha 1) are reachable exactly. */
+export const SLIDER_STEP: Record<string, number> = {
+  bytesPerParam: 0.5,
+  toleranceExponent: 0.01,
+  mbuFraction: 0.01,
+  memoryWPerGb: 0.005,
+  injectedFlips: 1,
+};
+
+function snap(v: number, step: number | undefined, min: number, max: number): number {
+  if (!step) return v;
+  const snapped = min + Math.round((v - min) / step) * step;
+  return Math.min(max, Math.max(min, parseFloat(snapped.toFixed(9))));
+}
+
+/** Value to track position (0..1) for curved tracks. */
+export function valueToSlider(value: number, min: number, max: number, scale: SliderScale): number {
+  if (scale === 'log') return logToPos(Math.max(value, min), min, max);
+  if (scale === 'sqrt') return Math.sqrt(Math.max(0, (value - min) / (max - min)));
+  return (value - min) / (max - min);
+}
+
+/** Track position (0..1) to value for curved tracks, snapped to the control's step. */
+export function sliderToValue(pos: number, min: number, max: number, scale: SliderScale, step?: number): number {
+  if (scale === 'log') return posToLog(pos, min, max);
+  if (scale === 'sqrt') return snap(min + pos * pos * (max - min), step, min, max);
+  return snap(min + pos * (max - min), step, min, max);
+}
+
+/* ---------- which controls drive which view ---------- */
+
+/** Controls that change the chart or readouts of each view. Pure data; used to tell the person which sliders are idle in the current view. */
+export const CONTROLS_USED_BY_VIEW: Record<string, string[]> = {
+  anatomy: ['weightMagnitude', 'injectedFlips'],
+  survival: ['modelParamsBillions', 'toleranceExponent', 'assumeCleanAtZero', 'injectedFlips'],
+  tolerance: ['modelParamsBillions', 'bytesPerParam', 'toleranceExponent', 'eccEnabled', 'mbuFraction'],
+  accumulation: ['modelParamsBillions', 'bytesPerParam', 'upsetRateFlipsPerGbMonth', 'scrubIntervalDays', 'toleranceExponent', 'mbuFraction', 'assumeCleanAtZero'],
+  outcomes: ['modelParamsBillions', 'injectedFlips'],
+  canary: [],
+  split: [],
+  provenance: [],
+};
+
+/** Controls that feed the Results panel under the canvas, whichever view is open. */
+export const CONTROLS_IN_RESULTS: string[] = [
+  'modelParamsBillions', 'bytesPerParam', 'upsetRateFlipsPerGbMonth', 'scrubIntervalDays', 'toleranceExponent',
+  'eccEnabled', 'mbuFraction', 'memoryWPerGb', 'assumeCleanAtZero',
+];
 
 /** Reference anchor, for labels. */
 export const ANCHOR_FLIPS = N50_REF;
