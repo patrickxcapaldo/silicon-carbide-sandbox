@@ -3,7 +3,7 @@ import { INPUT_SPECS } from '../sandbox/module';
 import { ALPHA_PRESETS, CRUISE_RATE_RANGE_FLIPS_PER_GB_MONTH } from '../sandbox/kernel';
 import { MODELS } from '../data/radiai-measured';
 import { fmtNumber } from './format';
-import { CONTROLS_IN_RESULTS, CONTROLS_USED_BY_VIEW, SLIDER_SCALE, SLIDER_STEP, sliderToValue, valueToSlider } from './series';
+import { CONTROL_HOME_VIEW, SLIDER_SCALE, SLIDER_STEP, sliderToValue, valueToSlider } from './series';
 
 const TITLE: Record<string, string> = {
   modelParamsBillions: 'Model Parameters', bytesPerParam: 'Bytes Per Parameter', upsetRateFlipsPerGbMonth: 'Upset Rate',
@@ -32,19 +32,16 @@ function PresetButton({ active, onClick, children }: { active: boolean; onClick:
   );
 }
 
-type Relevance = 'used' | 'results' | 'idle';
-
-function Slider({ k, value, onChange, relevance }: { k: string; value: number; onChange: (v: number) => void; relevance: Relevance }) {
+function Slider({ k, value, onChange, jump }: { k: string; value: number; onChange: (v: number) => void; jump: { label: string; go: () => void } | null }) {
   const spec = INPUT_SPECS.find((s) => s.key === k)!;
   const scale = SLIDER_SCALE[k] ?? 'linear';
   const curved = scale !== 'linear';
   const isToggle = spec.max === 1 && spec.min === 0 && (k === 'eccEnabled' || k === 'assumeCleanAtZero');
   const min = spec.min!;
   const max = spec.max!;
-  const tag = relevance === 'results' ? 'results panel only' : relevance === 'idle' ? 'not used in this view' : '';
   return (
-    <div className={relevance === 'used' ? 'bfr-ctl' : 'bfr-ctl bfr-dim'}>
-      <div className="bfr-ctl-head"><span title={spec.description}>{TITLE[k]}{tag && <em className="bfr-ctl-tag">{tag}</em>}</span><span className="bfr-ctl-val">{isToggle ? (value >= 0.5 ? 'On' : 'Off') : `${fmtNumber(value, 4)} ${spec.unit}`}</span></div>
+    <div className={jump ? 'bfr-ctl bfr-dim' : 'bfr-ctl'}>
+      <div className="bfr-ctl-head"><span title={spec.description}>{TITLE[k]}{jump && <button type="button" className="bfr-ctl-tag" onClick={jump.go}>→ {jump.label}</button>}</span><span className="bfr-ctl-val">{isToggle ? (value >= 0.5 ? 'On' : 'Off') : `${fmtNumber(value, 4)} ${spec.unit}`}</span></div>
       {isToggle ? (
         <div style={{ display: 'flex', gap: 6 }}><SegButton active={value < 0.5} onClick={() => onChange(0)}>Off</SegButton><SegButton active={value >= 0.5} onClick={() => onChange(1)}>On</SegButton></div>
       ) : (
@@ -57,14 +54,13 @@ function Slider({ k, value, onChange, relevance }: { k: string; value: number; o
   );
 }
 
-export function ControlPanel({ inputs, view, onChange, onReset, onExport }: { inputs: Record<string, number>; view: string; onChange: (k: string, v: number) => void; onReset: () => void; onExport: () => void }) {
+export function ControlPanel({ inputs, view, onChange, onJump, viewLabel, onReset, onExport }: { inputs: Record<string, number>; view: string; onChange: (k: string, v: number) => void; onJump: (view: string) => void; viewLabel: (view: string) => string; onReset: () => void; onExport: () => void }) {
   const [open, setOpen] = useState(true);
   const rate = inputs.upsetRateFlipsPerGbMonth;
   const [rLo, rHi] = CRUISE_RATE_RANGE_FLIPS_PER_GB_MONTH;
   const rateInside = rate >= rLo && rate <= rHi;
   const near = (a: number, b: number) => Math.abs(a - b) < 1e-3;
-  const usedHere = CONTROLS_USED_BY_VIEW[view] ?? [];
-  const relevance = (k: string): Relevance => (usedHere.includes(k) ? 'used' : CONTROLS_IN_RESULTS.includes(k) ? 'results' : 'idle');
+  const jumpFor = (k: string) => { const home = CONTROL_HOME_VIEW[k]; return home && home !== view ? { label: viewLabel(home), go: () => onJump(home) } : null; };
   return (
     <aside className="bfr-controls" aria-label="Controls">
       <div className="bfr-controls-head">
@@ -83,7 +79,7 @@ export function ControlPanel({ inputs, view, onChange, onReset, onExport }: { in
             <div key={g.title} className="bfr-ctl-group"><h4>{g.title}</h4>
               {g.keys.map((k) => (
                 <div key={k}>
-                  <Slider k={k} value={inputs[k]} onChange={(v) => onChange(k, v)} relevance={relevance(k)} />
+                  <Slider k={k} value={inputs[k]} onChange={(v) => onChange(k, v)} jump={jumpFor(k)} />
                   {k === 'upsetRateFlipsPerGbMonth' && <div className={rateInside ? 'bfr-region ok' : 'bfr-region warn'}>{rateInside ? `Inside the paper’s illustrative range, ${rLo}–${rHi} flips/GB/month (citing JESD89A).` : 'User-defined, unvalidated: outside the paper’s illustrative range.'}</div>}
                 </div>
               ))}

@@ -13,7 +13,7 @@ import {
 } from './series';
 import { MODELS, type ModelId } from '../data/radiai-measured';
 import { collapseResidualsAgainstModelB, collapseRmse, outcomeSplit, type OutcomeBatchChoice } from '../sandbox/kernel';
-import { fmtNumber, fmtPct, fmtPow10 } from './format';
+import { fmtDays, fmtNumber, fmtPct, fmtPow10 } from './format';
 
 /* Palette variables are resolved on screen by .bfr-chart and replaced by exportChart.ts on download. */
 const C = {
@@ -59,12 +59,12 @@ function Marker({ x, y, shape, hollow, color, size = 4.5 }: { x: number; y: numb
 /* ------------------------------------------------------------------ */
 
 export const SurvivalChart = forwardRef<SVGSVGElement, {
-  params: number; alpha: number; assumeClean: boolean; axis: AxisMode; injectedFlips: number; sizeLabel: string;
-}>(function SurvivalChart({ params, alpha, assumeClean, axis, injectedFlips, sizeLabel }, ref) {
+  params: number; alpha: number; assumeClean: boolean; axis: AxisMode; injectedFlips: number; sizeLabel: string; intervalFlips: number; intervalSurvival: number;
+}>(function SurvivalChart({ params, alpha, assumeClean, axis, injectedFlips, sizeLabel, intervalFlips, intervalSurvival }, ref) {
   /* Layout: title and subtitle, a legend band, then the plot, then ticks, axis title and footnote, each on its own line. */
   const top = 114;
   const pb = 420;
-  const H = pb + 66;
+  const H = pb + 84;
   const xMax = axis === 'flips' ? 120 : 30;
   const x = lin(0, xMax, M.l, W - M.r);
   const y = lin(0, 1, pb, top);
@@ -81,6 +81,10 @@ export const SurvivalChart = forwardRef<SVGSVGElement, {
   const n50Right = n50Px > W - M.r - 170;
   const injX = flipsToAxis(injectedFlips, params, axis);
   const injPoint = curve.reduce((best, p) => (Math.abs(p.x - injX) < Math.abs(best.x - injX) ? p : best), curve[0]);
+  const intX = flipsToAxis(intervalFlips, params, axis);
+  const intOff = intX > xMax;
+  const intPx = x(Math.min(intX, xMax));
+  const intRight = intPx > W - M.r - (intOff ? 345 : 260);
   const leftWide = x(xa) - x(0) >= 84;
   const rightWide = x(xMax) - x(xb) >= 84;
 
@@ -136,6 +140,9 @@ export const SurvivalChart = forwardRef<SVGSVGElement, {
       {/* 50 % tolerance. When it lies beyond the axis the line is pinned to the edge and the label says so. */}
       <line x1={n50Px} x2={n50Px} y1={top} y2={pb} style={{ stroke: C.accent, strokeDasharray: '2 3', strokeWidth: 1.2 }} />
       <text x={n50Right ? n50Px - 5 : n50Px + 5} y={pb - 8} textAnchor={n50Right ? 'end' : 'start'} style={mono({ fill: C.accent })}>N50 = {fmtNumber(n50x, 3)} {axis === 'flips' ? 'flips' : 'FPB'}{n50Off ? ' (beyond axis)' : ''}</text>
+      {/* Where the scrub interval ends: expected raw flips accumulated after one interval (effective flips with SECDED) */}
+      <line x1={intPx} x2={intPx} y1={top} y2={pb} style={{ stroke: C.text, strokeWidth: 1, strokeDasharray: '1 4' }} />
+      <text x={intRight ? intPx - 5 : intPx + 5} y={pb - 26} textAnchor={intRight ? 'end' : 'start'} style={mono({ fill: C.text, stroke: C.bg, strokeWidth: 3, paintOrder: 'stroke' })}>one scrub interval: {fmtNumber(intervalFlips, 3)} flips{intOff ? ' (beyond axis)' : ''} → {fmtPct(intervalSurvival, 0)}</text>
       {/* Measured points */}
       {series.map((s) => s.points.map((p) => (
         <Marker key={`${s.model}${s.batch}${p.flips}`} x={x(p.x)} y={y(p.y)} shape={s.model === 'A' ? 'circle' : 'square'} hollow={s.batch === 'replication'} color={s.model === 'A' ? C.a : C.b} />
@@ -147,6 +154,7 @@ export const SurvivalChart = forwardRef<SVGSVGElement, {
       {/* Injected dose */}
       <circle cx={x(Math.min(injX, xMax))} cy={y(injPoint.y)} r={6} style={{ fill: 'none', stroke: C.text, strokeWidth: 1.6 }} />
       <text x={M.l} y={pb + 60} style={mono()}>Diamonds mark the four empirical 50 % crossings. Ring marks the injected dose.</text>
+      <text x={M.l} y={pb + 74} style={mono()}>White dotted line: flips expected after one scrub interval.</text>
     </Frame>
   );
 });
@@ -181,8 +189,8 @@ export function ResidualTable({ alpha }: { alpha: number }) {
 /* ------------------------------------------------------------------ */
 
 export const ToleranceChart = forwardRef<SVGSVGElement, {
-  alpha: number; bytesPerParam: number; rate: number; ecc: number; mbu: number; ratioLargeVsSmall: number; currentBillions: number;
-}>(function ToleranceChart({ alpha, bytesPerParam, rate, ecc, mbu, ratioLargeVsSmall, currentBillions }, ref) {
+  alpha: number; bytesPerParam: number; rate: number; ecc: number; mbu: number; ratioLargeVsSmall: number; currentBillions: number; t50Days: number;
+}>(function ToleranceChart({ alpha, bytesPerParam, rate, ecc, mbu, ratioLargeVsSmall, currentBillions, t50Days }, ref) {
   const H = 640;
   const data = toleranceSeries(alpha, bytesPerParam, rate, ecc, mbu);
   const [b0, b1] = TOLERANCE_X_RANGE_B;
@@ -242,6 +250,7 @@ export const ToleranceChart = forwardRef<SVGSVGElement, {
       <path d={path(data.map((d) => [x(d.billions), yR(Math.min(rMax, Math.max(rMin, d.ratio)))]))} fill="none" style={{ stroke: C.accent, strokeWidth: 2.6 }} />
       {/* Right of the 3.09 B crossing the curve is below the α = 1 line when α < 1 and above it when α > 1, so the label takes the other side. */}
       <text x={x(b1) - 6} y={alpha < 1 ? yR(1) - 6 : yR(1) + 15} textAnchor="end" style={mono({ fill: C.ref })}>α = 1: ratio 1.000 at every size</text>
+      <text x={M.l} y={bot.t - 26} style={txt({ fontSize: 11, fill: C.accent })}>Chosen size, {fmtNumber(currentBillions, 3)} B: reaches its 50 % tolerance in {fmtDays(t50Days)} at {fmtNumber(rate, 3)} flips/GB/month{currentBillions < b0 || currentBillions > b1 ? ' (outside the 1–100 B axis)' : ''}</text>
       <text x={M.l} y={bot.t - 8} style={txt({ fontSize: 12, fontWeight: 700 })}>{MODELS.A.shortName} vs {MODELS.B.shortName} at α = {alpha.toFixed(2)}: {fmtNumber(ratioLargeVsSmall, 3)}× the time</text>
       {/* Shared x axis and model markers */}
       {bTicks.map((t) => (
@@ -258,6 +267,9 @@ export const ToleranceChart = forwardRef<SVGSVGElement, {
         </g>
       ))}
       {currentBillions >= b0 && currentBillions <= b1 && (
+        <circle cx={x(currentBillions)} cy={yR(Math.min(rMax, Math.max(rMin, data.reduce((best, d) => (Math.abs(d.billions - currentBillions) < Math.abs(best.billions - currentBillions) ? d : best), data[0]).ratio)))} r={5.5} style={{ fill: 'none', stroke: C.text, strokeWidth: 1.6 }} />
+      )}
+      {currentBillions >= b0 && currentBillions <= b1 && (
         <circle cx={x(currentBillions)} cy={yN(data.reduce((best, d) => (Math.abs(d.billions - currentBillions) < Math.abs(best.billions - currentBillions) ? d : best), data[0]).n50)} r={5.5} style={{ fill: 'none', stroke: C.text, strokeWidth: 1.6 }} />
       )}
     </Frame>
@@ -268,7 +280,7 @@ export const ToleranceChart = forwardRef<SVGSVGElement, {
 /* View 4: accumulation                                                 */
 /* ------------------------------------------------------------------ */
 
-export const AccumulationChart = forwardRef<SVGSVGElement, { inputs: Record<string, number> }>(function AccumulationChart({ inputs }, ref) {
+export const AccumulationChart = forwardRef<SVGSVGElement, { inputs: Record<string, number>; current: { surv: number; survEcc: number } }>(function AccumulationChart({ inputs, current }, ref) {
   /* Legend band above the plot: the survival curves start at 100 % on the left, exactly where an in-plot legend used to sit. */
   const top = 110;
   const H = 472;
@@ -283,6 +295,8 @@ export const AccumulationChart = forwardRef<SVGSVGElement, { inputs: Record<stri
   const lamTicks: [number, number][] = [[1e-3, -3], [1e-1, -1], [1e1, 1], [1e3, 3], [1e5, 5], [1e7, 7]];
   const cur = inputs.scrubIntervalDays;
   const firstBeyond = data.find((d) => d.beyondMeasured);
+  const curX = x(Math.min(3650, Math.max(0.01, cur)));
+  const curRight = curX > W - M.r - 265;
   return (
     <Frame svgRef={ref} height={H} title="Accumulation over a scrub interval" subtitle={`${fmtNumber(inputs.upsetRateFlipsPerGbMonth, 3)} flips/GB/month (user-set) · ${fmtNumber(inputs.modelParamsBillions, 3)} B parameters`} label="Expected survival and expected raw flips against scrub interval, with and without SECDED">
       <rect x={M.l - 8} y={46} width={W - M.l - M.r + 16} height={58} rx={6} style={{ fill: C.bg, stroke: C.grid }} />
@@ -315,6 +329,9 @@ export const AccumulationChart = forwardRef<SVGSVGElement, { inputs: Record<stri
       <path d={path(data.map((d) => [x(d.days), y(d.surv)]))} fill="none" style={{ stroke: C.accent, strokeWidth: 2.6 }} />
       <path d={path(data.map((d) => [x(d.days), y(d.survEcc)]))} fill="none" style={{ stroke: C.ref, strokeWidth: 2.2, strokeDasharray: '7 4' }} />
       <line x1={x(Math.min(3650, Math.max(0.01, cur)))} x2={x(Math.min(3650, Math.max(0.01, cur)))} y1={top} y2={pb} style={{ stroke: C.text, strokeWidth: 1, strokeDasharray: '1 4' }} />
+      <circle cx={curX} cy={y(current.surv)} r={5} style={{ fill: C.bg, stroke: C.accent, strokeWidth: 1.8 }} />
+      <circle cx={curX} cy={y(current.survEcc)} r={5} style={{ fill: C.bg, stroke: C.ref, strokeWidth: 1.8 }} />
+      <text x={curRight ? curX - 8 : curX + 8} y={pb - 24} textAnchor={curRight ? 'end' : 'start'} style={mono({ fill: C.text, stroke: C.bg, strokeWidth: 3, paintOrder: 'stroke' })}>{fmtNumber(cur, 3)} d: {fmtPct(current.surv, 1)} no ECC · {fmtPct(current.survEcc, 1)} SECDED</text>
     </Frame>
   );
 });

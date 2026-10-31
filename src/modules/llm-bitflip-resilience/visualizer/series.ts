@@ -174,25 +174,20 @@ export function sliderToValue(pos: number, min: number, max: number, scale: Slid
   return snap(min + pos * (max - min), step, min, max);
 }
 
-/* ---------- which controls drive which view ---------- */
+/* ---------- controls tied to one view ---------- */
 
-/** Controls that change the chart or readouts of each view. Pure data; used to tell the person which sliders are idle in the current view. */
-export const CONTROLS_USED_BY_VIEW: Record<string, string[]> = {
-  anatomy: ['weightMagnitude', 'injectedFlips'],
-  survival: ['modelParamsBillions', 'toleranceExponent', 'assumeCleanAtZero', 'injectedFlips'],
-  tolerance: ['modelParamsBillions', 'bytesPerParam', 'toleranceExponent', 'eccEnabled', 'mbuFraction'],
-  accumulation: ['modelParamsBillions', 'bytesPerParam', 'upsetRateFlipsPerGbMonth', 'scrubIntervalDays', 'toleranceExponent', 'mbuFraction', 'assumeCleanAtZero'],
-  outcomes: ['modelParamsBillions', 'injectedFlips'],
-  canary: [],
-  split: [],
-  provenance: [],
-};
+/**
+ * Every control feeds the live readout strip shown above all views, and the exposure controls also mark their effect on the charts.
+ * The one exception is weight magnitude, which only has meaning in Bit Anatomy; elsewhere it offers a jump there.
+ */
+export const CONTROL_HOME_VIEW: Record<string, string> = { weightMagnitude: 'anatomy' };
 
-/** Controls that feed the Results panel under the canvas, whichever view is open. */
-export const CONTROLS_IN_RESULTS: string[] = [
-  'modelParamsBillions', 'bytesPerParam', 'upsetRateFlipsPerGbMonth', 'scrubIntervalDays', 'toleranceExponent',
-  'eccEnabled', 'mbuFraction', 'memoryWPerGb', 'assumeCleanAtZero',
-];
+/** Expected survival at exactly the current scrub interval, with and without SECDED, for marking the Accumulation chart. */
+export function accumulationAt(inputs: Record<string, number>): { surv: number; survEcc: number } {
+  const off = llmBitflipResilience.run({ ...inputs, eccEnabled: 0 }).values;
+  const on = llmBitflipResilience.run({ ...inputs, eccEnabled: 1 }).values;
+  return { surv: off.expectedSurvival, survEcc: on.expectedSurvival };
+}
 
 /** Reference anchor, for labels. */
 export const ANCHOR_FLIPS = N50_REF;

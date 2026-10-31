@@ -27,7 +27,9 @@
 .bfr-ctl-group h4 { margin: 0; font-size: 12px; color: #9fb7c9; font-weight: 600; }
 .bfr-ctl { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
 .bfr-ctl-head { display: flex; justify-content: space-between; gap: 8px; }
-.bfr-ctl-tag { font-style: normal; font-size: 10px; color: #7f9bb0; margin-left: 6px; }
+button.bfr-ctl-tag { font-size: 10px; color: #4fb3ff; background: transparent; border: 1px solid rgba(79,179,255,.4); border-radius: 6px; margin-left: 6px; padding: 0 6px; cursor: pointer; }
+.bfr-live { margin: 0; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.bfr-live strong { font-size: 14px; }
 .bfr-ctl-val { font-family: var(--mono); color: #4fb3ff; }
 .bfr-ctl input[type=range], .bfr-slider-row input { width: 100%; accent-color: #4fb3ff; }
 .bfr-ctl-desc { font-size: 11px; color: #7f9bb0; line-height: 1.35; }

@@ -9,7 +9,7 @@ import { ProvenancePanel } from './ProvenancePanel';
 import { ControlPanel, SegButton } from './ControlPanel';
 import { exportPng, exportSvg, screenPaletteStyle, type ExportTheme } from './exportChart';
 import { fmtDays, fmtNumber, fmtPct } from './format';
-import type { AxisMode } from './series';
+import { accumulationAt, type AxisMode } from './series';
 
 type ViewId = 'anatomy' | 'survival' | 'tolerance' | 'accumulation' | 'outcomes' | 'canary' | 'split' | 'provenance';
 const VIEWS: { id: ViewId; label: string }[] = [
@@ -36,6 +36,7 @@ export function BitflipVisualizer({ inputs, onChange, onExport }: { inputs: Reco
   const params = result.resolvedInputs.modelParamsBillions * 1e9;
   const alpha = result.resolvedInputs.toleranceExponent;
   const clean = result.resolvedInputs.assumeCleanAtZero >= 0.5;
+  const accNow = useMemo(() => accumulationAt(result.resolvedInputs), [result.resolvedInputs]);
   const ratioAB = useMemo(() => {
     const base = { bytesPerParam: result.resolvedInputs.bytesPerParam, upsetRateFlipsPerGbMonth: result.resolvedInputs.upsetRateFlipsPerGbMonth, toleranceExponent: alpha, eccEnabled: result.resolvedInputs.eccEnabled, mbuFraction: result.resolvedInputs.mbuFraction };
     return t50Days(MODELS.A.params, base) / t50Days(MODELS.B.params, base);
@@ -69,17 +70,23 @@ export function BitflipVisualizer({ inputs, onChange, onExport }: { inputs: Reco
           <div className="bfr-tabs" role="tablist" aria-label="Views">
             {VIEWS.map((t) => <SegButton key={t.id} active={view === t.id} onClick={() => setView(t.id)}>{t.label}</SegButton>)}
           </div>
+          <div className="bfr-readouts bfr-live" aria-live="polite" aria-label="Live results">
+            <div><span>Time to tolerance</span><strong>{fmtDays(v.t50Days)}</strong><em>{fmtNumber(v.n50Flips, 3)} flips at {fmtNumber(result.resolvedInputs.upsetRateFlipsPerGbMonth, 3)} flips/GB/month</em></div>
+            <div><span>Expected survival, one interval</span><strong>{fmtPct(v.expectedSurvival)}</strong><em>{fmtNumber(v.effectiveFlips, 3)} {result.resolvedInputs.eccEnabled >= 0.5 ? 'effective' : 'raw'} flips in {fmtNumber(result.resolvedInputs.scrubIntervalDays, 3)} d</em></div>
+            <div><span>Survival at {fmtNumber(result.resolvedInputs.injectedFlips, 3)} injected flips</span><strong>{fmtPct(v.survivalAtInjectedFlips)}</strong><em>{fmtNumber(v.fpb, 3)} flips per billion parameters</em></div>
+            <div><span>Memory power</span><strong>{fmtNumber(v.memoryPowerW, 3)} W</strong><em>{v.eccExtraPowerW > 0 ? `incl. ${fmtNumber(v.eccExtraPowerW, 3)} W for ECC` : `${fmtNumber(v.memoryFootprintGb, 4)} GB, no ECC`}</em></div>
+          </div>
           <div className="bfr-view" role="tabpanel">
             {view === 'anatomy' && <BitAnatomy key={result.resolvedInputs.weightMagnitude} weightMagnitude={result.resolvedInputs.weightMagnitude} injectedFlips={result.resolvedInputs.injectedFlips} pBit14={v.pBit14AtLeastOne} pExponent={v.pExponentAtLeastOne} />}
             {view === 'survival' && (
               <>
                 <div className="bfr-subtabs"><SegButton active={axis === 'flips'} onClick={() => setAxis('flips')}>Absolute Flips</SegButton><SegButton active={axis === 'fpb'} onClick={() => setAxis('fpb')}>Flips Per Billion Parameters</SegButton></div>
-                <SurvivalChart ref={svgRef} params={params} alpha={alpha} assumeClean={clean} axis={axis} injectedFlips={result.resolvedInputs.injectedFlips} sizeLabel={`${fmtNumber(result.resolvedInputs.modelParamsBillions, 3)} B parameters`} />
+                <SurvivalChart ref={svgRef} params={params} alpha={alpha} assumeClean={clean} axis={axis} injectedFlips={result.resolvedInputs.injectedFlips} sizeLabel={`${fmtNumber(result.resolvedInputs.modelParamsBillions, 3)} B parameters`} intervalFlips={v.effectiveFlips} intervalSurvival={v.expectedSurvival} />
                 <ResidualTable alpha={alpha} />
               </>
             )}
-            {view === 'tolerance' && <ToleranceChart ref={svgRef} alpha={alpha} bytesPerParam={result.resolvedInputs.bytesPerParam} rate={result.resolvedInputs.upsetRateFlipsPerGbMonth} ecc={result.resolvedInputs.eccEnabled} mbu={result.resolvedInputs.mbuFraction} ratioLargeVsSmall={ratioAB} currentBillions={result.resolvedInputs.modelParamsBillions} />}
-            {view === 'accumulation' && <AccumulationChart ref={svgRef} inputs={result.resolvedInputs} />}
+            {view === 'tolerance' && <ToleranceChart ref={svgRef} alpha={alpha} bytesPerParam={result.resolvedInputs.bytesPerParam} rate={result.resolvedInputs.upsetRateFlipsPerGbMonth} ecc={result.resolvedInputs.eccEnabled} mbu={result.resolvedInputs.mbuFraction} ratioLargeVsSmall={ratioAB} currentBillions={result.resolvedInputs.modelParamsBillions} t50Days={v.t50Days} />}
+            {view === 'accumulation' && <AccumulationChart ref={svgRef} inputs={result.resolvedInputs} current={accNow} />}
             {view === 'outcomes' && (
               <>
                 <div className="bfr-subtabs">
@@ -120,7 +127,7 @@ export function BitflipVisualizer({ inputs, onChange, onExport }: { inputs: Reco
             </div>
           )}
         </div>
-        <ControlPanel inputs={result.resolvedInputs} view={view} onChange={onChange} onReset={reset} onExport={onExport} />
+        <ControlPanel inputs={result.resolvedInputs} view={view} onChange={onChange} onJump={(id) => setView(id as ViewId)} viewLabel={(id) => VIEWS.find((t) => t.id === id)?.label ?? id} onReset={reset} onExport={onExport} />
       </section>
       <details open className="challenge-explorer-limits bfr-readout">
         <summary>Results</summary>
