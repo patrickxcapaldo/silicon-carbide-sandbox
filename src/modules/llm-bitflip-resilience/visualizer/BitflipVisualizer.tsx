@@ -8,11 +8,13 @@ import { CanaryPanel, ParamSplit } from './Panels';
 import { ProvenancePanel } from './ProvenancePanel';
 import { ControlPanel, SegButton } from './ControlPanel';
 import { exportPng, exportSvg, screenPaletteStyle, type ExportTheme } from './exportChart';
+import { HOME_CARDS, ViewHeader } from './Help';
 import { fmtDays, fmtNumber, fmtPct } from './format';
 import { accumulationAt, type AxisMode } from './series';
 
-type ViewId = 'anatomy' | 'survival' | 'tolerance' | 'accumulation' | 'outcomes' | 'canary' | 'split' | 'provenance';
+type ViewId = 'home' | 'anatomy' | 'survival' | 'tolerance' | 'accumulation' | 'outcomes' | 'canary' | 'split' | 'provenance';
 const VIEWS: { id: ViewId; label: string }[] = [
+  { id: 'home', label: 'Home' },
   { id: 'anatomy', label: 'Bit Anatomy' },
   { id: 'survival', label: 'Survival Vs Dose' },
   { id: 'tolerance', label: 'Tolerance Vs Exposure' },
@@ -24,7 +26,7 @@ const VIEWS: { id: ViewId; label: string }[] = [
 ];
 
 export function BitflipVisualizer({ inputs, onChange, onExport }: { inputs: Record<string, number>; onChange: (id: string, value: number) => void; onExport: () => void }) {
-  const [view, setView] = useState<ViewId>('survival');
+  const [view, setView] = useState<ViewId>('home');
   const [axis, setAxis] = useState<AxisMode>('flips');
   const [theme, setTheme] = useState<ExportTheme>('dark');
   const svgRef = useRef<SVGSVGElement>(null);
@@ -77,6 +79,18 @@ export function BitflipVisualizer({ inputs, onChange, onExport }: { inputs: Reco
             <div><span>Memory power</span><strong>{fmtNumber(v.memoryPowerW, 3)} W</strong><em>{v.eccExtraPowerW > 0 ? `incl. ${fmtNumber(v.eccExtraPowerW, 3)} W for ECC` : `${fmtNumber(v.memoryFootprintGb, 4)} GB, no ECC`}</em></div>
           </div>
           <div className="bfr-view" role="tabpanel">
+            {view !== 'home' && <ViewHeader view={view} />}
+            {view === 'home' && (
+              <div className="bfr-home">
+                <p className="bfr-lede">Question: how long does a language model’s weight memory survive accumulating bit flips? Tolerance goes up with model size, but so does the memory that can be hit. The tabs look at this from different angles.</p>
+                <div className="bfr-home-grid">
+                  {HOME_CARDS.map((c) => (
+                    <button key={c.id} type="button" className="bfr-home-card" onClick={() => setView(c.id as ViewId)}><strong>{c.title}</strong><span>{c.shows}</span><em>{c.use}</em></button>
+                  ))}
+                </div>
+                <div className="bfr-callout">How the controls work: the panel on the right feeds the four live figures above the views, and each tab uses the controls that apply to it. Press the <strong>i</strong> buttons for plain-language explanations. Presets set one slider each; the three preset groups are independent. Canary, Parameter Split and Provenance show fixed paper data.</div>
+              </div>
+            )}
             {view === 'anatomy' && <BitAnatomy key={result.resolvedInputs.weightMagnitude} weightMagnitude={result.resolvedInputs.weightMagnitude} injectedFlips={result.resolvedInputs.injectedFlips} pBit14={v.pBit14AtLeastOne} pExponent={v.pExponentAtLeastOne} />}
             {view === 'survival' && (
               <>

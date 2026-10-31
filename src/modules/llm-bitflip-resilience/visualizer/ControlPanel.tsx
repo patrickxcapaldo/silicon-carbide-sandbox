@@ -3,6 +3,7 @@ import { INPUT_SPECS } from '../sandbox/module';
 import { ALPHA_PRESETS, CRUISE_RATE_RANGE_FLIPS_PER_GB_MONTH } from '../sandbox/kernel';
 import { MODELS } from '../data/radiai-measured';
 import { fmtNumber } from './format';
+import { InfoTip } from './Help';
 import { CONTROL_HOME_VIEW, SLIDER_SCALE, SLIDER_STEP, sliderToValue, valueToSlider } from './series';
 
 const TITLE: Record<string, string> = {
@@ -41,7 +42,7 @@ function Slider({ k, value, onChange, jump }: { k: string; value: number; onChan
   const max = spec.max!;
   return (
     <div className={jump ? 'bfr-ctl bfr-dim' : 'bfr-ctl'}>
-      <div className="bfr-ctl-head"><span title={spec.description}>{TITLE[k]}{jump && <button type="button" className="bfr-ctl-tag" onClick={jump.go}>→ {jump.label}</button>}</span><span className="bfr-ctl-val">{isToggle ? (value >= 0.5 ? 'On' : 'Off') : `${fmtNumber(value, 4)} ${spec.unit}`}</span></div>
+      <div className="bfr-ctl-head"><span title={spec.description}>{TITLE[k]}<InfoTip label={`About ${TITLE[k]}`}>{spec.description}</InfoTip>{jump && <button type="button" className="bfr-ctl-tag" onClick={jump.go}>→ {jump.label}</button>}</span><span className="bfr-ctl-val">{isToggle ? (value >= 0.5 ? 'On' : 'Off') : `${fmtNumber(value, 4)} ${spec.unit}`}</span></div>
       {isToggle ? (
         <div style={{ display: 'flex', gap: 6 }}><SegButton active={value < 0.5} onClick={() => onChange(0)}>Off</SegButton><SegButton active={value >= 0.5} onClick={() => onChange(1)}>On</SegButton></div>
       ) : (
@@ -49,7 +50,6 @@ function Slider({ k, value, onChange, jump }: { k: string; value: number; onChan
           value={curved ? valueToSlider(value, min, max, scale) : value}
           onChange={(e) => { const p = parseFloat(e.target.value); onChange(curved ? sliderToValue(p, min, max, scale, SLIDER_STEP[k]) : p); }} />
       )}
-      <div className="bfr-ctl-desc">{spec.description}</div>
     </div>
   );
 }
@@ -69,11 +69,18 @@ export function ControlPanel({ inputs, view, onChange, onJump, viewLabel, onRese
       </div>
       {open && (
         <div className="bfr-controls-body">
-          <div className="bfr-ctl-group"><h4>Presets</h4>
-            <PresetButton active={near(inputs.modelParamsBillions, MODELS.A.paramsBillions)} onClick={() => onChange('modelParamsBillions', MODELS.A.paramsBillions)}>{MODELS.A.uiName}</PresetButton>
-            <PresetButton active={near(inputs.modelParamsBillions, MODELS.B.paramsBillions)} onClick={() => onChange('modelParamsBillions', MODELS.B.paramsBillions)}>{MODELS.B.uiName}</PresetButton>
-            {ALPHA_PRESETS.map((p) => <PresetButton key={p.id} active={near(inputs.toleranceExponent, p.alpha)} onClick={() => onChange('toleranceExponent', p.alpha)}>α = {p.alpha}: {p.label}</PresetButton>)}
-            {[0.01, 0.1, 1, 10].map((r) => <PresetButton key={r} active={near(rate, r)} onClick={() => onChange('upsetRateFlipsPerGbMonth', r)}>{r} flips/GB/month (illustrative cruise range)</PresetButton>)}
+          <div className="bfr-ctl-group"><h4>Presets<InfoTip label="How presets work">Presets are shortcuts that set one slider each. The three groups below set three different sliders (model size, tolerance exponent α, upset rate), so you can pick one from each group and they combine. A tick marks the preset that matches the slider’s current value; moving the slider by hand clears it.</InfoTip></h4>
+            <p className="bfr-preset-note">One choice per group. Groups are independent and combine.</p>
+            <div className="bfr-preset-group"><h5>Model size → sets Model Parameters</h5>
+              <PresetButton active={near(inputs.modelParamsBillions, MODELS.A.paramsBillions)} onClick={() => onChange('modelParamsBillions', MODELS.A.paramsBillions)}>{MODELS.A.uiName}</PresetButton>
+              <PresetButton active={near(inputs.modelParamsBillions, MODELS.B.paramsBillions)} onClick={() => onChange('modelParamsBillions', MODELS.B.paramsBillions)}>{MODELS.B.uiName}</PresetButton>
+            </div>
+            <div className="bfr-preset-group"><h5>Tolerance exponent → sets α</h5>
+              {ALPHA_PRESETS.map((p) => <PresetButton key={p.id} active={near(inputs.toleranceExponent, p.alpha)} onClick={() => onChange('toleranceExponent', p.alpha)}>α = {p.alpha}: {p.label}</PresetButton>)}
+            </div>
+            <div className="bfr-preset-group"><h5>Upset rate → sets flips/GB/month</h5>
+              {[0.01, 0.1, 1, 10].map((r) => <PresetButton key={r} active={near(rate, r)} onClick={() => onChange('upsetRateFlipsPerGbMonth', r)}>{r} flips/GB/month (illustrative cruise range)</PresetButton>)}
+            </div>
           </div>
           {GROUPS.map((g) => (
             <div key={g.title} className="bfr-ctl-group"><h4>{g.title}</h4>

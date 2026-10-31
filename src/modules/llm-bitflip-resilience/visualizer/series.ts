@@ -191,3 +191,13 @@ export function accumulationAt(inputs: Record<string, number>): { surv: number; 
 
 /** Reference anchor, for labels. */
 export const ANCHOR_FLIPS = N50_REF;
+
+/** log2 of a weight magnitude mapped to 0..1 across FP16's full range (2^-24 to 2^16). Zero maps to 0, Inf/NaN to 1. */
+export function magnitudeMeterPos(x: number): number {
+  const lo = -24;
+  const hi = 16;
+  if (Number.isNaN(x) || x === Infinity || x === -Infinity) return 1;
+  const a = Math.abs(x);
+  if (a === 0) return 0;
+  return Math.min(1, Math.max(0, (Math.log2(a) - lo) / (hi - lo)));
+}

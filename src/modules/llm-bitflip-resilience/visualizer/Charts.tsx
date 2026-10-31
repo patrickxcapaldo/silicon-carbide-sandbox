@@ -13,6 +13,7 @@ import {
 } from './series';
 import { MODELS, type ModelId } from '../data/radiai-measured';
 import { collapseResidualsAgainstModelB, collapseRmse, outcomeSplit, type OutcomeBatchChoice } from '../sandbox/kernel';
+import { InfoTip } from './Help';
 import { fmtDays, fmtNumber, fmtPct, fmtPow10 } from './format';
 
 /* Palette variables are resolved on screen by .bfr-chart and replaced by exportChart.ts on download. */
@@ -166,6 +167,7 @@ export function ResidualTable({ alpha }: { alpha: number }) {
   return (
     <div className="bfr-residual">
       <div className="bfr-residual-head">
+        <InfoTip label="Why this table always shows Qwen" block>The chosen-size curve is built by stretching the {MODELS.A.shortName} curve (the reference). A fair test needs data the curve was not built from, and {MODELS.B.shortName} is the only other measured model. So this table always compares the collapse prediction against Qwen, whatever model size the slider is on. It does not depend on the size slider, only on α: change α to see how well each exponent reproduces Qwen. Testing against Llama itself would be meaningless, since its residual is zero by construction.</InfoTip>
         Curve-collapse check against {MODELS.B.shortName} at α = {alpha.toFixed(2)}: root-mean-square residual{' '}
         <strong>{Number.isFinite(rmse) ? fmtPct(rmse) : 'n/a'}</strong> over the doses mapped inside {MODELS.A.shortName}’s measured range.
       </div>
@@ -175,7 +177,7 @@ export function ResidualTable({ alpha }: { alpha: number }) {
           <tbody>
             <tr><th>Measured mean survival</th>{rows.map((r) => <td key={r.flips}>{fmtPct(r.measured, 0)}</td>)}</tr>
             <tr><th>Predicted by collapse</th>{rows.map((r) => <td key={r.flips} className={r.region === 'measured' ? '' : 'bfr-dim'}>{fmtPct(r.predicted, 0)}{r.region === 'measured' ? '' : ' *'}</td>)}</tr>
-            <tr><th>Residual</th>{rows.map((r) => <td key={r.flips}>{(r.residual * 100).toFixed(0)} pts</td>)}</tr>
+            <tr><th>Residual</th>{rows.map((r) => <td key={r.flips}>{(r.residual * 100).toFixed(0)} {Math.abs(Math.round(r.residual * 100)) === 1 ? 'pt' : 'pts'}</td>)}</tr>
           </tbody>
         </table>
       </div>
