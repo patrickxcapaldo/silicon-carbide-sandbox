@@ -166,6 +166,49 @@ function rel(a: number, b: number, tol: number, message: string): void {
   assert(k.collapseRmse(0.32) < k.collapseRmse(0) && k.collapseRmse(0.32) < k.collapseRmse(1), 'The two-point exponent fits Model B better than 0 or 1');
 }
 
+/* 3b. Tail above the measured range (constant hazard, an assumption) - */
+{
+  const A = MODELS.A.params;
+  const s80 = k.survivalRef(80, true).survival;
+  near(s80, 0.26, 1e-12, 'S_ref(80) is the mean of 24 % and 28 %');
+  // Continuous at the boundary, strictly decreasing, and never reaches zero in finite flips but vanishes far out.
+  near(k.survivalRef(80 + 1e-9, true).survival, s80, 1e-9, 'Continuous at 80 flips');
+  let prev = s80;
+  for (const n of [81, 90, 100, 160, 250, 500, 1000]) {
+    const v = k.survivalRef(n, true).survival;
+    assert(v < prev && v > 0, `Tail is strictly decreasing and positive at ${n} flips`);
+    prev = v;
+  }
+  assert(k.survivalRef(1000, true).survival < 1e-6, 'Tail has decayed to nearly zero by 1000 flips');
+  // Closed form: S(n) = S80 * exp(-(n - 80) / n0).
+  rel(k.survivalRef(160, true).survival, s80 * Math.exp(-80 / k.TAIL_N0_REF), 1e-12, 'Tail follows the constant-hazard form');
+  // The decay scale is a data fit: a maximum-likelihood hazard for Model A, about 59 flips, with half-life near the measured crossings.
+  near(k.TAIL_N0_REF, 59.5, 0.5, 'Fitted hazard scale for Model A is about 59.5 flips');
+  const half = k.TAIL_N0_REF * Math.LN2;
+  assert(half > 35 && half < 46, 'Constant-hazard half-life sits inside the measured crossing band (about 36 to 44 flips)');
+  // The fit really is the likelihood maximum: nudging n0 either way lowers the log-likelihood.
+  const ll = (n0: number) => { let t = 0; for (const sw of SWEEPS.filter((x) => x.model === 'A')) for (const r of sw.rows) { const sv = Math.round((r.survivalPct / 100) * r.n); const p = Math.exp(-r.flips / n0); t += sv * Math.log(p) + (r.n - sv) * Math.log(1 - p); } return t; };
+  assert(ll(k.TAIL_N0_REF) > ll(k.TAIL_N0_REF * 1.05) && ll(k.TAIL_N0_REF) > ll(k.TAIL_N0_REF / 1.05), 'Hazard scale maximises the likelihood');
+  near(k.fitHazardScale([[{ flips: 20, fpb: 0, n: 25, meanAccuracyPct: 0, meanJaccard: 0, survivalPct: 56 }, { flips: 40, fpb: 0, n: 25, meanAccuracyPct: 0, meanJaccard: 0, survivalPct: 32 }]]), 34.8, 1, 'Hazard fit recovers a known decay (synthetic: 56 % at 20 and 32 % at 40 flips gives n0 near 34.8)');
+  // Measured region is untouched by the tail change.
+  near(k.survivalAt(40, A, 0.32, true).survival, 0.46, 1e-12, 'Measured region unchanged');
+  // Exact accumulation with the tail: closed form agrees with brute-force Poisson summation, with and without ECC and at several sizes.
+  for (const [m, a, lam] of [[8.03, 0.32, 5], [8.03, 0.32, 90], [8.03, 0.32, 150], [3.086, 0.32, 60], [3.086, 1, 40], [70, 0.32, 300], [1, 0.32, 25]] as const) {
+    const params = m * 1e9;
+    const gb = k.bytesToGb(k.footprintBytes(params, 2));
+    const rate = (lam * k.DAYS_PER_MONTH) / (gb * 30);
+    const run = llmBitflipResilience.run({ modelParamsBillions: m, toleranceExponent: a, upsetRateFlipsPerGbMonth: rate, scrubIntervalDays: 30 });
+    const brute = k.poissonExpect(lam, (n) => k.survivalAt(n, params, a, true).survival);
+    near(run.values.expectedSurvival, brute, 1e-9, `Closed-form tail equals brute force (${m} B, alpha ${a}, lambda ${lam})`);
+  }
+  const eccRun = llmBitflipResilience.run({ eccEnabled: 1, mbuFraction: 0.5, upsetRateFlipsPerGbMonth: 5000, scrubIntervalDays: 365 });
+  const eccMean = k.uncorrectableEvents(eccRun.values.lambdaFlips, k.secdedWords(16.06e9), 0.5);
+  near(eccRun.values.expectedSurvival, k.poissonExpect(eccMean, (n) => k.survivalAt(2 * n, MODELS.A.params, 0.32, true).survival), 1e-9, 'Closed-form tail equals brute force with ECC');
+  // Longer exposure never raises expected survival any more, and it now falls toward zero instead of plateauing at 26 %.
+  const long = llmBitflipResilience.run({ scrubIntervalDays: 3650, upsetRateFlipsPerGbMonth: 1 }).values.expectedSurvival;
+  assert(long < 0.01, `Expected survival at 3650 days and 1 flip/GB/month is below 1 % (got ${long})`);
+}
+
 /* 4. Poisson --------------------------------------------------------- */
 {
   for (const lambda of [0, 0.01, 1, 40, 500, 1e4, 1e5]) {
@@ -180,10 +223,11 @@ function rel(a: number, b: number, tol: number, message: string): void {
   // Saturating form agrees with the plain sum.
   const sat = k.poissonExpectSaturating(60, S, 120, S(121));
   near(sat, k.poissonExpect(60, S), 1e-9, 'Saturating Poisson sum agrees with the plain sum');
-  // Stable at large lambda: all mass is beyond the measured range, so survival is the held value.
+  // Stable at large lambda: all mass is beyond the measured range, where the curve has decayed to zero.
   const big = llmBitflipResilience.run({ upsetRateFlipsPerGbMonth: 1e6, scrubIntervalDays: 3650 });
   assert(Number.isFinite(big.values.expectedSurvival), 'Expected survival is finite at very large lambda');
-  near(big.values.expectedSurvival, k.survivalRef(1e9, true).survival, 1e-9, 'Large lambda gives the held tail value');
+  near(big.values.expectedSurvival, 0, 1e-9, 'Very large lambda: the decaying tail leaves essentially no survivors');
+  near(big.values.expectedSurvival, k.survivalRef(1e9, true).survival, 1e-9, 'Large lambda agrees with the reference curve far out');
   assert(big.values.unmeasuredMass > 0.999, 'Nearly all mass is beyond the measured range at very large lambda');
   assert(big.diagnostics.some((d) => /beyond the measured dose range/.test(d.message)), 'Unmeasured mass raises a warning');
   // Expected survival falls as the scrub interval grows.
@@ -288,6 +332,38 @@ function rel(a: number, b: number, tol: number, message: string): void {
   assert(k.outcomeSplit('B', 'both').every((d) => d.intact + d.impaired + d.semanticCollapse + d.dead === d.n), 'Categories sum to n');
 }
 
+/* 7d. Intact share, canary prior and per-batch comparison ----------- */
+{
+  // Intact share crossing: pooled counts, 50 % by linear interpolation.
+  const a = k.intactCrossing('A', 'both');
+  assert(a.kind === 'crossed', 'Model A intact share crosses 50 % inside the measured doses');
+  if (a.kind === 'crossed') near(a.flips, 31.43, 0.01, 'Model A intact crossing is about 31.4 flips (30 -> 40: 54 % -> 26 %)');
+  const aSurv = k.pooledSurvivalCrossing('A', 'both');
+  assert(aSurv.kind === 'crossed' && a.kind === 'crossed' && aSurv.flips > a.flips, 'Intact crosses 50 % earlier than not-dead survival');
+  if (aSurv.kind === 'crossed') near(aSurv.flips, 38.46, 0.01, 'Pooled survival crossing is about 38.5 flips (not the 39.7 batch-crossing mean)');
+  const b = k.intactCrossing('B', 'both');
+  assert(b.kind === 'below-range' && b.flips === 20 && Math.abs(b.share - 0.44) < 1e-9, 'Model B intact share is already 44 % at the lowest measured dose');
+  assert(k.intactSeries('A').length === 6 && k.intactSeries('B').length === 7, 'Intact series has one point per measured dose');
+  for (const m of ['A', 'B'] as const) for (const d of k.intactSeries(m)) assert(d.intact <= d.survival + 1e-12, 'Intact share never exceeds survival');
+  // Plotted mean curve at N50_ref is not exactly 50 %, because N50_ref averages batch crossings.
+  const reading = k.survivalRef(k.N50_REF, true).survival;
+  assert(reading > 0.45 && reading < 0.48, `Mean curve reads 45-48 % at N50_ref (got ${reading})`);
+  // Canary prior from the data.
+  const cs = k.canaryShareFromData();
+  near(cs.min, 0.279, 0.001, 'Lowest per-batch Semantic Collapse share of (collapsed + intact)');
+  near(cs.max, 0.446, 0.001, 'Highest per-batch share');
+  near(cs.pooled, 0.373, 0.001, 'Pooled share');
+  assert(cs.defaultShare === 0.37, 'Default canary share is the pooled value to 0.01');
+  const post = [k.canaryPosterior(cs.defaultShare, 0.17, 0.94), k.canaryPosterior(cs.defaultShare, 0.24, 0.82)];
+  assert(post[0] > 0.08 && post[1] < 0.15 && post[0] < cs.defaultShare, 'At the measured prior a passing probe still leaves roughly 9 to 14 % collapsed, down from 37 %');
+  // Per-batch survivor shares: the abstract number is the original batch; pooled reads lower.
+  const o = k.scSurvivorShareLowHigh('A', 'original');
+  const both = k.scSurvivorShareLowHigh('A', 'both');
+  assert(both.low < o.low && both.high < o.high, 'Pooled Semantic Collapse share of survivors is below the original batch for Model A');
+  near(both.low, 0.167, 0.001, 'Pooled low share 17 %');
+  near(both.high, 0.387, 0.001, 'Pooled high share 39 %');
+}
+
 /* 7c. Bit 14 by weight magnitude (corrected wording) ---------------- */
 {
   for (const [w, c] of [[0.02, 'times-2^16'], [0.5, 'times-2^16'], [0.99, 'times-2^16'], [1, 'inf-nan-pattern'], [1.5, 'inf-nan-pattern'], [1.99, 'inf-nan-pattern'], [2, 'divides-by-2^16'], [3, 'divides-by-2^16'], [4, 'divides-by-2^16'], [100, 'divides-by-2^16']] as const) {
@@ -321,7 +397,7 @@ function rel(a: number, b: number, tol: number, message: string): void {
   for (const o of OUTPUT_SPECS) assert(typeof res.values[o.key as keyof typeof res.values] === 'number', `Output ${o.key} is produced`);
   assert(Object.keys(res.values).length === OUTPUT_SPECS.length, 'No undeclared outputs');
   assert(llmBitflipResilience.descriptor.assumptions.length >= 10, 'Assumptions are declared');
-  for (const must of [/single-bit/i, /No physical flux/i, /Uniform layer sampling/i, /Persistent corruption/i, /FP16 weights only/i, /Instruction-tuned/i, /greedy/i, /one software and hardware stack/i, /25 trials/i, /weakly identified/i, /Curve collapse/i, /accuracy at or below 40 %/i, /accuracy greater than zero/i]) {
+  for (const must of [/constant hazard/i, /bit-uniform over the whole weight store/i, /not a measured benefit of quantisation/i, /chance-level/i, /0 < accuracy <= 40 %/, /single-bit/i, /No physical flux/i, /Uniform layer sampling/i, /Persistent corruption/i, /FP16 weights only/i, /Instruction-tuned/i, /greedy/i, /one software and hardware stack/i, /25 trials/i, /weakly identified/i, /Curve collapse/i, /accuracy at or below 40 %/i, /accuracy greater than zero/i]) {
     assert(llmBitflipResilience.descriptor.assumptions.some((a) => must.test(a)), `Assumption present: ${must}`);
   }
   // Extrapolation warnings fire outside the measured range.
@@ -331,6 +407,8 @@ function rel(a: number, b: number, tol: number, message: string): void {
   assert(llmBitflipResilience.run({ injectedFlips: 5 }).diagnostics.some((d) => /measured dose range/.test(d.message)), 'Dose below 20 flips warns');
   assert(llmBitflipResilience.run({ upsetRateFlipsPerGbMonth: 500 }).diagnostics.some((d) => /unvalidated/.test(d.message)), 'Rate above the illustrative range is labelled unvalidated');
   assert(llmBitflipResilience.run({ bytesPerParam: 1 }).diagnostics.some((d) => /not measured for this precision/.test(d.message)), 'Non-FP16 precision warns');
+  assert(llmBitflipResilience.run({ bytesPerParam: 1 }).diagnostics.some((d) => /1 \/ bytes per parameter/.test(d.message) && /not a measured benefit of quantisation/.test(d.message)), 'Precision warning says time scales as 1 / bytes and is not a quantisation result');
+  assert(llmBitflipResilience.run({ upsetRateFlipsPerGbMonth: 1000, scrubIntervalDays: 3650 }).diagnostics.some((d) => /constant-hazard/.test(d.message)), 'Beyond-range warning describes the decaying tail');
   assert(llmBitflipResilience.run({ bytesPerParam: 1 }).diagnostics.every((d) => d.severity !== 'error'), 'Non-FP16 precision is a warning, not an error');
   assert(llmBitflipResilience.run({ toleranceExponent: 1 }).diagnostics.some((d) => /hypothesis, not a fit/.test(d.message)), 'Alpha outside the data-implied band is flagged');
   // Defaults produce no warnings.

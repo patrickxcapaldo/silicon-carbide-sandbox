@@ -1,5 +1,6 @@
 import { INPUT_SPECS } from '../sandbox/module';
 import { ALPHA_PRESETS, CRUISE_RATE_RANGE_FLIPS_PER_GB_MONTH } from '../sandbox/kernel';
+import { alphaDataRange } from './series';
 import { MODELS } from '../data/radiai-measured';
 import { ControlsPanel, Group, PresetButton, PresetList, Section, SliderField, ToggleField } from '../../../core/ui';
 import { fmtNumber } from './format';
@@ -56,6 +57,8 @@ export function ControlPanel({ inputs, view, onChange, onJump, viewLabel, onRese
   const [rLo, rHi] = CRUISE_RATE_RANGE_FLIPS_PER_GB_MONTH;
   const rateInside = rate >= rLo && rate <= rHi;
   const near = (a: number, b: number) => Math.abs(a - b) < 1e-3;
+  const [aLo, aHi] = alphaDataRange();
+  const alphaInside = inputs.toleranceExponent >= aLo - 1e-9 && inputs.toleranceExponent <= aHi + 1e-9;
   const jumpFor = (k: string) => { const home = CONTROL_HOME_VIEW[k]; return home && home !== view ? { label: viewLabel(home), go: () => onJump(home) } : null; };
   return (
     <ControlsPanel onExport={onExport} onReset={onReset}>
@@ -80,6 +83,8 @@ export function ControlPanel({ inputs, view, onChange, onJump, viewLabel, onRese
           {g.keys.map((k) => (
             <div key={k}>
               <Slider k={k} value={inputs[k]} onChange={(v) => onChange(k, v)} jump={jumpFor(k)} />
+              {k === 'toleranceExponent' && <div className={alphaInside ? 'bfr-region ok' : 'bfr-region warn'}>{alphaInside ? `Inside the range the two measured models imply, ${aLo.toFixed(2)}–${aHi.toFixed(2)}.` : `Outside the range the two measured models imply (${aLo.toFixed(2)}–${aHi.toFixed(2)}): a hypothesis, not a fit.`}</div>}
+              {k === 'bytesPerParam' && inputs.bytesPerParam !== 2 && <div className="bfr-region warn">Not FP16. Only the exposed memory changes, so time to tolerance scales as 1 / bytes. This is not a quantisation result.</div>}
               {k === 'upsetRateFlipsPerGbMonth' && <div className={rateInside ? 'bfr-region ok' : 'bfr-region warn'}>{rateInside ? `Inside the paper’s illustrative range, ${rLo}–${rHi} flips/GB/month (citing JESD89A).` : 'User-defined, unvalidated: outside the paper’s illustrative range.'}</div>}
             </div>
           ))}

@@ -246,13 +246,56 @@ const MODEL_A_MEAN = meanSurvivalCurve('A');
 const MODEL_B_MEAN = meanSurvivalCurve('B');
 
 /**
+ * Constant-hazard scale n0 (in flips) for S(n) = exp(-n / n0), fitted by
+ * binomial maximum likelihood to the given sweeps (all trials weighted alike).
+ * The log-likelihood is concave in the hazard rate h = 1 / n0 (ln p is linear
+ * in h and ln(1 - p) is concave), so a golden-section search finds the single
+ * maximum. Used only to continue the survival curve above the measured range.
+ */
+export function fitHazardScale(sweeps: DoseRow[][]): number {
+  const logLik = (h: number): number => {
+    let total = 0;
+    for (const rows of sweeps) {
+      for (const r of rows) {
+        const survivors = Math.round((r.survivalPct / 100) * r.n);
+        const p = Math.exp(-h * r.flips);
+        total += survivors * Math.log(p) + (r.n - survivors) * Math.log(1 - p);
+      }
+    }
+    return total;
+  };
+  const g = (Math.sqrt(5) - 1) / 2;
+  let lo = 1e-5;
+  let hi = 1;
+  let a = hi - g * (hi - lo);
+  let b = lo + g * (hi - lo);
+  let fa = logLik(a);
+  let fb = logLik(b);
+  for (let i = 0; i < 200; i++) {
+    if (fa < fb) { lo = a; a = b; fa = fb; b = lo + g * (hi - lo); fb = logLik(b); }
+    else { hi = b; b = a; fb = fa; a = hi - g * (hi - lo); fa = logLik(a); }
+  }
+  return 1 / ((lo + hi) / 2);
+}
+
+/**
+ * Decay scale of the constant-hazard continuation above the highest measured
+ * dose, in flips of the reference model (Model A, both batches). An assumption
+ * about the unmeasured tail, not a measurement: it says each further flip
+ * removes the same fraction of the survivors as in the measured range.
+ */
+export const TAIL_N0_REF = fitHazardScale([sweepRows('A', 'original'), sweepRows('A', 'replication')]);
+
+/**
  * Model A mean survival curve S_ref(n), n in absolute flips of the reference
  * model. Linear between measured doses. Below the lowest dose (20 flips) there
  * is no data: with assumeCleanAtZero the curve runs linearly from S(0) = 1
  * (an assumption, shaded "interpolated, not measured"); without it the curve is
  * held at the first measured value and flagged "unmeasured-low". Above the
- * highest dose (80 flips) the curve is held at its last measured value and
- * flagged "unmeasured-high": that is a stated assumption, not a measurement.
+ * highest dose (80 flips) the curve continues from its last measured value at
+ * a constant hazard, S = S(80) * exp(-(n - 80) / n0), flagged "unmeasured-high":
+ * that is a stated assumption, not a measurement. (Version 0.1.1 held it flat
+ * at the last measured value, which never reaches zero.)
  */
 export function survivalRef(n: number, assumeCleanAtZero: boolean): SurvivalSample {
   const first = MODEL_A_MEAN[0];
@@ -264,7 +307,7 @@ export function survivalRef(n: number, assumeCleanAtZero: boolean): SurvivalSamp
     }
     return { survival: first.survival, region: 'unmeasured-low' };
   }
-  if (n > MEASURED_FLIPS_MAX) return { survival: last.survival, region: 'unmeasured-high' };
+  if (n > MEASURED_FLIPS_MAX) return { survival: last.survival * Math.exp(-(n - MEASURED_FLIPS_MAX) / TAIL_N0_REF), region: 'unmeasured-high' };
   return { survival: lerpCurve(MODEL_A_MEAN, n), region: 'measured' };
 }
 
@@ -442,6 +485,24 @@ export function poissonExpectSaturating(lambda: number, f: (k: number) => number
   return sum + fSat * Math.max(0, 1 - cdf);
 }
 
+/**
+ * E[f(K)] for K ~ Poisson(lambda) where f follows its own values up to kSat and
+ * is exactly amp * exp(-rate * k) above kSat. The tail has a closed form:
+ * sum_{k>kSat} Pois(k; lambda) amp e^{-rate k} = amp e^{-(lambda - lambda')} P(Pois(lambda') > kSat),
+ * with lambda' = lambda e^{-rate}. Exact, and cheap at any lambda.
+ */
+export function poissonExpectExpTail(lambda: number, f: (k: number) => number, kSat: number, amp: number, rate: number): number {
+  if (lambda <= 0) return f(0);
+  let logP = -lambda;
+  let sum = 0;
+  for (let k = 0; k <= kSat; k++) {
+    if (k > 0) logP += Math.log(lambda) - Math.log(k);
+    sum += Math.exp(logP) * f(k);
+  }
+  const tilted = lambda * Math.exp(-rate);
+  return sum + amp * Math.exp(-(lambda - tilted)) * poissonTailAbove(tilted, kSat);
+}
+
 /** Poisson probability that K exceeds kSat (mass beyond the largest summed term). */
 export function poissonTailAbove(lambda: number, kSat: number): number {
   if (lambda <= 0) return 0;
@@ -603,6 +664,54 @@ export function scShareOfTrialsInBatch(model: ModelId, batch: BatchId): number {
   return d.reduce((a, x) => a + x.semanticCollapse, 0) / d.reduce((a, x) => a + x.n, 0);
 }
 
+/** Measured intact share (within 10 points of clean) and survival share at each dose, pooled over the chosen batch. */
+export function intactSeries(model: ModelId, batch: OutcomeBatchChoice = 'both'): { flips: number; intact: number; survival: number }[] {
+  return outcomeSplit(model, batch).map((d) => ({ flips: d.flips, intact: d.intact / d.n, survival: d.survivalFraction }));
+}
+
+export type HalfCrossing =
+  | { kind: 'crossed'; flips: number }
+  | { kind: 'below-range'; flips: number; share: number }
+  | { kind: 'above-range' };
+
+/** First dose at which a share falls below 50 %, by linear interpolation; flags a curve that starts below 50 % or never falls below it. */
+function halfCrossing(points: { flips: number; value: number }[]): HalfCrossing {
+  if (points.length > 0 && points[0].value < 0.5) return { kind: 'below-range', flips: points[0].flips, share: points[0].value };
+  for (let i = 0; i < points.length - 1; i++) {
+    const p = points[i];
+    const q = points[i + 1];
+    if (p.value >= 0.5 && q.value < 0.5) return { kind: 'crossed', flips: p.flips + ((p.value - 0.5) / (p.value - q.value)) * (q.flips - p.flips) };
+  }
+  return { kind: 'above-range' };
+}
+
+/** 50 % crossing of the pooled intact share ("still usable"), within the measured doses only. */
+export function intactCrossing(model: ModelId, batch: OutcomeBatchChoice = 'both'): HalfCrossing {
+  return halfCrossing(intactSeries(model, batch).map((d) => ({ flips: d.flips, value: d.intact })));
+}
+
+/** 50 % crossing of the pooled survival share ("not dead"), from the same trial counts as intactCrossing, so the two compare like with like. */
+export function pooledSurvivalCrossing(model: ModelId, batch: OutcomeBatchChoice = 'both'): HalfCrossing {
+  return halfCrossing(intactSeries(model, batch).map((d) => ({ flips: d.flips, value: d.survival })));
+}
+
+/**
+ * Semantic Collapse share of (collapsed + intact) trials, which is the prior s
+ * in the canary calculation, from the measured counts. Pooled over all four
+ * batches, with the per-batch range; default is the pooled value to 0.01.
+ */
+export function canaryShareFromData(): { pooled: number; min: number; max: number; defaultShare: number } {
+  const share = (rows: typeof OUTCOMES) => {
+    const sc = rows.reduce((a, o) => a + o.semanticCollapse, 0);
+    const intact = rows.reduce((a, o) => a + o.intact, 0);
+    return sc / (sc + intact);
+  };
+  const per: number[] = [];
+  for (const m of ['A', 'B'] as const) for (const b of ['original', 'replication'] as const) per.push(share(OUTCOMES.filter((o) => o.model === m && o.batch === b)));
+  const pooled = share(OUTCOMES);
+  return { pooled, min: Math.min(...per), max: Math.max(...per), defaultShare: Math.round(pooled * 100) / 100 };
+}
+
 /** The measured model whose parameter count is nearest (in log terms) to the chosen size. */
 export function nearestMeasuredModel(params: number): ModelId {
   const dA = Math.abs(Math.log(params / MODELS.A.params));
@@ -740,8 +849,10 @@ export function runKernel(i: KernelInputs): KernelOutputs {
   const perEvent = ecc ? BITS_PER_UNCORRECTABLE : 1;
   const f = (k: number) => survivalAt(perEvent * k, params, alpha, clean).survival;
   const kSat = Math.ceil((MEASURED_FLIPS_MAX * s) / perEvent) + 1;
-  const fSat = survivalAt(perEvent * (kSat + 1), params, alpha, clean).survival;
-  const expectedSurvival = poissonExpectSaturating(mean, f, kSat, fSat);
+  // Above kSat the reference curve is S80 * exp(-(n / s - 80) / n0) with n = perEvent * k: a pure exponential in k.
+  const tailAmp = MODEL_A_MEAN[MODEL_A_MEAN.length - 1].survival * Math.exp(MEASURED_FLIPS_MAX / TAIL_N0_REF);
+  const tailRate = perEvent / (s * TAIL_N0_REF);
+  const expectedSurvival = poissonExpectExpTail(mean, f, kSat, tailAmp, tailRate);
   const unmeasuredMass = poissonTailAbove(mean, kSat);
 
   const smallParams = MODELS.B.params;
@@ -782,7 +893,7 @@ export function kernelWarnings(i: KernelInputs, o: KernelOutputs): string[] {
   const bMax = MODELS.A.paramsBillions;
   const [rMin, rMax] = CRUISE_RATE_RANGE_FLIPS_PER_GB_MONTH;
   if (i.bytesPerParam !== 2) {
-    w.push('Dose-response not measured for this precision. The paper measured FP16 only; the footprint changes but the survival curve is applied unchanged.');
+    w.push('Dose-response not measured for this precision. The paper measured FP16 only. Changing bytes per parameter rescales only the exposed memory, so time to tolerance scales as 1 / bytes per parameter with the FP16 survival curve unchanged. That is not a measured benefit of quantisation: integer formats have no exponent field and fail differently (paper Section 11).');
   }
   if (i.modelParamsBillions < bMin || i.modelParamsBillions > bMax) {
     w.push(`Extrapolation: ${i.modelParamsBillions} B parameters lies outside the two measured models (${bMin.toFixed(2)} B to ${bMax.toFixed(2)} B). Tolerance scaling is an assumption there.`);
@@ -794,7 +905,7 @@ export function kernelWarnings(i: KernelInputs, o: KernelOutputs): string[] {
     w.push(`${i.injectedFlips} injected flips lies outside the measured dose range of ${MEASURED_FLIPS_MIN} to ${MEASURED_FLIPS_MAX} flips. Not measured.`);
   }
   if (o.unmeasuredMass > 0.01) {
-    w.push(`${(o.unmeasuredMass * 100).toFixed(1)} % of the accumulation probability sits beyond the measured dose range; expected survival there is held at its last measured value (not measured).`);
+    w.push(`${(o.unmeasuredMass * 100).toFixed(1)} % of the accumulation probability sits beyond the measured dose range; expected survival there continues the curve at its last measured decay rate (a constant-hazard assumption, not a measurement).`);
   }
   const a = ALPHA_DERIVATION.crossBatchAlpha;
   if (i.toleranceExponent < a[0] || i.toleranceExponent > a[1]) {

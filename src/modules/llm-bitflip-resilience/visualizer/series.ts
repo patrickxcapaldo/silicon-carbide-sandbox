@@ -5,8 +5,15 @@
  */
 import { MODELS, SWEEPS, MEASURED_FLIPS_MAX, MEASURED_FLIPS_MIN, type BatchId, type ModelId } from '../data/radiai-measured';
 import {
+  ALPHA_DERIVATION,
   N50_REF,
+  TAIL_N0_REF,
   allCrossings,
+  intactCrossing,
+  intactSeries,
+  pooledSurvivalCrossing,
+  survivalRef,
+  type HalfCrossing,
   fpbFromFlips,
   n50Flips,
   survivalAt,
@@ -73,6 +80,34 @@ export function n50OnAxis(params: number, alpha: number, axis: AxisMode): number
   return axis === 'flips' ? n : fpbFromFlips(n, params);
 }
 
+/** Measured pooled intact share ("still usable") per model on the chosen axis, both batches pooled. */
+export function intactMarkers(axis: AxisMode): { model: ModelId; points: { x: number; flips: number; y: number }[] }[] {
+  return (['A', 'B'] as const).map((model) => ({
+    model,
+    points: intactSeries(model, 'both').map((d) => ({ x: axis === 'flips' ? d.flips : fpbFromFlips(d.flips, MODELS[model].params), flips: d.flips, y: d.intact })),
+  }));
+}
+
+export type IntactSummary = { model: ModelId; intact: HalfCrossing; survival: HalfCrossing };
+
+/** Where the intact share and the survival share each cross 50 %, from the same pooled counts. */
+export function intactSummary(): IntactSummary[] {
+  return (['A', 'B'] as const).map((model) => ({ model, intact: intactCrossing(model, 'both'), survival: pooledSurvivalCrossing(model, 'both') }));
+}
+
+/** What the plotted reference curve reads at N50_ref. Below 50 % because N50_ref averages the two batch crossings rather than crossing the averaged curve. */
+export function curveReadingAtN50(): number {
+  return survivalRef(N50_REF, true).survival;
+}
+
+/** Decay scale of the constant-hazard continuation, in flips at the reference size. */
+export const TAIL_DECAY_FLIPS = TAIL_N0_REF;
+
+/** Data-implied range of the tolerance exponent (cross-batch). */
+export function alphaDataRange(): [number, number] {
+  return ALPHA_DERIVATION.crossBatchAlpha;
+}
+
 /* ---------- tolerance versus exposure ---------- */
 
 export type TolerancePoint = { billions: number; n50: number; n50Alpha1: number; footprintGb: number; ratio: number; ratioAlpha1: number };
@@ -100,6 +135,28 @@ export function toleranceSeries(alpha: number, bytesPerParam: number, rate: numb
 }
 
 export const TOLERANCE_X_RANGE_B: [number, number] = [LOG_MIN_B, LOG_MAX_B];
+
+/** Time-ratio band between the two ends of the data-implied alpha range, against the smaller measured model. */
+export function toleranceBand(bytesPerParam: number, rate: number, eccEnabled: number, mbu: number, steps = 120): { billions: number; lo: number; hi: number }[] {
+  const [aLo, aHi] = alphaDataRange();
+  const small = MODELS.B.params;
+  const base = { bytesPerParam, upsetRateFlipsPerGbMonth: rate, eccEnabled, mbuFraction: mbu };
+  const ratio = (params: number, alpha: number) => t50Days(params, { ...base, toleranceExponent: alpha }) / t50Days(small, { ...base, toleranceExponent: alpha });
+  const out: { billions: number; lo: number; hi: number }[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const billions = LOG_MIN_B * (LOG_MAX_B / LOG_MIN_B) ** (i / steps);
+    out.push({ billions, lo: ratio(billions * 1e9, aLo), hi: ratio(billions * 1e9, aHi) });
+  }
+  return out;
+}
+
+/** Larger-vs-smaller measured model time ratio at the two ends of the data-implied alpha range. */
+export function ratioAtAlphaRange(bytesPerParam: number, rate: number, eccEnabled: number, mbu: number): [number, number] {
+  const [aLo, aHi] = alphaDataRange();
+  const base = { bytesPerParam, upsetRateFlipsPerGbMonth: rate, eccEnabled, mbuFraction: mbu };
+  const r = (alpha: number) => t50Days(MODELS.A.params, { ...base, toleranceExponent: alpha }) / t50Days(MODELS.B.params, { ...base, toleranceExponent: alpha });
+  return [r(aLo), r(aHi)];
+}
 
 /* ---------- accumulation ---------- */
 

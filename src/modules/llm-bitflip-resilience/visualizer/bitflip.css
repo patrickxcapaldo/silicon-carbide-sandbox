@@ -89,3 +89,13 @@
   .bfr-bit-val { font-size: 14px; }
   .bfr-split-row, .bfr-outcome-row { grid-template-columns: 1fr; }
 }
+
+/* ── Scope tags and banners ───────────────────────────────────────────── */
+
+.bfr-basis { display: inline-block; margin-left: 10px; padding: 1px 8px; border: 1px solid var(--viz-border-strong); border-radius: 10px; font-size: var(--viz-fs-micro); letter-spacing: 0.02em; white-space: nowrap; color: var(--viz-text-2); }
+.bfr-basis--measured { border-color: var(--series-2); color: var(--series-2); }
+.bfr-basis--exact { border-color: var(--series-2); color: var(--series-2); }
+.bfr-basis--mixed { border-color: var(--viz-accent); color: var(--viz-accent); }
+.bfr-basis--modelled { border-color: var(--status-limit, #f59e0b); color: var(--status-limit, #f59e0b); }
+.bfr-warn-banner { border-left-color: var(--status-limit, #f59e0b); margin: 8px 0; }
+.bfr-scope { margin-bottom: 10px; }

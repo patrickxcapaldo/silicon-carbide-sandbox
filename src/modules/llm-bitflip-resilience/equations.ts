@@ -36,10 +36,16 @@ export const equations = [
     description: 'Time for accumulated flips to reach the tolerance, with upset rate r in flips per GB per month and store size G in GB. Size sets both the numerator and the denominator.',
   },
   {
+    id: 'tail-hazard',
+    label: 'Decay above the measured range (assumed)',
+    latex: 'S_{\\mathrm{ref}}(n) = S_{\\mathrm{ref}}(80)\\, e^{-(n-80)/n_0} \\ (n > 80), \\qquad n_0 \\approx 59\\ \\text{flips}',
+    description: 'Above the highest measured dose the curve continues at a constant hazard: each further flip removes the same share of the survivors. n0 is the maximum-likelihood decay scale fitted to the larger model’s measured doses. It is an assumption about the unmeasured tail, not a measurement; version 0.1.1 held the curve flat there, which never reaches zero.',
+  },
+  {
     id: 'poisson-accumulation',
     label: 'Accumulation over a scrub interval',
     latex: '\\lambda = r\\, G\\, T, \\qquad \\mathbb{E}[S] = \\sum_{n} \\frac{\\lambda^{n} e^{-\\lambda}}{n!}\\, S(n)',
-    description: 'Flips arrive as a Poisson process; T is the scrub or reload interval. The expected survival averages the survival curve over the number of flips that accumulate.',
+    description: 'Flips arrive as a Poisson process; T is the scrub or reload interval. The expected survival averages the survival curve over the number of flips that accumulate. Above the measured range the decaying tail is summed in closed form, so large intervals stay exact.',
   },
   {
     id: 'secded-double-hit',
