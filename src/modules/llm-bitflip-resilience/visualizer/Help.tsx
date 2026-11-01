@@ -1,15 +1,5 @@
-import { useState, type ReactNode } from 'react';
-
-/** Small (i) toggle. The explanation opens inline, so it is never clipped by a scrolling panel. */
-export function InfoTip({ label, children, block = false }: { label: string; children: ReactNode; block?: boolean }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <span className={block ? 'bfr-info bfr-info-block' : 'bfr-info'}>
-      <button type="button" className="bfr-info-btn" aria-expanded={open} aria-label={`${open ? 'Hide' : 'About'}: ${label}`} title={label} onClick={() => setOpen(!open)}>i</button>
-      {open && <span className="bfr-info-body" role="note">{children}</span>}
-    </span>
-  );
-}
+import type { ReactNode } from 'react';
+import { InfoTip } from '../../../core/ui';
 
 export type ViewHelp = { what: string; detail: ReactNode; drivenBy: string[]; fixedData?: boolean };
 
@@ -66,9 +56,9 @@ export function ViewHeader({ view }: { view: string }) {
   return (
     <div className="bfr-viewhead">
       <span>{h.what}</span>
-      <InfoTip label="What this view shows and which controls drive it" block>
-        <span>{h.detail}</span>
-        <span className="bfr-info-drivers">{h.drivenBy.length > 0 ? <>Controls that change this view: {h.drivenBy.join('; ')}.</> : <>This view shows fixed paper data; the main controls do not change it.</>}</span>
+      <InfoTip label="What this view shows and which controls drive it" width={380}>
+        <p>{h.detail}</p>
+        <p className="sci-info-pop__extra">{h.drivenBy.length > 0 ? <>Controls that change this view: {h.drivenBy.join('; ')}.</> : <>This view shows fixed paper data; the main controls do not change it.</>}</p>
       </InfoTip>
     </div>
   );

@@ -163,8 +163,8 @@ export function Reveal({
           </p>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <span style={{ fontSize: 11, color: '#94a3b8' }}>Orbit Average Power</span>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#38bdf8' }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Orbit Average Power</span>
+          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-h)' }}>
             {formatWatts(details.orbitAveragePowerW)}
           </div>
         </div>
@@ -172,7 +172,7 @@ export function Reveal({
 
       <LossBars evaluation={evaluation} />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#94a3b8', margin: '6px 0 10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', margin: '6px 0 10px' }}>
         <span>Sunlit Fraction: {formatPercent(evaluation.sunlitFraction ?? 1)}</span>
         <span>BOL Capacity: {formatWatts(details.unconstrainedBolW)}</span>
       </div>

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Stars, Html } from '@react-three/drei';
 import { clamp01 } from './thermalColor';
 import { SUN_DIRECTION } from './sceneConstants';
+import { SCENE } from '../../../core/ui';
 
 type Props = { solarLoadWm2: number; earthViewFactor: number };
 
@@ -20,7 +21,7 @@ export function CloseupBackdrop({ solarLoadWm2, earthViewFactor }: Props) {
   const earthColor = new THREE.Color('#2870aa');
   return (
     <group>
-      <color attach="background" args={['#07111e']} />
+      <color attach="background" args={[SCENE.background]} />
       <ambientLight intensity={1.15} />
       <hemisphereLight args={['#c9e5ff', '#16243a', 1.3]} />
       <directionalLight position={SUN_DIRECTION.clone().multiplyScalar(9).toArray()} intensity={2.4 + solar * 2.2} color="#fff1cf" castShadow />
@@ -37,7 +38,7 @@ export function CloseupBackdrop({ solarLoadWm2, earthViewFactor }: Props) {
       <Stars radius={100} depth={50} count={2200} factor={3.5} saturation={0.2} fade speed={0.3} />
 
       <Html position={[0, -1.35, 0]} center distanceFactor={7} style={{ pointerEvents: 'none' }}>
-        <div style={{ color: '#9fd2ef', fontSize: 11, opacity: 0.75, whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(0,0,0,.8)' }}>
+        <div style={{ color: 'var(--viz-text-2)', fontSize: 11, opacity: 0.75, whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(0,0,0,.8)' }}>
           Close-up view: spacecraft at full detail, Earth shown schematically and not to scale
         </div>
       </Html>

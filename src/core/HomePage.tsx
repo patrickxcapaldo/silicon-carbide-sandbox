@@ -33,7 +33,7 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
               alignItems: 'center',
               background: 'none',
               border: 'none',
-              color: 'var(--accent)',
+              color: 'var(--link)',
               cursor: 'pointer',
               font: '600 0.9rem var(--sans)',
               padding: '0 0 1rem',

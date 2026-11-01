@@ -1,23 +1,7 @@
+import type { ParamMeta } from '../../../core/ui';
 import type { ThermalState } from './types';
 
-export type ParamMeta = {
-  label: string;
-  unit: string;
-  min: number;
-  max: number;
-  step: number;
-  description: string;
-  /** When true, ParamSlider.tsx maps the slider handle's position through a
-   * logarithmic curve rather than linearly, so a range spanning many orders
-   * of magnitude (e.g. 0.5 to 2e7) still gives usable resolution near the
-   * low end. Only meaningful together with logFloor. */
-  logScale?: boolean;
-  /** The smallest value the log curve treats as non-zero (must be > 0). For
-   * fields whose true min is 0 (compute power, parasitic heat), this is the
-   * practical low end of the log range; dragging the slider to its very
-   * bottom still yields the field's real `min` (including 0). */
-  logFloor?: number;
-};
+export type { ParamMeta };
 
 export const PARAM_META: Record<keyof ThermalState, ParamMeta> = {
   // Orbit

@@ -4,7 +4,7 @@ import { orbitalThermalLimits } from '../sandbox/module';
 import { ThermalScene, type CameraFocus, type ViewMode } from './ThermalScene';
 import { ControlPanel } from './ControlPanel';
 import { StatusBadge } from './StatusBadge';
-import { InfoTip } from './InfoTip';
+import { DetailsPanel, ExploreCanvas, Metric, MetricGrid, Overlay } from '../../../core/ui';
 import { useOrbitClock } from './useOrbitClock';
 import { nadirEarthViewFactor } from './orbit';
 import { DAWN_DUSK_SSO_ORBIT } from '../sandbox/orbitalMechanics';
@@ -191,58 +191,56 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
   };
 
   return <>
-    <section style={{ position: 'relative', width: '100%', maxWidth: '1200px', margin: '0 auto', height: '760px', minHeight: 600, border: '1px solid rgba(150,190,220,.28)', borderRadius: 16, overflow: 'hidden', background: '#07111e', boxShadow: '0 18px 50px rgba(0,0,0,.28)' }}>
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [8.4, 6.4, 9.2], fov: 45, near: 0.05, far: 120 }} gl={{ antialias: true, powerPreference: 'high-performance' }}>
-      <Suspense fallback={null}><ThermalScene state={state} derived={derived} viewMode={viewMode} cameraFocus={cameraFocus} /></Suspense>
-    </Canvas>
+    <ExploreCanvas
+      label="Orbital thermal explorer"
+      controls={
+        <ControlPanel
+          state={state}
+          onChange={handleChange}
+          onApplyOrbitPreset={applyOrbitPreset}
+          onApplyScenario={applyScenario}
+          onExport={onExport}
+          onReset={handleReset}
+          selectedScenarioId={selectedScenarioId}
+          selectedOrbitPresetId={selectedOrbitPresetId}
+          viewMode={viewMode}
+          setViewMode={handleViewModeChange}
+          cameraFocus={cameraFocus}
+          setCameraFocus={setCameraFocus}
+          playing={playing}
+          setPlaying={setPlaying}
+          speed={speed}
+          setSpeed={setSpeed}
+          periodSeconds={periodSeconds}
+          secondsPerOrbitAtSpeed={secondsPerOrbitAtSpeed}
+        />
+      }
+    >
+      <Canvas shadows dpr={[1, 2]} camera={{ position: [8.4, 6.4, 9.2], fov: 45, near: 0.05, far: 120 }} gl={{ antialias: true, powerPreference: 'high-performance' }}>
+        <Suspense fallback={null}><ThermalScene state={state} derived={derived} viewMode={viewMode} cameraFocus={cameraFocus} /></Suspense>
+      </Canvas>
 
-    <details open className="thermal-overlay thermal-intro">
-      <summary>Orbital Thermal Balance</summary>
-      <div>
+      <Overlay variant="intro" title="Orbital Thermal Balance">
         {viewMode === 'orbit'
           ? 'Earth and the orbit are drawn to scale, and the spacecraft is shown as a small marker so that it does not pass through the surface. Switch to Close-up to inspect it.'
           : 'Close-up view showing the spacecraft at full detail. Earth is a schematic backdrop and is not positioned to scale.'}
-      </div>
-    </details>
+      </Overlay>
 
-    <ControlPanel
-      state={state}
-      onChange={handleChange}
-      onApplyOrbitPreset={applyOrbitPreset}
-      onApplyScenario={applyScenario}
-      onExport={onExport}
-      onReset={handleReset}
-      selectedScenarioId={selectedScenarioId}
-      selectedOrbitPresetId={selectedOrbitPresetId}
-      viewMode={viewMode}
-      setViewMode={handleViewModeChange}
-      cameraFocus={cameraFocus}
-      setCameraFocus={setCameraFocus}
-      playing={playing}
-      setPlaying={setPlaying}
-      speed={speed}
-      setSpeed={setSpeed}
-      periodSeconds={periodSeconds}
-      secondsPerOrbitAtSpeed={secondsPerOrbitAtSpeed}
-    />
-
-    <details open className="thermal-overlay thermal-telemetry" aria-label="Thermal telemetry">
-      <summary>Thermal Telemetry</summary>
-      <div className="thermal-telemetry-grid">
-      <div><small>Requested Compute <InfoTip text={TELEMETRY_INFO.requestedCompute} placement="above" /></small><br /><strong>{metric(derived.computeWattsRequested)}</strong></div>
-      <div><small>Compute Heat Limit <InfoTip text={TELEMETRY_INFO.heatLimit} placement="above" /></small><br /><strong>{metric(derived.netCapacityW)}</strong></div>
-      <div><small>{derived.computeDeficitW > 0 ? 'Thermal Deficit' : 'Thermal Headroom'} <InfoTip text={TELEMETRY_INFO.thermalMargin} placement="above" /></small><br /><strong style={{ color: derived.computeDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.computeDeficitW))}</strong></div>
-      <div><small>Solar Array Power <InfoTip text={TELEMETRY_INFO.arrayPower} placement="above" /></small><br /><strong>{metric(derived.generatedPowerW)}</strong></div>
-      <div><small>Orbit Sunlit Fraction <InfoTip text={TELEMETRY_INFO.sunlitFraction} placement="above" /></small><br /><strong>{(derived.orbitSunlitFraction * 100).toFixed(0)}%</strong></div>
-      <div><small>{derived.powerDeficitW > 0 ? 'Power Deficit' : 'Power Headroom'} <InfoTip text={TELEMETRY_INFO.powerMargin} placement="above" /></small><br /><strong style={{ color: derived.powerDeficitW > 0 ? '#ff6b6b' : '#8fe6a8' }}>{metric(Math.abs(derived.powerDeficitW))}</strong></div>
-      <div><small>Coolant Capacity <InfoTip text={TELEMETRY_INFO.coolantCapacity} placement="above" /></small><br /><strong>{metric(derived.transportCapacityW)}</strong></div>
-      <div><small>Status</small><br /><StatusBadge status={derived.status} /></div>
-      </div>
-    </details>
-    </section>
-    <details open className="challenge-explorer-limits thermal-ceilings" aria-label="Compute ceilings">
-      <summary>Compute Ceilings</summary>
-      <p>White marker: requested compute. The green bar is the lowest ceiling.</p>
+      <Overlay variant="telemetry" title="Thermal Telemetry" label="Thermal telemetry">
+        <MetricGrid>
+          <Metric label="Requested Compute" info={TELEMETRY_INFO.requestedCompute} value={metric(derived.computeWattsRequested)} />
+          <Metric label="Compute Heat Limit" info={TELEMETRY_INFO.heatLimit} value={metric(derived.netCapacityW)} />
+          <Metric label={derived.computeDeficitW > 0 ? 'Thermal Deficit' : 'Thermal Headroom'} info={TELEMETRY_INFO.thermalMargin} value={metric(Math.abs(derived.computeDeficitW))} status={derived.computeDeficitW > 0 ? 'fail' : 'safe'} />
+          <Metric label="Solar Array Power" info={TELEMETRY_INFO.arrayPower} value={metric(derived.generatedPowerW)} />
+          <Metric label="Orbit Sunlit Fraction" info={TELEMETRY_INFO.sunlitFraction} value={`${(derived.orbitSunlitFraction * 100).toFixed(0)}%`} />
+          <Metric label={derived.powerDeficitW > 0 ? 'Power Deficit' : 'Power Headroom'} info={TELEMETRY_INFO.powerMargin} value={metric(Math.abs(derived.powerDeficitW))} status={derived.powerDeficitW > 0 ? 'fail' : 'safe'} />
+          <Metric label="Coolant Capacity" info={TELEMETRY_INFO.coolantCapacity} value={metric(derived.transportCapacityW)} />
+          <Metric label="Status" value={<StatusBadge status={derived.status} />} />
+        </MetricGrid>
+      </Overlay>
+    </ExploreCanvas>
+    <DetailsPanel title="Compute Ceilings" label="Compute ceilings">
+      <p>The vertical marker is the requested compute. The highlighted bar is the lowest ceiling, which is the one you hit first.</p>
       <CeilingBars
         evaluation={{
           answerId: derived.netRadiatorCapacityW <= derived.transportCapacityW && derived.netRadiatorCapacityW <= derived.powerCeilingW
@@ -259,6 +257,6 @@ export function ThermalVisualizer({ initialState = INITIAL_STATE, onStateChange,
         }}
         requestedLoad={derived.computeWattsRequested}
       />
-    </details>
+    </DetailsPanel>
   </>;
 }

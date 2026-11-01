@@ -1,0 +1,401 @@
+/*
+ * Silicon Carbide Imperative Sandbox: shared page-theme components.
+ *
+ * Everything here follows the PAGE theme (light or dark) through the tokens in
+ * src/index.css. The always-dark Explore instrument lives in explore.css.
+ *
+ * Rules (North Star, Appendix B): one Orchid accent; thin lines, flat fills,
+ * no gradients, no decorative motion; hover and selection change colour or
+ * border only (never size or position); status colours mean model status only.
+ */
+
+/* ── Header: badges, tags, scope ─────────────────────────────────────── */
+
+.sci-badge {
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: 500 0.72rem/1 var(--mono);
+  user-select: none;
+  vertical-align: middle;
+}
+
+.sci-badge__label {
+  padding: 0.28rem 0.45rem;
+  color: var(--text);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+}
+
+.sci-badge__value {
+  padding: 0.28rem 0.5rem;
+  color: var(--text-h);
+  background: var(--bg-elevated);
+  font-weight: 600;
+}
+
+.sci-badge-link {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.sci-badge--link {
+  border-color: var(--accent-border);
+}
+
+.sci-badge-link:hover .sci-badge--link {
+  border-color: var(--accent);
+}
+
+.sci-badge-link:hover .sci-badge__value {
+  background: var(--accent-bg);
+}
+
+.sci-tag {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--tag-text);
+  background: var(--tag-bg);
+  font: 500 0.7rem/1.4 var(--mono);
+}
+
+.sci-scope {
+  max-width: 780px;
+  margin: -0.35rem 0 0.85rem;
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* ── Below-canvas details panel (compute ceilings, loss bars, results) ── */
+
+.sci-details {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0.75rem auto 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--bg-surface);
+}
+
+.sci-details > summary {
+  margin-bottom: 0.5rem;
+  color: var(--text-h);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sci-details:not([open]) > summary {
+  margin-bottom: 0;
+}
+
+.sci-details > p {
+  margin: 0 0 0.6rem;
+  font-size: 0.82rem;
+}
+
+.sci-details--prose {
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+/* ── Value bars: ceilings, loss breakdowns, challenge reveals ────────── */
+/* Neutral bars; the single Orchid bar is the binding constraint. */
+
+.sci-bars {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.5rem 0;
+}
+
+.sci-bar-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 190px) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sci-bar-label {
+  color: var(--text-h);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.sci-bar-label small {
+  display: block;
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.sci-bar-track {
+  position: relative;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: visible;
+}
+
+.sci-bar-fill {
+  height: 100%;
+  min-width: 3px;
+  border-radius: 3px;
+  background: var(--text);
+}
+
+.sci-bar-row.is-binding .sci-bar-fill {
+  background: var(--accent);
+}
+
+.sci-bar-marker {
+  position: absolute;
+  z-index: 1;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  background: var(--text-h);
+}
+
+.sci-bar-legend {
+  margin: 0.25rem 0 0;
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 520px) {
+  .sci-bar-row {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+  }
+}
+
+/* ── Stacked budget bar (power / loss breakdowns) ────────────────────── */
+
+.sci-stack {
+  display: flex;
+  width: 100%;
+  height: 14px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--border);
+}
+
+.sci-stack > i {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-right: 1px solid var(--bg-surface);
+}
+
+.sci-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.3rem 0.75rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.78rem;
+}
+
+.sci-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text);
+}
+
+.sci-legend b {
+  margin-left: auto;
+  color: var(--text-h);
+  font: 600 0.78rem var(--mono);
+}
+
+.sci-swatch {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.series-1 { background: var(--series-1); }
+.series-2 { background: var(--series-2); }
+.series-3 { background: var(--series-3); }
+.series-4 { background: var(--series-4); }
+.series-binding { background: var(--accent); }
+
+/* ── Chapter: the textbook part of a module page ─────────────────────── */
+/* question → concepts and equations → worked example → limits */
+
+.sci-chapter {
+  max-width: 780px;
+  margin: 0 auto 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.sci-chapter h2,
+.sci-chapter h3,
+.sci-chapter h4 {
+  margin: 1.3rem 0 0.45rem;
+  color: var(--text-h);
+}
+
+.sci-chapter h2 {
+  margin-top: 0.75rem;
+  font-size: 1.4rem;
+}
+
+.sci-chapter h3 {
+  font-size: 1.1rem;
+}
+
+.sci-chapter p {
+  margin: 0.55rem 0;
+}
+
+.sci-chapter ul {
+  padding-left: 1.2rem;
+}
+
+.sci-chapter__skip {
+  position: absolute;
+  left: -9999px;
+}
+
+.sci-chapter__skip:focus {
+  position: static;
+  display: inline-block;
+  min-height: 40px;
+  padding: 0.45rem 0;
+  font-weight: 650;
+}
+
+.sci-badge-note {
+  margin: 0 0 0.5rem;
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.sci-note {
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.sci-equation {
+  margin: 0.65rem 0;
+  padding: 0.7rem 0.8rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  text-align: center;
+}
+
+.sci-working {
+  margin: 0.9rem 0;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--eq-border);
+  border-radius: 10px;
+  background: var(--eq-bg);
+}
+
+.sci-working > summary {
+  color: var(--text-h);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.sci-callout {
+  margin: 0.9rem 0;
+  padding: 0.6rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  background: var(--bg-surface);
+  color: var(--text-h);
+}
+
+.sci-cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.sci-cards > section {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-surface);
+}
+
+.sci-cards > section > h4 {
+  margin-top: 0;
+}
+
+.sci-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+
+.sci-facts > div {
+  min-width: 0;
+  padding: 0.65rem;
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.sci-facts dt {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.sci-facts dd {
+  margin: 0.15rem 0 0;
+  color: var(--text-h);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.sci-table {
+  width: 100%;
+  margin: 0.8rem 0;
+  border-collapse: collapse;
+}
+
+.sci-table th,
+.sci-table td {
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.sci-table-wrap {
+  overflow-x: auto;
+}
+
+@media (min-width: 680px) {
+  .sci-cards--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ── Focus: one visible ring everywhere ──────────────────────────────── */
+
+.sci-chapter a:focus-visible,
+.sci-chapter summary:focus-visible,
+.sci-details summary:focus-visible,
+.sci-badge-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

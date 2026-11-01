@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { clamp01, inverseLerp } from './thermalColor';
 import { EARTH_RADIUS_SCENE, satelliteOrbitPosition } from './orbit';
 import { SUN_DIRECTION } from './sceneConstants';
+import { SCENE } from '../../../core/ui';
 
 type Props = {
   solarLoadWm2: number; earthIrTempK: number; earthViewFactor: number; earthAlbedo: number;
@@ -44,10 +45,10 @@ export function ThermalEnvironment({ solarLoadWm2, earthIrTempK, earthViewFactor
   const earthColor = useMemo(() => new THREE.Color('#1a4f80').lerp(new THREE.Color('#2d6d9e'), earthHeat * 0.5), [earthHeat]);
 
   return <group>
-    <color attach="background" args={['#050c16']} />
-    <ambientLight intensity={0.5} />
-    <hemisphereLight args={['#c9e5ff', '#0a1424', 0.9]} />
-    <directionalLight position={sunDir.clone().multiplyScalar(-12).toArray()} intensity={2.6 + solar * 3.0} color="#fff1cf" castShadow />
+    <color attach="background" args={[SCENE.background]} />
+    <ambientLight intensity={SCENE.lights.ambientIntensity} />
+    <hemisphereLight args={[SCENE.lights.hemisphere.sky, SCENE.lights.hemisphere.ground, SCENE.lights.hemisphere.intensity]} />
+    <directionalLight position={sunDir.clone().multiplyScalar(-12).toArray()} intensity={2.6 + solar * 3.0} color={SCENE.lights.sunColour} castShadow />
 
     <mesh receiveShadow>
       <sphereGeometry args={[EARTH_RADIUS_SCENE, 96, 64]} />
@@ -55,7 +56,7 @@ export function ThermalEnvironment({ solarLoadWm2, earthIrTempK, earthViewFactor
     </mesh>
     <mesh scale={[1.014, 1.014, 1.014]}>
       <sphereGeometry args={[EARTH_RADIUS_SCENE, 64, 48]} />
-      <meshBasicMaterial color="#61bcff" transparent opacity={0.07} side={THREE.BackSide} blending={THREE.AdditiveBlending} />
+      <meshBasicMaterial color={SCENE.earth.atmosphere} transparent opacity={SCENE.earth.atmosphereOpacity} side={THREE.BackSide} blending={THREE.AdditiveBlending} />
     </mesh>
 
     <VectorArrow start={sunStart} end={satPos.clone().multiplyScalar(0.96)} color="#ffb84f" opacity={0.35 + solar * 0.55} headSize={0.12 + solar * 0.05} />

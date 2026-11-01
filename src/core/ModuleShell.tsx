@@ -110,7 +110,7 @@ const ParameterControl: React.FC<{
             fontFamily: 'var(--mono)',
             fontSize: '0.9rem',
             fontWeight: 600,
-            color: 'var(--accent)',
+            color: 'var(--link)',
             whiteSpace: 'nowrap',
           }}
         >
@@ -348,7 +348,7 @@ export const ModuleShell: React.FC<ModuleShellProps> = ({ module }) => {
                       alignItems: 'flex-start',
                     }}
                   >
-                    <span style={{ flexShrink: 0 }}>⚠</span>
+                    <span role="img" aria-label="Warning" style={{ flexShrink: 0, width: 9, height: 9, marginTop: '0.4em', borderRadius: '50%', background: 'var(--status-limit)' }} />
                     <span>{w}</span>
                   </p>
                 ))}

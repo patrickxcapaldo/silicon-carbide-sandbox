@@ -6,7 +6,7 @@ import type { SolarKernelInputs } from '../sandbox/kernel';
 import { SolarScene, type CameraFocus, type ViewMode } from './SolarScene';
 import { SolarControlPanel } from './SolarControlPanel';
 import { SolarPowerLossBars } from './SolarPowerLossBars';
-import { InfoTip } from './InfoTip';
+import { DetailsPanel, ExploreCanvas, Metric, MetricGrid, Overlay } from '../../../core/ui';
 import { useOrbitClock } from './useOrbitClock';
 import { formatWatts, formatPercent } from './format';
 import { ORBIT_PRESETS, type OrbitPreset } from './orbitPresets';
@@ -172,20 +172,30 @@ export function SolarVisualizer({ initialState = INITIAL_STATE, onStateChange, o
 
   return (
     <>
-      <section
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          height: '760px',
-          minHeight: 600,
-          border: '1px solid rgba(150,190,220,.28)',
-          borderRadius: 16,
-          overflow: 'hidden',
-          background: '#07111e',
-          boxShadow: '0 18px 50px rgba(0,0,0,.28)',
-        }}
+      <ExploreCanvas
+        label="Solar power budget explorer"
+        controls={
+          <SolarControlPanel
+            state={state}
+            onChange={handleFieldChange}
+            onApplyScenario={handleApplyScenario}
+            onApplyOrbitPreset={handleApplyOrbitPreset}
+            onReset={handleReset}
+            selectedScenarioId={selectedScenarioId}
+            selectedOrbitPresetId={selectedOrbitPresetId}
+            viewMode={viewMode}
+            setViewMode={handleViewModeChange}
+            cameraFocus={cameraFocus}
+            setCameraFocus={setCameraFocus}
+            playing={playing}
+            setPlaying={setPlaying}
+            speed={speed}
+            setSpeed={setSpeed}
+            periodSeconds={periodSeconds}
+            secondsPerOrbitAtSpeed={secondsPerOrbitAtSpeed}
+            onExport={onExport}
+          />
+        }
       >
         <Canvas
           shadows
@@ -198,117 +208,28 @@ export function SolarVisualizer({ initialState = INITIAL_STATE, onStateChange, o
           </Suspense>
         </Canvas>
 
-        {/* Top Left: Intro */}
-        <details open className="solar-overlay solar-intro">
-          <summary>Solar Array Power Budget</summary>
-          <div>
-            {viewMode === 'orbit'
-              ? 'Earth and orbit are drawn to scale, with eclipse shadow geometry shown. Switch to Close-up to inspect the solar array wing.'
-              : 'Close-up view showing the solar array wing with cell thermal color rendering. Earth is not positioned to scale.'}
-          </div>
-        </details>
+        <Overlay variant="intro" title="Solar Array Power Budget">
+          {viewMode === 'orbit'
+            ? 'Earth and orbit are drawn to scale, with eclipse shadow geometry shown. Switch to Close-up to inspect the solar array wing.'
+            : 'Close-up view showing the solar array wing with cell thermal colour rendering. Earth is not positioned to scale.'}
+        </Overlay>
 
-        {/* Top Right Sidebar: Control Panel */}
-        <SolarControlPanel
-          state={state}
-          onChange={handleFieldChange}
-          onApplyScenario={handleApplyScenario}
-          onApplyOrbitPreset={handleApplyOrbitPreset}
-          onReset={handleReset}
-          selectedScenarioId={selectedScenarioId}
-          selectedOrbitPresetId={selectedOrbitPresetId}
-          viewMode={viewMode}
-          setViewMode={handleViewModeChange}
-          cameraFocus={cameraFocus}
-          setCameraFocus={setCameraFocus}
-          playing={playing}
-          setPlaying={setPlaying}
-          speed={speed}
-          setSpeed={setSpeed}
-          periodSeconds={periodSeconds}
-          secondsPerOrbitAtSpeed={secondsPerOrbitAtSpeed}
-          onExport={onExport}
-        />
+        <Overlay variant="telemetry" title="Solar Telemetry" label="Solar telemetry">
+          <MetricGrid>
+            <Metric label="Orbit Average" info="Average electrical power generated across the full orbit, accounting for daylight, eclipse shadow, temperature, radiation, and system losses." value={formatWatts(derived.orbitAveragePowerW)} />
+            <Metric label="Sunlit Generation" info="Instantaneous power generated while the satellite is in direct sunlight." value={formatWatts(derived.instantaneousSunlitPowerW)} />
+            <Metric label="Sunlit Duty Cycle" info="Fraction and duration of the orbit spent in direct sunlight versus Earth's shadow." value={`${formatPercent(derived.orbitSunlitFraction)} (${derived.orbitEclipseDurationMin.toFixed(1)} min)`} />
+            <Metric label="Net Efficiency" info="System-level end-to-end efficiency derated from baseline cell efficiency." value={formatPercent(derived.effectiveSystemEfficiency)} />
+            <Metric label="Energy / Orbit" info="Total electrical energy generated per completed orbit." value={`${Math.round(derived.orbitEnergyGeneratedWh)} W\u00b7h`} />
+            <Metric label="Beginning of Life" info="Initial un-derated array generation before radiation and temperature losses." value={formatWatts(derived.beginningOfLifePowerW)} />
+          </MetricGrid>
+        </Overlay>
+      </ExploreCanvas>
 
-        {/* Bottom Overlay: Telemetry */}
-        <details open className="solar-overlay solar-telemetry" aria-label="Solar telemetry">
-          <summary>Solar Telemetry</summary>
-          <div className="solar-telemetry-grid">
-            <div>
-              <small>
-                Orbit Average{' '}
-                <InfoTip
-                  text="Average electrical power generated across the full orbit, accounting for daylight, eclipse shadow, temperature, radiation, and system losses."
-                  placement="above"
-                />
-              </small>
-              <br />
-              <strong>{formatWatts(derived.orbitAveragePowerW)}</strong>
-            </div>
-            <div>
-              <small>
-                Sunlit Generation{' '}
-                <InfoTip
-                  text="Instantaneous power generated while the satellite is in direct sunlight."
-                  placement="above"
-                />
-              </small>
-              <br />
-              <strong>{formatWatts(derived.instantaneousSunlitPowerW)}</strong>
-            </div>
-            <div>
-              <small>
-                Sunlit Duty Cycle{' '}
-                <InfoTip
-                  text="Fraction and duration of the orbit spent in direct sunlight versus Earth's shadow."
-                  placement="above"
-                />
-              </small>
-              <br />
-              <strong>
-                {formatPercent(derived.orbitSunlitFraction)} ({derived.orbitEclipseDurationMin.toFixed(1)}m)
-              </strong>
-            </div>
-            <div>
-              <small>
-                Net Efficiency{' '}
-                <InfoTip
-                  text="System-level end-to-end efficiency derated from baseline cell efficiency."
-                  placement="above"
-                />
-              </small>
-              <br />
-              <strong>{formatPercent(derived.effectiveSystemEfficiency)}</strong>
-            </div>
-            <div>
-              <small>
-                Energy / Orbit{' '}
-                <InfoTip text="Total electrical energy generated per completed orbit." placement="above" />
-              </small>
-              <br />
-              <strong>{Math.round(derived.orbitEnergyGeneratedWh)} W·h</strong>
-            </div>
-            <div>
-              <small>
-                Beginning of Life{' '}
-                <InfoTip
-                  text="Initial un-derated array generation before radiation and temperature losses."
-                  placement="above"
-                />
-              </small>
-              <br />
-              <strong>{formatWatts(derived.beginningOfLifePowerW)}</strong>
-            </div>
-          </div>
-        </details>
-      </section>
-
-      {/* Loss Bars Breakdown below the canvas */}
-      <details open className="challenge-explorer-limits solar-losses" aria-label="Power budget breakdown">
-        <summary>Power Budget Breakdown</summary>
+      <DetailsPanel title="Power Budget Breakdown" label="Power budget breakdown">
         <p>Stacked losses derating beginning-of-life array output down to orbit-averaged power.</p>
         <SolarPowerLossBars derived={derived} />
-      </details>
+      </DetailsPanel>
     </>
   );
 }

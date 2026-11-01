@@ -1,15 +1,7 @@
+import type { ParamMeta } from '../../../core/ui';
 import type { SolarState } from './types';
 
-export type ParamMeta = {
-  label: string;
-  unit: string;
-  min: number;
-  max: number;
-  step: number;
-  description: string;
-  logScale?: boolean;
-  logFloor?: number;
-};
+export type { ParamMeta };
 
 export const PARAM_META: Record<keyof SolarState, ParamMeta> = {
   // Photovoltaic Array

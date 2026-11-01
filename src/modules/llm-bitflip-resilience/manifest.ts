@@ -1,6 +1,6 @@
 import type { Manifest } from '../../core/types';
 import { equations } from './equations';
-import { MODULE_CONTRACT_VERSION, MODULE_RELEASE_VERSION } from './version';
+import { MODULE_CONTRACT_VERSION, MODULE_RELEASE_VERSION, REALISM_LABEL } from './version';
 import { INPUT_SPECS } from './sandbox/module';
 
 const STEP: Record<string, number> = {
@@ -38,6 +38,8 @@ export const manifest: Manifest = {
   title: 'LLM Bit-Flip Resilience',
   summary:
     'How long does a language-model weight store survive accumulating bit flips? A larger model tolerates more flips but presents more memory to be hit, so survival time depends on tolerance divided by exposure. A Sketch built on two measured models, one software stack and a software fault model.',
+  realism: REALISM_LABEL,
+  scope: 'Two measured models, one software stack, a software fault model, no flux model.',
   tags: ['space', 'radiation-effects', 'ai-infrastructure', 'reliability', 'memory', 'sketch'],
   relatedArticles: [],
   interfaces: ['orbital-thermal-limits', 'solar-power-budget'],

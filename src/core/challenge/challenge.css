@@ -1,3 +1,17 @@
+/*
+ * Challenge and Play: the single stylesheet for both game modes.
+ *
+ * Shared by ChallengeShell, PlayShell and every module's spec cards, reveals
+ * and formulas. Modules must NOT ship their own `.challenge-*` or `.play-*`
+ * rules: global class names defined twice make one module silently restyle
+ * another, depending on bundle order.
+ *
+ * Follows the page theme. Orchid marks the selected or correct item and the
+ * one binding bar; answers are also marked in words (a leading tick or cross),
+ * so colour is never the only signal. Status red/green are not used here:
+ * those mean model status only.
+ */
+
 .challenge-mode-toggle {
   display: flex;
   align-items: center;
@@ -23,8 +37,13 @@
 }
 
 .challenge-mode-toggle button[aria-pressed='true'] {
-  color: var(--black);
+  color: var(--on-accent);
   background: var(--accent);
+}
+
+.challenge-mode-toggle button:hover:not([aria-pressed='true']) {
+  color: var(--text-h);
+  background: var(--bg-elevated);
 }
 
 .challenge-mode-toggle button:focus-visible,
@@ -110,7 +129,7 @@
 .challenge-shell-button-primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: var(--black);
+  color: var(--on-accent);
 }
 
 .challenge-shell-row,
@@ -158,11 +177,268 @@
 }
 
 .challenge-shell-inline-error {
-  color: var(--error);
+  color: var(--text-h);
+  font-weight: 650;
 }
 
 @media (min-width: 680px) {
   .challenge-shell-settings {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Module parts: spec cards, formulas, reveal, end card ───────────── */
+
+.challenge-game {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1rem 0;
+  color: var(--text);
+}
+
+.challenge-game h2,
+.challenge-game h3 {
+  color: var(--text-h);
+}
+
+.challenge-toolbar,
+.challenge-progress,
+.challenge-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.challenge-toolbar,
+.challenge-progress {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.challenge-actions {
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.challenge-button {
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  color: var(--text-h);
+  background: var(--bg-elevated);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.challenge-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.challenge-button-primary {
+  color: var(--on-accent);
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.challenge-button-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 85%, white);
+}
+
+.challenge-prompt-card,
+.challenge-reveal-card,
+.challenge-end-card {
+  margin-top: 1rem;
+  padding: clamp(1rem, 4vw, 1.5rem);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--text);
+  background: var(--bg-surface);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+}
+
+.challenge-prompt-card h2,
+.challenge-reveal-card h2,
+.challenge-end-card h2 {
+  color: var(--text-h);
+}
+
+.challenge-specs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+
+.challenge-spec {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+
+.challenge-spec dt,
+.challenge-environment dt {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.challenge-spec dd,
+.challenge-environment dd {
+  margin: 0.2rem 0 0;
+  color: var(--text-h);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.challenge-environment {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.challenge-environment summary {
+  padding: 0.8rem 0;
+  color: var(--text);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.challenge-environment dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.challenge-question {
+  margin-top: 1.4rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.challenge-answer-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.challenge-answer-buttons .challenge-button {
+  min-height: 58px;
+}
+
+.challenge-answer-buttons .challenge-button:disabled {
+  cursor: default;
+}
+
+/* Correct: Orchid outline and a tick. Wrong pick: dashed outline and a cross. */
+.challenge-answer-buttons .is-correct {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.challenge-answer-buttons .is-correct::before {
+  content: '\2713\00a0';
+}
+
+.challenge-answer-buttons .is-incorrect {
+  border-style: dashed;
+  border-color: var(--text);
+}
+
+.challenge-answer-buttons .is-incorrect::before {
+  content: '\2717\00a0';
+}
+
+.challenge-formulas {
+  margin: 1rem 0;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+
+.challenge-formulas h3 {
+  margin-top: 0;
+}
+
+.challenge-formulas > section {
+  margin-top: 0.75rem;
+}
+
+.challenge-formulas p {
+  margin: 0.4rem 0;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.challenge-math-line {
+  margin-top: 0.4rem;
+  padding: 0.65rem;
+  overflow-x: auto;
+  border-radius: 8px;
+  color: var(--text-h);
+  background: var(--bg);
+  text-align: center;
+}
+
+.challenge-result-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.challenge-lesson {
+  margin-top: 1.1rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.challenge-share {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--bg-elevated);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+
+.challenge-copy-status {
+  min-height: 1.4em;
+  color: var(--text-muted);
+}
+
+.challenge-game button:focus-visible,
+.challenge-game summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 680px) {
+  .challenge-specs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .challenge-environment dl {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .challenge-answer-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .challenge-answer-buttons .challenge-button {
+    min-height: 48px;
   }
 }

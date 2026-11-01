@@ -13,7 +13,7 @@ import {
 } from './series';
 import { MODELS, type ModelId } from '../data/radiai-measured';
 import { collapseResidualsAgainstModelB, collapseRmse, outcomeSplit, type OutcomeBatchChoice } from '../sandbox/kernel';
-import { InfoTip } from './Help';
+import { InfoTip } from '../../../core/ui';
 import { fmtDays, fmtNumber, fmtPct, fmtPow10 } from './format';
 
 /* Palette variables are resolved on screen by .bfr-chart and replaced by exportChart.ts on download. */
@@ -167,7 +167,7 @@ export function ResidualTable({ alpha }: { alpha: number }) {
   return (
     <div className="bfr-residual">
       <div className="bfr-residual-head">
-        <InfoTip label="Why this table always shows Qwen" block>The chosen-size curve is built by stretching the {MODELS.A.shortName} curve (the reference). A fair test needs data the curve was not built from, and {MODELS.B.shortName} is the only other measured model. So this table always compares the collapse prediction against Qwen, whatever model size the slider is on. It does not depend on the size slider, only on α: change α to see how well each exponent reproduces Qwen. Testing against Llama itself would be meaningless, since its residual is zero by construction.</InfoTip>
+        <InfoTip label="Why this table always shows Qwen" width={340}>The chosen-size curve is built by stretching the {MODELS.A.shortName} curve (the reference). A fair test needs data the curve was not built from, and {MODELS.B.shortName} is the only other measured model. So this table always compares the collapse prediction against Qwen, whatever model size the slider is on. It does not depend on the size slider, only on α: change α to see how well each exponent reproduces Qwen. Testing against Llama itself would be meaningless, since its residual is zero by construction.</InfoTip>
         Curve-collapse check against {MODELS.B.shortName} at α = {alpha.toFixed(2)}: root-mean-square residual{' '}
         <strong>{Number.isFinite(rmse) ? fmtPct(rmse) : 'n/a'}</strong> over the doses mapped inside {MODELS.A.shortName}’s measured range.
       </div>
@@ -181,7 +181,7 @@ export function ResidualTable({ alpha }: { alpha: number }) {
           </tbody>
         </table>
       </div>
-      <div className="bfr-note">* Predicted from outside {MODELS.A.shortName}’s measured doses (held at the last measured value). Not measured.</div>
+      <div className="sci-note">* Predicted from outside {MODELS.A.shortName}’s measured doses (held at the last measured value). Not measured.</div>
     </div>
   );
 }

@@ -3,13 +3,13 @@
 export type ExportTheme = 'dark' | 'light';
 
 const PALETTES: Record<ExportTheme, Record<string, string>> = {
-  dark: { bg: '#0f1117', text: '#eaf6ff', mute: '#94A3B8', grid: 'rgba(148,163,184,0.28)', a: '#7ecfff', dead: '#334155', b: '#cbd5e1', accent: '#B97FED', shade: 'rgba(148,163,184,0.16)', ref: '#94A3B8' },
-  light: { bg: '#ffffff', text: '#121316', mute: '#475569', grid: 'rgba(71,85,105,0.25)', a: '#1d6fb8', dead: '#0f172a', b: '#475569', accent: '#B97FED', shade: 'rgba(71,85,105,0.10)', ref: '#475569' },
+  dark: { bg: '#0f1117', text: '#f9fafb', mute: '#94A3B8', grid: 'rgba(148,163,184,0.28)', a: '#e2e8f0', dead: '#475569', b: '#94A3B8', accent: '#B97FED', shade: 'rgba(148,163,184,0.16)', ref: '#94A3B8' },
+  light: { bg: '#ffffff', text: '#0f1117', mute: '#475569', grid: 'rgba(71,85,105,0.25)', a: '#0f1117', dead: '#0f1117', b: '#475569', accent: '#B97FED', shade: 'rgba(71,85,105,0.10)', ref: '#475569' },
 };
 
 export function screenPaletteStyle(): Record<string, string> {
   const p = PALETTES.dark;
-  return Object.fromEntries(Object.entries(p).map(([k, v]) => [`--c-${k}`, k === 'bg' ? '#0b1726' : v]));
+  return Object.fromEntries(Object.entries(p).map(([k, v]) => [`--c-${k}`, k === 'bg' ? '#000000' : v]));
 }
 
 function serialise(svg: SVGSVGElement, theme: ExportTheme): { text: string; width: number; height: number } {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CANARY, canaryPosterior } from '../sandbox/kernel';
 import { MODELS, SEMANTIC_COLLAPSE } from '../data/radiai-measured';
 import { fmtPct } from './format';
+import { Metric } from '../../../core/ui';
 
 /** View 5: canary panel, Bayes readout and optional outcomes.csv bars. */
 export function CanaryPanel() {
@@ -11,18 +12,18 @@ export function CanaryPanel() {
   return (
     <div className="bfr-canary">
       <p className="bfr-lede">A single-prompt fluency probe is a cheap canary. It is informative but cannot certify that answers are right.</p>
-      <div className="bfr-readouts">
-        <div><span>Probe sensitivity to Semantic Collapse</span><strong>{CANARY.sensitivityPct[0]}–{CANARY.sensitivityPct[1]} %</strong><em>fails the probe</em></div>
-        <div><span>Miss rate (collapsed, probe passes)</span><strong>{CANARY.missPct[0]}–{CANARY.missPct[1]} %</strong><em>paper Section 7.1</em></div>
-        <div><span>False alarm (intact, probe fails)</span><strong>{CANARY.falseAlarmPct[0]}–{CANARY.falseAlarmPct[1]} %</strong><em>paper Section 7.1</em></div>
-        <div><span>Semantic Collapse, share of all trials</span><strong>{SEMANTIC_COLLAPSE.shareOfTrialsPct[0]}–{SEMANTIC_COLLAPSE.shareOfTrialsPct[1]} %</strong><em>every batch</em></div>
+      <div className="sci-metrics">
+        <Metric label={<>Probe sensitivity to Semantic Collapse</>} value={<>{CANARY.sensitivityPct[0]}–{CANARY.sensitivityPct[1]} %</>} note={<>fails the probe</>} />
+        <Metric label={<>Miss rate (collapsed, probe passes)</>} value={<>{CANARY.missPct[0]}–{CANARY.missPct[1]} %</>} note={<>paper Section 7.1</>} />
+        <Metric label={<>False alarm (intact, probe fails)</>} value={<>{CANARY.falseAlarmPct[0]}–{CANARY.falseAlarmPct[1]} %</>} note={<>paper Section 7.1</>} />
+        <Metric label={<>Semantic Collapse, share of all trials</>} value={<>{SEMANTIC_COLLAPSE.shareOfTrialsPct[0]}–{SEMANTIC_COLLAPSE.shareOfTrialsPct[1]} %</>} note={<>every batch</>} />
       </div>
       <label className="bfr-slider-row">Semantic Collapse share of (collapsed + intact) trials, s = {fmtPct(share, 0)}
         <input type="range" min={0.01} max={0.99} step={0.01} value={share} onChange={(e) => setShare(parseFloat(e.target.value))} />
       </label>
-      <div className="bfr-callout">If the probe passes, the chance the answers are collapsed is still <strong>{fmtPct(lo)} to {fmtPct(hi)}</strong>. Passing lowers the odds but does not clear the model. Task-level evaluation is needed.</div>
+      <div className="sci-callout-dark">If the probe passes, the chance the answers are collapsed is still <strong>{fmtPct(lo)} to {fmtPct(hi)}</strong>. Passing lowers the odds but does not clear the model. Task-level evaluation is needed.</div>
       <h4>Share of surviving trials in Semantic Collapse</h4>
-      <p className="bfr-note">Lowest two doses: {SEMANTIC_COLLAPSE.survivorShareLowestTwoDosesPct[0]}–{SEMANTIC_COLLAPSE.survivorShareLowestTwoDosesPct[1]} %. Highest two doses: {SEMANTIC_COLLAPSE.survivorShareHighestTwoDosesPct[0]}–{SEMANTIC_COLLAPSE.survivorShareHighestTwoDosesPct[1]} %. The per-dose split is in the Outcomes view.</p>
+      <p className="sci-note">Lowest two doses: {SEMANTIC_COLLAPSE.survivorShareLowestTwoDosesPct[0]}–{SEMANTIC_COLLAPSE.survivorShareLowestTwoDosesPct[1]} %. Highest two doses: {SEMANTIC_COLLAPSE.survivorShareHighestTwoDosesPct[0]}–{SEMANTIC_COLLAPSE.survivorShareHighestTwoDosesPct[1]} %. The per-dose split is in the Outcomes view.</p>
     </div>
   );
 }
@@ -46,7 +47,7 @@ export function ParamSplit() {
         );
       })}
       <div className="bfr-bit-legend"><span className="bfr-sw bfr-seg-attn" /> self-attention <span className="bfr-sw bfr-seg-mlp" /> MLP / feed-forward <span className="bfr-sw bfr-seg-other" /> other (embeddings and the rest)</div>
-      <p className="bfr-note">Fractions are derived by the paper from published architecture configurations (paper Section 7.5, Figure 8). They describe implementation cost only.</p>
+      <p className="sci-note">Fractions are derived by the paper from published architecture configurations (paper Section 7.5, Figure 8). They describe implementation cost only.</p>
     </div>
   );
 }

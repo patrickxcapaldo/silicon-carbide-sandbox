@@ -73,7 +73,7 @@ export function App() {
               alignItems: 'center',
               background: 'none',
               border: 'none',
-              color: 'var(--accent)',
+              color: 'var(--link)',
               cursor: 'pointer',
               fontWeight: 600,
               fontSize: '0.85rem',

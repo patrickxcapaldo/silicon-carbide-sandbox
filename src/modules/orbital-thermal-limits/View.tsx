@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { ThermalVisualizer } from './visualizer/ThermalVisualizer';
 import { Explainer } from './visualizer/Explainer';
 import { ChallengeGame } from './challenge/ChallengeGame';
@@ -7,13 +7,13 @@ import { DAWN_DUSK_SSO_ORBIT } from './sandbox/orbitalMechanics';
 import { createRunRecord } from './runRecord';
 import { manifest } from './manifest';
 import { ModulePageFrame } from '../../core/ModulePageFrame';
-import { ModeToggle, type ModuleMode } from '../../core/challenge/ModeToggle';
+import { ModuleModes } from '../../core/ModuleModes';
+import { downloadRunRecord } from '../../core/ui';
 import { PlayGame } from './play/PlayGame';
 
 interface ViewProps { inputs: Record<string, number>; onChange: (id: string, value: number) => void; results: unknown; }
 
 const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
-  const [mode, setMode] = useState<ModuleMode>('explore');
   const initialState = useMemo<Partial<ThermalState>>(() => ({
     satelliteTempC: inputs.operatingTempC ?? 45, operatingTempC: inputs.operatingTempC ?? 70, radiatorArea: inputs.radiatorArea ?? 2,
     emissivity: inputs.emissivity ?? 0.9, solarAbsorptivity: inputs.solarAbsorptivity ?? 0.12, sinkTempK: inputs.sinkTempK ?? 180,
@@ -28,30 +28,14 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
     orbitArgumentDeg: inputs.orbitArgumentDeg ?? DAWN_DUSK_SSO_ORBIT.orbitArgumentDeg,
     orbitPhaseDeg: inputs.orbitPhaseDeg ?? DAWN_DUSK_SSO_ORBIT.orbitPhaseDeg,
   }), [inputs]);
-  const handleExport = () => {
-    const record = createRunRecord(inputs);
-    const blob = new Blob([JSON.stringify(record, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `${record.software.moduleId}-v${record.software.moduleReleaseVersion}-${record.createdAt.slice(0, 10)}.json`;
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
-  };
+  const handleExport = () => downloadRunRecord(createRunRecord(inputs));
   return (
     <ModulePageFrame manifest={manifest}>
       <Explainer />
-      <ModeToggle mode={mode} onChange={setMode} />
-      <div id="module-tool">
-        <div hidden={mode !== 'challenge'}>
-          <ChallengeGame />
-        </div>
-        <div hidden={mode !== 'play'}>
-          <PlayGame />
-        </div>
-        {mode === 'explore' && (
+      <ModuleModes
+        challenge={<ChallengeGame />}
+        play={<PlayGame />}
+        explore={
           <ThermalVisualizer
             initialState={initialState}
             onStateChange={(state) => {
@@ -59,8 +43,8 @@ const View: React.FC<ViewProps> = ({ inputs, onChange }) => {
             }}
             onExport={handleExport}
           />
-        )}
-      </div>
+        }
+      />
     </ModulePageFrame>
   );
 };

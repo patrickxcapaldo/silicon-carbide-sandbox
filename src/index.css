@@ -6,11 +6,54 @@
   --mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
 
   /* Brand palette */
-  --ink: #121316;
+  --ink: #0f1117;
   --black: #000000;
   --slate: #475569;
   --mist: #94A3B8;
   --orchid: #B97FED;
+
+  /* ── Module instrument surface ───────────────────────────────────────
+     Used by Explore canvases, control panels, overlays and telemetry
+     (src/core/ui). These are deliberately NOT theme-switched: the
+     instrument is always dark so every module reads as the same object,
+     whatever the page theme. Built only from the brand palette above. */
+  --viz-bg: var(--black);              /* scene / deepest background */
+  --viz-panel: var(--ink);             /* controls, overlays, popovers */
+  --viz-raised: #181a24;               /* cards and chips on a panel */
+  --viz-border: #2d2f3e;               /* hairlines on a panel */
+  --viz-border-strong: var(--slate);   /* control outlines, bonds */
+  --viz-text: #f9fafb;                 /* primary text */
+  --viz-text-2: var(--mist);           /* labels, hints, axes */
+  --viz-hover: rgba(255, 255, 255, 0.06);
+  --viz-accent: var(--orchid);         /* the one highlight */
+  --viz-accent-soft: rgba(185, 127, 237, 0.16);
+  --viz-accent-line: rgba(185, 127, 237, 0.55);
+  --viz-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  --viz-fs-title: 13px;                /* panel title */
+  --viz-fs-body: 12px;                 /* buttons, section titles, values */
+  --viz-fs-small: 11px;                /* labels, hints, tips */
+  --viz-fs-micro: 10px;                /* tags, scale ticks */
+  --viz-control-h: 32px;               /* every panel button */
+
+  /* Text on an Orchid fill. Ink, not white: white on Orchid is 2.9:1,
+     Ink on Orchid is 6.6:1. One token so it can never drift again. */
+  --on-accent: var(--ink);
+
+  /* Model status. These four mean model status and nothing else. */
+  --status-safe: #3ddc84;
+  --status-margin: #e4d94a;
+  --status-limit: #ff9d3d;
+  --status-fail: #ff4d4d;
+
+  /* Neutral data series (stacked bars, legends). Orchid is never a series
+     colour: it is reserved for the binding / highlighted item. */
+  --series-1: #e2e8f0;
+  --series-2: var(--mist);
+  --series-3: #64748b;
+  --series-4: var(--slate);
+
+  --link: var(--text-h);
+  --link-decoration: underline;
 
   /* Home page spacing */
   --space-home-logo-heading: 0.75rem;
@@ -98,6 +141,8 @@
     --text: #9ca3af;
     --text-h: #f9fafb;
     --text-muted: #6b7280;
+    --link: var(--accent);
+    --link-decoration: none;
     --bg: #0f1117;
     --bg-surface: #181a24;
     --bg-elevated: #1e2030;
@@ -195,13 +240,19 @@ code {
   color: var(--text-h);
 }
 
+/* Links: Orchid is never text on a light surface (2.9:1), so light mode uses
+   Ink text with an Orchid underline, dark mode uses Orchid text. */
 a {
-  color: var(--accent);
-  text-decoration: none;
+  color: var(--link);
+  text-decoration: var(--link-decoration);
+  text-decoration-color: var(--accent);
+  text-underline-offset: 0.2em;
   transition: color 0.15s ease;
 }
 a:hover {
-  color: var(--accent-hover);
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
 }
 
 /* ─── Custom Range Slider ─── */
@@ -227,14 +278,10 @@ input[type="range"]::-webkit-slider-thumb {
   border: 2.5px solid var(--slider-thumb-border);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease;
 }
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
   box-shadow: var(--shadow-md);
-}
-input[type="range"]:active::-webkit-slider-thumb {
-  transform: scale(1.05);
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -245,10 +292,9 @@ input[type="range"]::-moz-range-thumb {
   border: 2.5px solid var(--slider-thumb-border);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease;
 }
 input[type="range"]::-moz-range-thumb:hover {
-  transform: scale(1.15);
   box-shadow: var(--shadow-md);
 }
 
@@ -262,7 +308,7 @@ input[type="range"]::-moz-range-thumb:hover {
 input[type="range"],
 input[type="range"]::-webkit-slider-thumb,
 input[type="range"]::-moz-range-thumb {
-  transition-property: transform, box-shadow;
+  transition-property: box-shadow;
 }
 
 /* ─── KaTeX dark mode overrides ─── */

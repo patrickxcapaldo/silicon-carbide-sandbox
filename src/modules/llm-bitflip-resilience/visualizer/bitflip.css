@@ -1,0 +1,91 @@
+/*
+ * Bitflip-specific rules only. The frame, Controls panel, buttons, sliders,
+ * (i) tips, metric cards and chapter are the shared kit in src/core/ui.
+ * Colours come from tokens; Orchid marks the one highlighted thing in a view.
+ */
+
+/* ── Views ───────────────────────────────────────────────────────────── */
+
+.bfr-lede { margin: 0 0 10px; }
+.bfr-residual { margin-top: 10px; }
+.bfr-residual-head { margin-bottom: 6px; }
+.bfr-table-wrap { overflow-x: auto; }
+.bfr-warn { color: var(--status-limit); }
+.bfr-warnings { color: var(--text); font-size: 0.82rem; }
+.bfr-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.bfr-quick button {
+  height: 28px; padding: 0 12px; border: 1px solid var(--viz-border-strong); border-radius: 6px;
+  background: transparent; color: var(--viz-text); font-size: var(--viz-fs-body); cursor: pointer;
+}
+.bfr-quick button:hover { border-color: var(--viz-text-2); background: var(--viz-hover); }
+
+.bfr-viewhead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--viz-text); }
+
+.bfr-region { margin-top: 2px; margin-bottom: 8px; font-size: var(--viz-fs-small); }
+.bfr-region.ok { color: var(--viz-text-2); }
+.bfr-region.warn { color: var(--status-limit); }
+
+/* ── Home ────────────────────────────────────────────────────────────── */
+
+.bfr-home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; margin: 10px 0; }
+.bfr-home-card {
+  display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid var(--viz-border);
+  border-radius: 10px; background: rgba(255, 255, 255, 0.03); color: var(--viz-text);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.bfr-home-card:hover, .bfr-home-card:focus-visible { border-color: var(--viz-accent); background: var(--viz-hover); }
+.bfr-home-card strong { font-size: 13px; }
+.bfr-home-card span { font-size: var(--viz-fs-body); color: var(--viz-text); }
+.bfr-home-card em { font-size: var(--viz-fs-small); color: var(--viz-text-2); font-style: normal; }
+
+/* ── Bit anatomy: sign / exponent / mantissa. Exponent is the one that matters, so it is Orchid. ── */
+
+.bfr-anatomy .bfr-bits { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 4px; }
+.bfr-bit {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  aspect-ratio: 1 / 1.25; border: 1px solid var(--viz-border-strong); border-radius: 6px;
+  background: transparent; color: var(--viz-text); font-family: var(--mono); cursor: pointer;
+}
+.bfr-bit:hover { background: var(--viz-hover); }
+.bfr-bit-val { font-size: 18px; font-weight: 700; }
+.bfr-bit-idx { font-size: var(--viz-fs-micro); color: var(--viz-text-2); }
+.bfr-bit-was { font-size: 9px; color: var(--viz-text-2); }
+.bfr-bit.bfr-sign { border-color: var(--viz-text-2); }
+.bfr-bit.bfr-exponent { border-color: var(--viz-accent); }
+.bfr-bit.bfr-mantissa { border-color: var(--viz-border-strong); }
+.bfr-bit.on.bfr-sign { background: rgba(148, 163, 184, 0.25); }
+.bfr-bit.on.bfr-exponent { background: var(--viz-accent-soft); }
+.bfr-bit.on.bfr-mantissa { background: rgba(71, 85, 105, 0.45); }
+.bfr-bit.changed { outline: 2px solid var(--viz-text); outline-offset: 1px; }
+
+.bfr-sw { display: inline-block; width: 10px; height: 10px; margin: 0 4px 0 10px; border-radius: 2px; vertical-align: middle; }
+.bfr-sw.bfr-sign { background: var(--viz-text-2); }
+.bfr-sw.bfr-exponent { background: var(--viz-accent); }
+.bfr-sw.bfr-mantissa { background: var(--viz-border-strong); }
+.bfr-bit-legend { margin: 8px 0; color: var(--viz-text-2); font-size: var(--viz-fs-small); }
+
+.bfr-meter { position: relative; height: 34px; margin: 8px 0 4px; border: 1px solid var(--viz-border); border-radius: 8px; background: rgba(255, 255, 255, 0.03); }
+.bfr-meter i { position: absolute; top: 4px; bottom: 4px; width: 3px; border-radius: 2px; }
+.bfr-meter-orig { background: var(--viz-text-2); }
+.bfr-meter-now { background: var(--viz-accent); }
+.bfr-meter-scale { display: flex; justify-content: space-between; color: var(--viz-text-2); font: var(--viz-fs-micro) var(--mono); }
+.bfr-meter-key { margin-bottom: 8px; color: var(--viz-text-2); font-size: var(--viz-fs-small); }
+
+/* ── Parameter split and outcome stacks ──────────────────────────────── */
+
+.bfr-stack { display: flex; width: 100%; height: 26px; overflow: hidden; border-radius: 4px; background: var(--viz-border); }
+.bfr-seg { display: flex; align-items: center; justify-content: center; color: var(--viz-bg); font-size: var(--viz-fs-small); font-style: normal; }
+.bfr-seg-attn, .bfr-sw.bfr-seg-attn { background: var(--series-1); }
+.bfr-seg-mlp, .bfr-sw.bfr-seg-mlp { background: var(--series-2); }
+.bfr-seg-other, .bfr-sw.bfr-seg-other { background: var(--series-4); color: var(--viz-text); }
+.bfr-seg-intact { background: var(--series-2); }
+.bfr-seg-impaired { background: var(--series-3); }
+.bfr-seg-semantic-collapse { background: var(--viz-accent); }
+.bfr-seg-dead { background: var(--viz-border); color: var(--viz-text); }
+.bfr-split-row, .bfr-outcome-row { display: grid; grid-template-columns: 200px 1fr; align-items: center; gap: 10px; margin: 8px 0; font-size: var(--viz-fs-body); }
+
+@media (max-width: 960px) {
+  .bfr-anatomy .bfr-bits { gap: 2px; }
+  .bfr-bit-val { font-size: 14px; }
+  .bfr-split-row, .bfr-outcome-row { grid-template-columns: 1fr; }
+}

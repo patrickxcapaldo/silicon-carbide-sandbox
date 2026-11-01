@@ -1,17 +1,7 @@
-import { useEffect, useMemo, useRef } from 'react';
-import katex from 'katex';
+import { useMemo } from 'react';
+import { CardGrid, Chapter, Equation, Working } from '../../../core/ui';
 import { formatWatts, formatPercent } from './format';
 import { chapterExamples } from './chapterData';
-import 'katex/dist/katex.min.css';
-import './Explainer.css';
-
-function Equation({ latex }: { latex: string }) {
-  const elementRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (elementRef.current) katex.render(latex, elementRef.current, { throwOnError: false, displayMode: true });
-  }, [latex]);
-  return <div className="chapter-equation" ref={elementRef} />;
-}
 
 export function Explainer() {
   const { worked, losses, tempSweep, radSweep } = useMemo(() => chapterExamples(), []);
@@ -19,8 +9,7 @@ export function Explainer() {
   const i = worked.resolvedInputs;
 
   return (
-    <article className="module-chapter">
-      <a className="chapter-skip-link" href="#module-tool">Skip to tool</a>
+    <Chapter>
       <h2>The question: how much power does a space solar array actually deliver?</h2>
       <p>
         Solar irradiance above Earth’s atmosphere is intense and unattenuated by clouds or weather—roughly{' '}
@@ -43,8 +32,7 @@ export function Explainer() {
         A space solar array’s rated nameplate efficiency (Standard Test Conditions: 28 °C, AM0) is never what is delivered on orbit.
         The power calculation progresses through a chain of physical deratings:
       </p>
-      <details className="chapter-working">
-        <summary>Show the working</summary>
+      <Working summary="Show the working">
         <p>1. Cell efficiency decreases linearly with operating temperature above standard test conditions (T₀ = 28 °C):</p>
         <Equation latex={'\\eta_{\\text{temp}} = \\eta_0 \\left[ 1 + \\gamma (T_{\\text{cell}} - 28\\;{^\\circ}\\mathrm{C}) \\right]'} />
         <p>where γ is the temperature coefficient (typically -0.20% to -0.30%/K for multi-junction GaAs cells).</p>
@@ -60,14 +48,14 @@ export function Explainer() {
 
         <p>5. Total electrical energy generated per Keplerian orbital revolution sizes energy storage:</p>
         <Equation latex={'E_{\\text{orbit}} = P_{\\text{avg}} \\cdot T_{\\text{orbit}} = P_{\\text{sunlit}} \\cdot (f_{\\text{sunlit}} \\cdot T_{\\text{orbit}})'} />
-      </details>
+      </Working>
 
       <h3>The three dominant power drains</h3>
       <p>
         Every orbital photovoltaic system experiences three major power deductions from its theoretical STC potential.
         Understanding which drain dominates dictates where engineering mass and budget should be spent:
       </p>
-      <div className="chapter-loss-grid">
+      <CardGrid>
         <section>
           <h4>Eclipse Shadow</h4>
           <Equation latex={'\\Delta P_{\\text{eclipse}} = P_{\\text{sunlit}} (1 - f_{\\text{sunlit}})'} />
@@ -83,14 +71,13 @@ export function Explainer() {
           <Equation latex={'\\Delta P_{\\text{rad}} = P_{\\text{temp}} [1 - (1 - r_{\\text{deg}})^{\\Delta t}]'} />
           <p>Irreversible junction degradation from trapped Van Allen protons and cosmic rays.</p>
         </section>
-      </div>
+      </CardGrid>
 
-      <details className="chapter-working">
-        <summary>Show the working: reference 5-year LEO mission</summary>
+      <Working summary="Show the working: reference 5-year LEO mission">
         <p>
           Calculated dynamically from the physics kernel for a 5 m² array in a 500 km, 51.6° orbit at 65 °C after 5 years:
         </p>
-        <dl className="chapter-example-values">
+        <dl className="sci-facts">
           <div><dt>BOL Peak Power (STC 28 °C)</dt><dd>{formatWatts(v.beginningOfLifePowerW)}</dd></div>
           <div><dt>Instantaneous Sunlit Power (EOL)</dt><dd>{formatWatts(v.instantaneousSunlitPowerW)}</dd></div>
           <div><dt>Orbit Average Power</dt><dd>{formatWatts(v.orbitAveragePowerW)}</dd></div>
@@ -103,14 +90,13 @@ export function Explainer() {
         <p>
           In this mission configuration, <strong>{losses.dominantLoss.toUpperCase()}</strong> is the dominant power drain.
         </p>
-      </details>
+      </Working>
 
-      <details className="chapter-working">
-        <summary>Show the working: cell temperature sensitivity sweep</summary>
+      <Working summary="Show the working: cell temperature sensitivity sweep">
         <p>
           Impact of operating temperature on cell efficiency and delivered sunlit power, holding all other reference inputs fixed:
         </p>
-        <table className="chapter-data-table">
+        <table className="sci-table">
           <thead>
             <tr>
               <th>Cell Temperature</th>
@@ -128,14 +114,13 @@ export function Explainer() {
             ))}
           </tbody>
         </table>
-      </details>
+      </Working>
 
-      <details className="chapter-working">
-        <summary>Show the working: multi-year radiation retention sweep</summary>
+      <Working summary="Show the working: multi-year radiation retention sweep">
         <p>
           Cumulative performance retention across mission duration at an annual degradation rate of {(i.annualDegradationRate * 100).toFixed(1)}%/yr:
         </p>
-        <table className="chapter-data-table">
+        <table className="sci-table">
           <thead>
             <tr>
               <th>Mission Lifetime</th>
@@ -153,7 +138,7 @@ export function Explainer() {
             ))}
           </tbody>
         </table>
-      </details>
+      </Working>
 
       <h3>How to use the tool</h3>
       <p>
@@ -174,6 +159,6 @@ export function Explainer() {
         Albedo illumination and Earth thermal infrared reflection onto photovoltaic faces are also omitted, treating direct solar flux as
         the sole electrical source.
       </p>
-    </article>
+    </Chapter>
   );
 }

@@ -53,7 +53,7 @@
 
 .home-cta--filled {
 	background: var(--accent);
-	color: #fff;
+	color: var(--on-accent);
 }
 
 .home-cta--outlined {
@@ -66,7 +66,7 @@
 .home-cta:focus-visible {
 	background: var(--orchid);
 	border-color: var(--orchid);
-	color: var(--bg-surface);
+	color: var(--on-accent);
 }
 
 .home-cta:focus-visible {
@@ -93,7 +93,7 @@
 	display: inline-flex;
 	align-items: center;
 	margin-bottom: 1rem;
-	color: var(--accent);
+	color: var(--link);
 	font: 600 0.9rem var(--sans);
 }
 

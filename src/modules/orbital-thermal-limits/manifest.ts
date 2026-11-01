@@ -9,6 +9,8 @@ export const manifest: Manifest = {
   contractVersion: MODULE_CONTRACT_VERSION,
   title: 'Orbital Compute Thermal Rejection Limits',
   summary: 'Interactive first-order thermal balance for a spacecraft radiator in Earth orbit, including solar, albedo, Earth IR, coolant transport, and orbital geometry.',
+  realism: 'Estimate',
+  scope: 'Steady-state, orbit-averaged first-order balance. No thermal mass, battery or transient temperatures, and a simplified Earth view factor and Sun geometry.',
   tags: ['space', 'thermal-physics', 'orbital-compute', 'ai-infrastructure'],
   relatedArticles: [],
   interfaces: ['solar-power-budget'],

@@ -1,0 +1,782 @@
+/*
+ * Silicon Carbide Imperative Sandbox: the Explore instrument.
+ *
+ * Canvas, Controls panel, buttons, presets, sliders, info tips, overlays and
+ * telemetry. Always dark, built only from the --viz-* tokens in src/index.css.
+ *
+ * Interaction grammar (identical everywhere):
+ *   rest      neutral outline, Mist text
+ *   hover     brighter text, faint fill, stronger outline        (no movement)
+ *   selected  Orchid outline + soft Orchid fill (+ a tick on presets)
+ *   focus     2px Orchid ring
+ *   disabled  45% opacity, not-allowed
+ * Orchid is the only accent. It marks selection and the one highlighted item.
+ */
+
+/* ── Canvas ──────────────────────────────────────────────────────────── */
+
+.sci-viz {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  height: 760px;
+  min-height: 600px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--viz-border-strong);
+  border-radius: 16px;
+  background: var(--viz-bg);
+  color: var(--viz-text);
+  box-shadow: var(--viz-shadow);
+  font-family: var(--sans);
+  font-size: var(--viz-fs-body);
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.sci-viz button,
+.sci-viz summary {
+  font-family: inherit;
+}
+
+/* Main region for 2D modules: everything left of the Controls panel. */
+.sci-viz__main {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  overflow: auto;
+}
+
+.sci-viz[data-controls='open'] > .sci-viz__main {
+  right: 316px;
+}
+
+.sci-viz[data-controls='collapsed'] > .sci-viz__main {
+  right: 164px;
+}
+
+/* ── Controls panel ──────────────────────────────────────────────────── */
+
+.sci-controls {
+  position: absolute;
+  z-index: 40;
+  top: 16px;
+  right: 16px;
+  bottom: 16px;
+  width: 300px;
+  padding: 12px 14px;
+  overflow-y: auto;
+  border: 1px solid var(--viz-border-strong);
+  border-radius: 12px;
+  background: var(--viz-panel);
+  color: var(--viz-text);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
+  font-size: var(--viz-fs-body);
+}
+
+.sci-controls.is-collapsed {
+  bottom: auto;
+  width: 148px;
+  overflow: visible;
+}
+
+.sci-controls__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sci-controls.is-collapsed .sci-controls__head {
+  margin-bottom: 0;
+}
+
+.sci-controls__title {
+  margin: 0;
+  color: var(--viz-text);
+  font-size: var(--viz-fs-title);
+  font-weight: 700;
+}
+
+.sci-controls__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 680px) {
+  .sci-controls {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    bottom: 10px;
+    width: auto;
+  }
+
+  .sci-controls.is-collapsed {
+    left: auto;
+    width: 148px;
+  }
+
+  .sci-viz[data-controls='open'] > .sci-viz__main,
+  .sci-viz[data-controls='collapsed'] > .sci-viz__main {
+    right: 0;
+    padding-top: 58px;
+  }
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────── */
+
+.sci-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: var(--viz-control-h);
+  min-height: var(--viz-control-h);
+  padding: 0 12px;
+  border: 1px solid var(--viz-border-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--viz-text);
+  font-size: var(--viz-fs-body);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sci-btn:hover:not(:disabled) {
+  border-color: var(--viz-text-2);
+  background: var(--viz-hover);
+}
+
+.sci-btn--primary {
+  border-color: var(--viz-accent);
+  background: var(--viz-accent);
+  color: var(--on-accent);
+}
+
+.sci-btn--primary:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--viz-accent) 85%, white);
+  background: color-mix(in srgb, var(--viz-accent) 85%, white);
+}
+
+.sci-btn--icon {
+  width: var(--viz-control-h);
+  min-width: var(--viz-control-h);
+  padding: 0;
+  font-size: var(--viz-fs-micro);
+}
+
+.sci-btn--round {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: var(--viz-fs-body);
+}
+
+.sci-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sci-viz button:focus-visible,
+.sci-viz summary:focus-visible,
+.sci-viz input:focus-visible,
+.sci-info:focus-visible,
+.sci-info-pop button:focus-visible {
+  outline: 2px solid var(--viz-accent);
+  outline-offset: 2px;
+}
+
+/* ── Segmented buttons (view, focus, speed, tabs, on/off) ────────────── */
+
+.sci-seg-row {
+  display: flex;
+  gap: 6px;
+}
+
+.sci-seg-row--wrap {
+  flex-wrap: wrap;
+}
+
+.sci-seg-row--tight {
+  gap: 4px;
+}
+
+.sci-seg-row--tight > .sci-seg {
+  min-width: 0;
+  padding-right: 2px;
+  padding-left: 2px;
+}
+
+.sci-seg {
+  flex: 1;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid var(--viz-border-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--viz-text-2);
+  font-size: var(--viz-fs-small);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.sci-seg:hover:not(:disabled) {
+  background: var(--viz-hover);
+  color: var(--viz-text);
+}
+
+.sci-seg[aria-pressed='true'] {
+  border-color: var(--viz-accent);
+  background: var(--viz-accent-soft);
+  color: var(--viz-text);
+  font-weight: 600;
+}
+
+/* Tabs in a main region size to their label instead of stretching. */
+.sci-seg-row--wrap > .sci-seg {
+  flex: 0 0 auto;
+}
+
+/* ── Preset buttons ──────────────────────────────────────────────────── */
+
+.sci-preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sci-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sci-preset {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 6px 8px;
+  border: 1px solid var(--viz-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--viz-text);
+  font-size: var(--viz-fs-small);
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sci-preset:hover:not(:disabled) {
+  border-color: var(--viz-border-strong);
+  background: var(--viz-hover);
+}
+
+.sci-preset[aria-pressed='true'] {
+  border-color: var(--viz-accent);
+  background: var(--viz-accent-soft);
+  font-weight: 700;
+}
+
+.sci-preset__tick {
+  flex: none;
+  width: 12px;
+  color: var(--viz-accent);
+  opacity: 0;
+}
+
+.sci-preset[aria-pressed='true'] .sci-preset__tick {
+  opacity: 1;
+}
+
+/* ── Sections and labels ─────────────────────────────────────────────── */
+
+.sci-group {
+  margin-bottom: 12px;
+}
+
+.sci-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+  color: var(--viz-text-2);
+  font-size: var(--viz-fs-small);
+}
+
+.sci-section {
+  margin-bottom: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--viz-border);
+}
+
+.sci-section > summary {
+  margin-bottom: 6px;
+  color: var(--viz-text);
+  font-size: var(--viz-fs-body);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sci-section__body {
+  padding-top: 6px;
+}
+
+.sci-hint {
+  margin: 0 0 4px;
+  color: var(--viz-text-2);
+  font-size: var(--viz-fs-small);
+  line-height: 1.4;
+}
+
+.sci-card {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Sliders ─────────────────────────────────────────────────────────── */
+
+.sci-slider {
+  display: block;
+  margin-bottom: 11px;
+}
+
+.sci-slider.is-disabled {
+  opacity: 0.45;
+}
+
+.sci-slider.is-dim {
+  opacity: 0.6;
+}
+
+.sci-slider__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: var(--viz-text-2);
+  font-size: var(--viz-fs-small);
+}
+
+.sci-slider__name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sci-slider__value {
+  color: var(--viz-text);
+  font: 600 var(--viz-fs-body) var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sci-viz input[type='range'] {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--viz-text-2) var(--fill, 0%),
+    var(--viz-border) var(--fill, 0%)
+  );
+  cursor: pointer;
+}
+
+.sci-viz input[type='range']:disabled {
+  cursor: not-allowed;
+}
+
+.sci-viz input[type='range']::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--viz-panel);
+  background: var(--viz-text);
+  box-shadow: none;
+}
+
+.sci-viz input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 2px solid var(--viz-panel);
+  background: var(--viz-text);
+  box-shadow: none;
+}
+
+.sci-viz input[type='range']:hover::-webkit-slider-thumb,
+.sci-viz input[type='range']:active::-webkit-slider-thumb,
+.sci-viz input[type='range']:focus-visible::-webkit-slider-thumb {
+  background: var(--viz-accent);
+  box-shadow: none;
+}
+
+.sci-viz input[type='range']:hover::-moz-range-thumb,
+.sci-viz input[type='range']:active::-moz-range-thumb,
+.sci-viz input[type='range']:focus-visible::-moz-range-thumb {
+  background: var(--viz-accent);
+  box-shadow: none;
+}
+
+.sci-meter {
+  height: 4px;
+  margin-bottom: 6px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--viz-border);
+}
+
+.sci-meter > i {
+  display: block;
+  height: 100%;
+  background: var(--viz-text-2);
+}
+
+/* ── Info tip: the (i) button and its popover ────────────────────────── */
+
+.sci-info {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  padding: 0;
+  border: 1px solid var(--viz-border-strong);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--viz-text-2);
+  font: italic 700 var(--viz-fs-micro) / 1 var(--mono);
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.sci-info:hover,
+.sci-info[aria-expanded='true'] {
+  border-color: var(--viz-accent);
+  color: var(--viz-text);
+}
+
+.sci-info[aria-expanded='true'] {
+  background: var(--viz-accent-soft);
+}
+
+.sci-info-pop {
+  position: fixed;
+  z-index: 9999;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--viz-border-strong);
+  border-radius: 8px;
+  background: var(--viz-panel);
+  color: var(--viz-text);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+  font: 400 var(--viz-fs-small) / 1.5 var(--sans);
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.sci-info-pop p {
+  margin: 0;
+}
+
+.sci-info-pop p + p {
+  margin-top: 6px;
+}
+
+.sci-info-pop .sci-info-pop__extra {
+  color: var(--viz-text-2);
+}
+
+/* ── Overlays and telemetry on the canvas ────────────────────────────── */
+
+.sci-overlay {
+  position: absolute;
+  z-index: 20;
+  box-sizing: border-box;
+  border: 1px solid var(--viz-border-strong);
+  background: rgba(15, 17, 23, 0.9);
+  color: var(--viz-text);
+  backdrop-filter: blur(8px);
+  font-size: var(--viz-fs-body);
+}
+
+.sci-overlay > summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sci-overlay--intro {
+  top: 16px;
+  left: 16px;
+  max-width: 260px;
+  padding: 9px 12px;
+  border-radius: 10px;
+}
+
+.sci-overlay--intro > div {
+  margin-top: 6px;
+  color: var(--viz-text-2);
+}
+
+.sci-overlay--telemetry {
+  left: 16px;
+  right: 332px;
+  bottom: 16px;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.sci-viz[data-controls='collapsed'] > .sci-overlay--telemetry {
+  right: 16px;
+}
+
+.sci-telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 680px) {
+  .sci-overlay--intro {
+    top: 58px;
+    left: 10px;
+    max-width: min(260px, calc(100% - 20px));
+  }
+
+  .sci-overlay--telemetry,
+  .sci-viz[data-controls='collapsed'] > .sci-overlay--telemetry {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    max-height: 42%;
+    overflow: auto;
+  }
+
+  .sci-telemetry-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Metric cards (telemetry, live readouts) ─────────────────────────── */
+
+.sci-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--viz-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sci-metric.is-highlight {
+  border-color: var(--viz-accent);
+  box-shadow: inset 0 0 0 1px var(--viz-accent);
+}
+
+.sci-metric__label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--viz-text-2);
+  font-size: var(--viz-fs-small);
+}
+
+.sci-metric__value {
+  color: var(--viz-text);
+  font: 600 13px var(--mono);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.sci-metric__note {
+  color: var(--viz-text-2);
+  font-size: var(--viz-fs-small);
+}
+
+.sci-metric__value[data-status='safe'] { color: var(--status-safe); }
+.sci-metric__value[data-status='margin'] { color: var(--status-margin); }
+.sci-metric__value[data-status='limit'] { color: var(--status-limit); }
+.sci-metric__value[data-status='fail'] { color: var(--status-fail); }
+
+.sci-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+/* Model status chip: a flat dot plus the label. Status colours only.
+   The dot always carries the status colour; the label is coloured too on the
+   dark canvas but stays page text on light surfaces (yellow text on white
+   would be unreadable). */
+.sci-status {
+  --status-color: currentColor;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-h);
+  font-weight: 700;
+}
+
+.sci-status__dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--status-color);
+}
+
+.sci-status[data-status='safe'] { --status-color: var(--status-safe); }
+.sci-status[data-status='margin'] { --status-color: var(--status-margin); }
+.sci-status[data-status='limit'] { --status-color: var(--status-limit); }
+.sci-status[data-status='fail'] { --status-color: var(--status-fail); }
+
+.sci-viz .sci-status {
+  color: var(--status-color);
+}
+
+/* ── Content inside a 2D main region ─────────────────────────────────── */
+
+.sci-viz__main .sci-view {
+  flex: 1;
+  min-height: 0;
+  padding: 4px 6px;
+  overflow: auto;
+  font-size: 13px;
+}
+
+.sci-viz__main .sci-view h4 {
+  margin: 14px 0 6px;
+  color: var(--viz-text-2);
+  font-weight: 600;
+}
+
+.sci-viz__main .sci-view p,
+.sci-viz__main .sci-view li {
+  color: var(--viz-text);
+}
+
+.sci-viz__main .sci-view table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--viz-fs-body);
+}
+
+.sci-viz__main .sci-view th,
+.sci-viz__main .sci-view td {
+  padding: 4px 8px;
+  border: 1px solid var(--viz-border);
+  text-align: left;
+}
+
+.sci-viz__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--viz-border);
+  color: var(--viz-text-2);
+  font-size: var(--viz-fs-body);
+}
+
+.sci-viz__footer .sci-seg {
+  flex: 0 0 auto;
+  padding: 5px 14px;
+}
+
+.sci-viz__footer .sci-btn {
+  height: 28px;
+  min-height: 28px;
+}
+
+.sci-callout-dark {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--viz-accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--viz-accent-soft);
+  color: var(--viz-text);
+}
+
+.sci-card-button {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--viz-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--viz-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sci-card-button:hover {
+  border-color: var(--viz-accent);
+  background: var(--viz-hover);
+}
+
+.sci-card-button span {
+  color: var(--viz-text-2);
+}
+
+/* Small text button beside a label, e.g. "→ Survival Vs Dose" jump links. */
+.sci-tag-btn {
+  padding: 0 5px;
+  border: 1px solid var(--viz-border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--viz-text-2);
+  font-size: var(--viz-fs-micro);
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.sci-tag-btn:hover {
+  border-color: var(--viz-accent);
+  color: var(--viz-text);
+}
+
+/* Notes inside the dark canvas read as Mist, not as page text. */
+.sci-viz .sci-note {
+  color: var(--viz-text-2);
+}
+
+/* Metric cards placed on the page (below the canvas) follow the page theme. */
+.sci-details .sci-metric {
+  border-color: var(--border);
+  background: var(--bg);
+}
+
+.sci-details .sci-metric__label,
+.sci-details .sci-metric__note {
+  color: var(--text);
+}
+
+.sci-details .sci-metric__value {
+  color: var(--text-h);
+}

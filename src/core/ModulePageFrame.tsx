@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ModuleBadgeRow } from './ModuleBadgeRow';
 import type { Manifest } from './types';
+import './ui/styles';
 
 interface ModulePageFrameProps {
   manifest: Manifest;
@@ -56,6 +57,7 @@ export function ModulePageFrame({ manifest, children }: ModulePageFrameProps) {
           >
             {manifest.summary}
           </p>
+          {manifest.scope && <p className="sci-scope">{manifest.scope}</p>}
           <ModuleBadgeRow manifest={manifest} />
         </header>
         <main>{children}</main>

@@ -91,6 +91,15 @@ export interface SubstackArticle {
   summary?: string;
 }
 
+/**
+ * North Star: every module states how far to trust it with exactly one of
+ * three words. Sketch = order-of-magnitude reasoning from a few equations;
+ * Estimate = first-order model with sourced inputs and stated simplifications;
+ * Detailed = resolved model validated against measurements.
+ */
+export const REALISM_LABELS = ['Sketch', 'Estimate', 'Detailed'] as const;
+export type RealismLabel = (typeof REALISM_LABELS)[number];
+
 export interface Manifest {
   id: string;
   releaseVersion: string;
@@ -98,6 +107,10 @@ export interface Manifest {
   contractVersion?: string;
   title: string;
   summary: string;
+  /** Required by the North Star for every module; shown in the page header. */
+  realism?: RealismLabel;
+  /** One sentence naming what the module covers, assumes and ignores; shown under the summary. */
+  scope?: string;
   tags: string[];
   articleUrl?: string; // Main editorial link
   relatedArticles?: SubstackArticle[]; // Tagged/sorted article series

@@ -9,6 +9,8 @@ export const manifest: Manifest = {
   contractVersion: MODULE_CONTRACT_VERSION,
   title: 'Solar Array Electrical Power Budget',
   summary: 'Orbit-averaged electrical power generation for orbital photovoltaic arrays, incorporating eclipse geometry, pointing accuracy, multi-junction cell temperature derating, radiation fluence degradation, and balance-of-system losses.',
+  realism: 'Estimate',
+  scope: 'Orbit-averaged first-order power budget. No battery dynamics, no eclipse cooling transient, and no albedo or Earth infrared on the array.',
   tags: ['space', 'photovoltaics', 'orbital-power', 'ai-infrastructure', 'solar-energy'],
   relatedArticles: [],
   interfaces: ['orbital-thermal-limits'],

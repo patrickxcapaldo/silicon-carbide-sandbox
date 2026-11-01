@@ -10,6 +10,7 @@ import { CloseupBackdrop } from './CloseupBackdrop';
 import { clamp01 } from './thermalColor';
 import { EARTH_RADIUS_SCENE, orbitPoints, orbitRadiusScene, satelliteOrbitPosition } from './orbit';
 import { RADIATOR_MAX_REACH, SOLAR_MAX_REACH } from './spacecraftGeometry';
+import { SCENE } from '../../../core/ui';
 
 export type ViewMode = 'orbit' | 'closeup';
 export type CameraFocus = 'earth' | 'satellite';
@@ -70,8 +71,8 @@ export function ThermalScene({ state, derived, viewMode, cameraFocus }: Props) {
           orbitArgumentDeg={state.orbitArgumentDeg}
           orbitPhaseDeg={state.orbitPhaseDeg}
         />
-        <Stars radius={100} depth={50} count={2200} factor={3.5} saturation={0.2} fade speed={0.3} />
-        <Line points={orbit} color="#7ecfff" transparent opacity={0.55} lineWidth={1.3} />
+        <Stars {...SCENE.stars} fade />
+        <Line points={orbit} color={SCENE.orbit.sunlit} transparent opacity={SCENE.orbit.opacity} lineWidth={SCENE.orbit.lineWidth} />
       </>
     ) : (
       <CloseupBackdrop solarLoadWm2={state.solarLoadWm2} earthViewFactor={state.earthViewFactor} />
@@ -91,7 +92,7 @@ export function ThermalScene({ state, derived, viewMode, cameraFocus }: Props) {
       key={`${viewMode}-${cameraFocus}`}
       makeDefault
       enableDamping
-      dampingFactor={0.07}
+      dampingFactor={SCENE.controls.dampingFactor}
       minDistance={minDistance}
       maxDistance={maxDistance}
       target={cameraTarget}

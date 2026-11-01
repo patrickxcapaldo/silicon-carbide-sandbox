@@ -2,26 +2,15 @@ import React from 'react';
 import type { Manifest } from './types';
 import { GithubBadge } from './GithubBadge';
 import { getAllModules } from './registry';
+import './ui/ui.css';
 
 interface ModuleBadgeRowProps {
   manifest: Manifest;
 }
 
-const tagChip: React.CSSProperties = {
-  fontSize: '0.7rem',
-  fontWeight: 500,
-  fontFamily: 'var(--mono)',
-  background: 'var(--tag-bg)',
-  color: 'var(--tag-text)',
-  padding: '0.2rem 0.45rem',
-  borderRadius: '4px',
-  border: '1px solid var(--border)',
-  lineHeight: 1.4,
-};
-
 /**
  * Three-row badge block rendered below a module's heading/summary:
- *   Row 1 – module identity badge (+ optional contract badge)
+ *   Row 1 – module identity badge (+ contract badge, + realism label)
  *   Row 2 – one clickable "interfaces" badge per interfaced module (with version)
  *   Row 3 – topic tag chips
  *
@@ -54,10 +43,14 @@ export const ModuleBadgeRow: React.FC<ModuleBadgeRowProps> = ({ manifest }) => {
         <GithubBadge
           label="module"
           value={`${manifest.id} v${manifest.releaseVersion}`}
-          color="#0969da"
         />
-        {contractVersion && (
-          <GithubBadge label="contract" value={`v${contractVersion}`} color="#8250df" />
+        {contractVersion && <GithubBadge label="contract" value={`v${contractVersion}`} />}
+        {manifest.realism && (
+          <GithubBadge
+            label="realism"
+            value={manifest.realism}
+            title="North Star realism label: Sketch, Estimate or Detailed"
+          />
         )}
       </div>
 
@@ -72,7 +65,6 @@ export const ModuleBadgeRow: React.FC<ModuleBadgeRowProps> = ({ manifest }) => {
                 key={modId}
                 label="interfaces"
                 value={value}
-                color="#2da44e"
                 href={`/?module=${modId}`}
                 title={`Open interfaced companion module: ${modId}`}
               />
@@ -85,7 +77,7 @@ export const ModuleBadgeRow: React.FC<ModuleBadgeRowProps> = ({ manifest }) => {
       {manifest.tags.length > 0 && (
         <div style={rowStyle}>
           {manifest.tags.map((tag) => (
-            <span key={tag} style={tagChip}>
+            <span key={tag} className="sci-tag">
               {tag}
             </span>
           ))}
