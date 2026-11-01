@@ -92,9 +92,9 @@ export const HomePage: React.FC<HomePageProps> = ({ modules, view, onSelectModul
           </div>
           <nav aria-label="External links" className="home-front-door__links">
             {[
-              { label: 'SCI LinkedIn', href: 'https://www.linkedin.com/company/scimperative' },
-              { label: 'SCI GitHub', href: 'https://github.com/scimperative' },
-              { label: 'SCI Sandbox GitHub', href: 'https://github.com/scimperative/sandbox' },
+              { label: 'SC Imperative LinkedIn', href: 'https://www.linkedin.com/company/scimperative' },
+              { label: 'SC Imperative GitHub', href: 'https://github.com/scimperative' },
+              { label: 'SC Imperative Sandbox GitHub', href: 'https://github.com/scimperative/sandbox' },
               { label: 'Personal LinkedIn', href: 'https://linkedin.com/in/patrickxcapaldo' },
               { label: 'Personal GitHub', href: 'https://github.com/patrickxcapaldo' },
               { label: 'Personal Website', href: 'https://patrickxcapaldo.github.io/' },

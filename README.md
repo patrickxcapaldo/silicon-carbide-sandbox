@@ -1,4 +1,4 @@
-# Silicon Carbide Imperative Sandbox (`SCI Sandbox`)
+# Silicon Carbide Imperative Sandbox (`SC Imperative Sandbox`)
 
 ![Silicon Carbide Imperative Sandbox](public/silicon_carbide_sandbox_image.png)
 
@@ -11,9 +11,9 @@
 
 ## Overview
 
-**SCI Sandbox** is an open-source library of deterministic, first-principles physics and engineering calculators.
+**SC Imperative Sandbox** is an open-source library of deterministic, first-principles physics and engineering calculators.
 
-Modern technology analysis often gets bogged down in corporate press releases, short-term quarterly guidance and volatile industry cycles. SCI Sandbox takes a different approach by modelling invariant physical and economic constraints.
+Modern technology analysis often gets bogged down in corporate press releases, short-term quarterly guidance and volatile industry cycles. SC Imperative Sandbox takes a different approach by modelling invariant physical and economic constraints.
 
 Whether the subject is orbital compute thermal limits, radar range equations or semiconductor wafer yields, physics and thermodynamics do not go stale. This repository serves as the empirical spine for technical teardowns published on the [Silicon Carbide Imperative Substack](https://scimperative.substack.com).
 

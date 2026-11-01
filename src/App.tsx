@@ -93,7 +93,7 @@ export function App() {
               letterSpacing: '0.02em',
             }}
           >
-            SCI Sandbox v{BUILD_INFO.sandboxVersion}
+            SC Imperative Sandbox v{BUILD_INFO.sandboxVersion}
           </span>
         </nav>
         <div style={{ flex: 1 }}>
